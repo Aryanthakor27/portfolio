@@ -563,6 +563,21 @@ app.post("/api/admin/resume/upload", requireAuth, async (req, res) => {
   }
 });
 
+// --- Serve Frontend Static Build in Production ---
+const FRONTEND_DIST = path.resolve(__dirname, "../frontend/dist");
+if (fs.existsSync(FRONTEND_DIST)) {
+  app.use(express.static(FRONTEND_DIST));
+  app.get("*", (req, res) => {
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith("/api")) {
+      res.sendFile(path.join(FRONTEND_DIST, "index.html"));
+    } else {
+      res.status(404).json({ error: "API route not found" });
+    }
+  });
+}
+
 app.listen(PORT, () => {
   console.log(`⚡ [Backend] Aryan Thakor Portfolio API running on http://localhost:${PORT}`);
 });
+
