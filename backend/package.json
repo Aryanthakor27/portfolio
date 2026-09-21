@@ -1,0 +1,17 @@
+{
+  "name": "aryan-thakor-portfolio-backend",
+  "version": "1.0.0",
+  "description": "Express REST API backend for Aryan Thakor MERN Portfolio",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "otplib": "^13.5.0",
+    "qrcode": "^1.5.4"
+  }
+}

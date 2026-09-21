@@ -1,0 +1,44 @@
+{
+  "passcode": "aryan2026",
+  "twoFactorEnabled": false,
+  "twoFactorSecret": "",
+  "emergencyRecoveryKey": "ARYAN-KEY-F173CCCA",
+  "activeSessions": [
+    {
+      "token": "b84468be6fd99c3116b94ff8540960235a3c04b011e4272f82509f8a3cc64c91",
+      "expiresAt": 1790056799533
+    },
+    {
+      "token": "bd4a5d46bdccdf5b15d35968ed35835edc80a78982f90bea2522a29e0039b52e",
+      "expiresAt": 1790058214665
+    },
+    {
+      "token": "04afbfc0b63f8b56cd06a698d68645a81712ab2ef0eb3ab5b76abc7434c18650",
+      "expiresAt": 1790062588140
+    },
+    {
+      "token": "f514aa2d25c5824754a49b945b514f8879d99776a72261bb1472959047953559",
+      "expiresAt": 1790063215713
+    },
+    {
+      "token": "b5f41b6d207b087167df20838e54cc91ab6cf555444a39ea959a886736f23f6b",
+      "expiresAt": 1790064118906
+    },
+    {
+      "token": "3ea747b937370119c9125d4227f6c47ff7e65d51a0c6b22f98896ffaeac7679b",
+      "expiresAt": 1790064758917
+    },
+    {
+      "token": "e0c681932c209f0953071b8307595ff16a7d728d352a5570e4d886b624138d9d",
+      "expiresAt": 1790064894247
+    },
+    {
+      "token": "501f751a1c3cd98cfb109a2520587963d959751bca94c506f49decadc6b2da91",
+      "expiresAt": 1790066476622
+    },
+    {
+      "token": "487aefdfeffe1b47a8062a7aa30fd4a9a456b34fda1822011638a92d1bc7b2bc",
+      "expiresAt": 1790073435799
+    }
+  ]
+}

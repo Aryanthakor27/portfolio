@@ -1,0 +1,491 @@
+export const websitesData = [
+  // E-COMMERCE & BEAUTY (13)
+  {
+    id: 1,
+    name: "1Immunity",
+    url: "https://www.1immunity.com/",
+    domain: "1immunity.com",
+    category: "ecommerce",
+    badge: "E-Commerce",
+    tech: "Custom CMS / WooCommerce",
+    desc: "Health, immunity booster supplements & nutritional wellness e-commerce platform."
+  },
+  {
+    id: 2,
+    name: "Harvey Prince",
+    url: "https://www.harveyprince.com/",
+    domain: "harveyprince.com",
+    category: "ecommerce",
+    badge: "Luxury E-Com",
+    tech: "Shopify Store",
+    desc: "World-renowned luxury perfumes, organic fragrances & cruelty-free cosmetics boutique."
+  },
+  {
+    id: 3,
+    name: "Baku Skin",
+    url: "https://www.bakuskin.com/",
+    domain: "bakuskin.com",
+    category: "ecommerce",
+    badge: "Beauty & Skincare",
+    tech: "Shopify / Liquid",
+    desc: "Premium anti-aging skincare, retinol alternatives, and dermatology beauty store."
+  },
+  {
+    id: 4,
+    name: "Ayana MD Beauty",
+    url: "https://www.ayanamdbeauty.com/",
+    domain: "ayanamdbeauty.com",
+    category: "ecommerce",
+    badge: "Medical Cosmetics",
+    tech: "Custom CMS & Architecture",
+    desc: "Physician-formulated clinical skincare and luxury aesthetic beauty products."
+  },
+  {
+    id: 5,
+    name: "Almed Beauty",
+    url: "https://www.almedbeauty.net/",
+    domain: "almedbeauty.net",
+    category: "ecommerce",
+    badge: "Beauty & Hair",
+    tech: "Shopify",
+    desc: "Organic hair, skin and body care formulations with seamless checkout."
+  },
+  {
+    id: 6,
+    name: "Ilia MD",
+    url: "https://www.iliamd.com/",
+    domain: "iliamd.com",
+    category: "ecommerce",
+    badge: "Medical Skincare",
+    tech: "Custom CMS / WooCommerce",
+    desc: "Dermatological clinic skincare products, sunscreens, and medical facial solutions."
+  },
+  {
+    id: 7,
+    name: "Mystique MediSpa",
+    url: "https://mystiquemedispa.com/",
+    domain: "mystiquemedispa.com",
+    category: "ecommerce",
+    badge: "MediSpa & Clinic",
+    tech: "Custom CMS / Booking",
+    desc: "Full-service medical aesthetics spa, laser treatments, and wellness appointments."
+  },
+  {
+    id: 8,
+    name: "LipoBlend",
+    url: "https://lipoblend.com/",
+    domain: "lipoblend.com",
+    category: "ecommerce",
+    badge: "Supplements",
+    tech: "Shopify",
+    desc: "Advanced liposomal dietary supplements for energy, fat metabolism & vitality."
+  },
+  {
+    id: 9,
+    name: "Only Peptide",
+    url: "https://onlypeptide.com/",
+    domain: "onlypeptide.com",
+    category: "ecommerce",
+    badge: "Bio-Nutrition",
+    tech: "WooCommerce",
+    desc: "Specialized bio-peptide formulations and fitness performance nutrition."
+  },
+  {
+    id: 10,
+    name: "Kians Natural",
+    url: "https://www.kiansnatural.com/",
+    domain: "kiansnatural.com",
+    category: "ecommerce",
+    badge: "Organic Store",
+    tech: "Shopify Store",
+    desc: "Pure organic lifestyle, holistic herbal wellness, and natural skincare remedies."
+  },
+  {
+    id: 11,
+    name: "The Greenleaf Herbal",
+    url: "https://thegreenleafherbal.com/",
+    domain: "thegreenleafherbal.com",
+    category: "ecommerce",
+    badge: "Herbal Organics",
+    tech: "Custom CMS / E-Commerce",
+    desc: "Ayurvedic herbal supplements, extracts, and plant-based organic healthcare."
+  },
+  {
+    id: 12,
+    name: "Sentosa Mattress",
+    url: "https://sentosamattress.com/",
+    domain: "sentosamattress.com",
+    category: "ecommerce",
+    badge: "Home & Furniture",
+    tech: "Shopify / Custom UI",
+    desc: "Orthopedic and luxury memory foam sleep solutions with doorstep delivery."
+  },
+  {
+    id: 13,
+    name: "Aalayam Store",
+    url: "https://www.aalayam.store/",
+    domain: "aalayam.store",
+    category: "ecommerce",
+    badge: "Traditional Retail",
+    tech: "WooCommerce",
+    desc: "Spiritual lifestyle essentials, pooja articles, and authentic handcrafted items."
+  },
+
+  // HOSPITALITY & HOTELS (6)
+  {
+    id: 14,
+    name: "Hummingbird Hotels",
+    url: "https://www.hummingbirdhotels.com/",
+    domain: "hummingbirdhotels.com",
+    category: "hospitality",
+    badge: "Hotels & Hospitality",
+    tech: "Custom CMS & Architecture",
+    desc: "Luxury hotel brand chain portal featuring direct booking engine integration."
+  },
+  {
+    id: 15,
+    name: "Hummingbird Resorts",
+    url: "https://www.hummingbirdresorts.com/",
+    domain: "hummingbirdresorts.com",
+    category: "hospitality",
+    badge: "Resorts & Vacation",
+    tech: "Modern Web / Responsive",
+    desc: "Eco-luxury resorts & vacation destinations with interactive gallery & booking."
+  },
+  {
+    id: 16,
+    name: "Los Viajeros Inn",
+    url: "https://www.losviajerosinn.com/",
+    domain: "losviajerosinn.com",
+    category: "hospitality",
+    badge: "Boutique Hotel",
+    tech: "Web Platform / SEO",
+    desc: "Historic South-Western boutique hotel website with room reservation workflows."
+  },
+  {
+    id: 17,
+    name: "Icon Lodging",
+    url: "https://www.iconlodging.com/",
+    domain: "iconlodging.com",
+    category: "hospitality",
+    badge: "Hotel Management",
+    tech: "Corporate CMS Platform",
+    desc: "Premier hospitality development, hotel portfolio management & acquisition."
+  },
+  {
+    id: 18,
+    name: "KB Hotels LLC",
+    url: "https://www.kbhotelsllc.com/",
+    domain: "kbhotelsllc.com",
+    category: "hospitality",
+    badge: "Hospitality LLC",
+    tech: "Responsive CMS",
+    desc: "Hotel investment and property operations management corporate website."
+  },
+  {
+    id: 19,
+    name: "The BLVD Steakhouse",
+    url: "https://www.theblvdsteakhouse.com/",
+    domain: "theblvdsteakhouse.com",
+    category: "hospitality",
+    badge: "Fine Dining",
+    tech: "Custom UI / Menu",
+    desc: "Upscale steakhouse & fine dining restaurant website with interactive menus."
+  },
+
+  // CORPORATE, TECH & FINANCE (9)
+  {
+    id: 20,
+    name: "Digiva Inc",
+    url: "https://www.digiva.com/",
+    domain: "digiva.com",
+    category: "corporate",
+    badge: "Digital Agency",
+    tech: "Web Platform / SEO Lead",
+    desc: "Full-service digital agency & web engineering enterprise (formerly Rowwat Technologies)."
+  },
+  {
+    id: 21,
+    name: "Rowwat Technologies",
+    url: "https://rowwat.com/",
+    domain: "rowwat.com",
+    category: "corporate",
+    badge: "Tech Enterprise",
+    tech: "React / Custom Web",
+    desc: "IT consulting & software development company (earlier brand name of Digiva Inc)."
+  },
+  {
+    id: 22,
+    name: "M1 Intel",
+    url: "https://m1intel.com/",
+    domain: "m1intel.com",
+    category: "corporate",
+    badge: "Global Intel",
+    tech: "HubSpot / Custom CMS",
+    desc: "Market intelligence, data analytics & strategic business consulting advisory."
+  },
+  {
+    id: 23,
+    name: "Akshar Fin",
+    url: "https://www.aksharfin.com/",
+    domain: "aksharfin.com",
+    category: "corporate",
+    badge: "Financial Advisory",
+    tech: "Financial Web Portal",
+    desc: "Corporate finance, wealth advisory, loan consulting & capital management."
+  },
+  {
+    id: 24,
+    name: "Finance Navigator",
+    url: "https://financenavigator.co.in/",
+    domain: "financenavigator.co.in",
+    category: "corporate",
+    badge: "Wealth Consulting",
+    tech: "Custom CMS",
+    desc: "Investment planning, mutual funds, tax optimization & retirement advisory."
+  },
+  {
+    id: 25,
+    name: "NextGen TaxFin",
+    url: "https://nextgentaxfin.com/",
+    domain: "nextgentaxfin.com",
+    category: "corporate",
+    badge: "Taxation Firm",
+    tech: "Web Platform / SEO",
+    desc: "Direct & indirect taxation, corporate audit, GST filings & compliance advisory."
+  },
+  {
+    id: 26,
+    name: "CA Pradip",
+    url: "https://capradip.in/",
+    domain: "capradip.in",
+    category: "corporate",
+    badge: "Chartered Accountant",
+    tech: "Custom CMS",
+    desc: "Chartered accountancy firm providing statutory auditing and taxation."
+  },
+  {
+    id: 27,
+    name: "Ebizcon Consultants",
+    url: "https://www.ebizcon.in/",
+    domain: "ebizcon.in",
+    category: "corporate",
+    badge: "Global Business",
+    tech: "Dynamic CMS Platform",
+    desc: "International business consultancy, enterprise restructuring & trade services."
+  },
+  {
+    id: 28,
+    name: "Verizontal",
+    url: "http://verizontal.net/",
+    domain: "verizontal.net",
+    category: "corporate",
+    badge: "Technology Systems",
+    tech: "Custom Frontend",
+    desc: "Network infrastructure, enterprise hardware & systems automation."
+  },
+
+  // INDUSTRIAL, LOGISTICS & REAL ESTATE (7)
+  {
+    id: 29,
+    name: "Indo Aluminium",
+    url: "https://www.indoalluminium.com/",
+    domain: "indoalluminium.com",
+    category: "industrial",
+    badge: "Industrial Mfg",
+    tech: "Custom CMS Catalog",
+    desc: "Architectural aluminum extrusions, industrial profiles & fabrication."
+  },
+  {
+    id: 30,
+    name: "GLG Industries",
+    url: "https://www.glgindustries.com/",
+    domain: "glgindustries.com",
+    category: "industrial",
+    badge: "Heavy Manufacturing",
+    tech: "Custom CMS / Catalog",
+    desc: "Precision engineering components and heavy industrial machinery systems."
+  },
+  {
+    id: 31,
+    name: "The Greenleaf Industries",
+    url: "https://thegreenleafindustries.com/",
+    domain: "thegreenleafindustries.com",
+    category: "industrial",
+    badge: "Green Manufacturing",
+    tech: "Custom CMS",
+    desc: "Sustainable packaging & biodegradable industrial manufacturing solutions."
+  },
+  {
+    id: 32,
+    name: "Maruti Print Pack",
+    url: "https://www.marutiprintpack.in/",
+    domain: "marutiprintpack.in",
+    category: "industrial",
+    badge: "Packaging Solutions",
+    tech: "Web Platform / SEO",
+    desc: "Custom corrugated boxes, flexible packaging & commercial offset printing."
+  },
+  {
+    id: 33,
+    name: "Palika Infratech",
+    url: "https://www.palikainfratech.com/",
+    domain: "palikainfratech.com",
+    category: "industrial",
+    badge: "Construction & Infra",
+    tech: "Web Portfolio Platform",
+    desc: "Civil engineering, commercial building construction & industrial infrastructure."
+  },
+  {
+    id: 34,
+    name: "Redline Freight Services",
+    url: "https://www.redlinefreightservices.com/",
+    domain: "redlinefreightservices.com",
+    category: "industrial",
+    badge: "Global Logistics",
+    tech: "Custom CMS / Tracking",
+    desc: "Cross-border freight forwarding, ocean cargo, air shipping & supply chain."
+  },
+  {
+    id: 35,
+    name: "Kommen Realty",
+    url: "https://www.kommenrealty.com/",
+    domain: "kommenrealty.com",
+    category: "industrial",
+    badge: "Real Estate Realty",
+    tech: "Real Estate Web Platform",
+    desc: "Commercial property listings, real estate development & land acquisitions."
+  },
+
+  // HEALTHCARE, EVENTS, GIFTS & LIFESTYLE (13)
+  {
+    id: 36,
+    name: "Concept Clinicals",
+    url: "https://conceptclinicals.com/",
+    domain: "conceptclinicals.com",
+    category: "health",
+    badge: "Clinical Trials",
+    tech: "Healthcare CMS Platform",
+    desc: "Clinical trial management, bio-analytical research & pharmaceutical CRO."
+  },
+  {
+    id: 37,
+    name: "Akshar Life Science",
+    url: "https://www.aksharlifescience.com/dlx-login/",
+    domain: "aksharlifescience.com",
+    category: "health",
+    badge: "Pharma Enterprise",
+    tech: "Custom Portal",
+    desc: "Active pharmaceutical ingredients (APIs), chemical synthesis & formulations."
+  },
+  {
+    id: 38,
+    name: "ProcessFit Inc",
+    url: "https://www.processfitinc.com/",
+    domain: "processfitinc.com",
+    category: "health",
+    badge: "Fitness & Gym",
+    tech: "Custom CMS / Membership",
+    desc: "Personal training, custom fitness coaching & nutrition programming portal."
+  },
+  {
+    id: 39,
+    name: "Therapique",
+    url: "https://therapique.com/",
+    domain: "therapique.com",
+    category: "health",
+    badge: "Physical Therapy",
+    tech: "Booking & CMS Portal",
+    desc: "Rehabilitation, sports injury recovery & licensed physiotherapy clinic."
+  },
+  {
+    id: 40,
+    name: "ScalpRX",
+    url: "https://www.scalprx.com/",
+    domain: "scalprx.com",
+    category: "health",
+    badge: "Hair & Scalp Clinic",
+    tech: "Web Platform / SEO",
+    desc: "Advanced scalp micropigmentation, trichology treatments & hair regrowth."
+  },
+  {
+    id: 41,
+    name: "Etage Events",
+    url: "https://www.etageevents.com/",
+    domain: "etageevents.com",
+    category: "health",
+    badge: "Luxury Events",
+    tech: "Custom CMS / Booking",
+    desc: "Grand event venue, banquet hall reservations & luxury wedding hosting."
+  },
+  {
+    id: 42,
+    name: "Gift Corp Pro",
+    url: "https://www.giftcorppro.com/",
+    domain: "giftcorppro.com",
+    category: "health",
+    badge: "Corporate Gifting",
+    tech: "Shopify B2B",
+    desc: "Custom merchandise, corporate hampers & luxury promotional items."
+  },
+  {
+    id: 43,
+    name: "Hopium Gifts",
+    url: "https://www.hopiumgifts.com/",
+    domain: "hopiumgifts.com",
+    category: "health",
+    badge: "Custom Gifts",
+    tech: "E-Commerce",
+    desc: "Personalized customized gifts, novelty items & memorable celebration presents."
+  },
+  {
+    id: 44,
+    name: "Guru Exim",
+    url: "https://www.guruexim.com/",
+    domain: "guruexim.com",
+    category: "health",
+    badge: "Global Import Export",
+    tech: "B2B Enterprise Portal",
+    desc: "International commodity export, agricultural produce & spices trade."
+  },
+  {
+    id: 45,
+    name: "Nanda Dance",
+    url: "https://nanda.dance/",
+    domain: "nanda.dance",
+    category: "health",
+    badge: "Dance Academy",
+    tech: "Custom Frontend",
+    desc: "Contemporary, classical dance choreography courses & studio workshop admissions."
+  },
+  {
+    id: 46,
+    name: "Yogi Kothiwala",
+    url: "https://www.yogikothiwala.com/",
+    domain: "yogikothiwala.com",
+    category: "health",
+    badge: "Heritage Brand",
+    tech: "Digital Media Portal",
+    desc: "Heritage cultural foundation, publication archives & community welfare portal."
+  },
+  {
+    id: 47,
+    name: "Senjaliya Parivar",
+    url: "https://www.senjaliyaparivar.com/",
+    domain: "senjaliyaparivar.com",
+    category: "health",
+    badge: "Community Network",
+    tech: "Custom Web Portal",
+    desc: "Family directory, member registration, social welfare & community updates."
+  },
+  {
+    id: 48,
+    name: "Hostinger Staging Lab",
+    url: "https://lemonchiffon-otter-753075.hostingersite.com/",
+    domain: "lemonchiffon-otter-753075.hostingersite.com",
+    category: "health",
+    badge: "Web Showcase",
+    tech: "Staging / Development",
+    desc: "Live production staging sandbox for custom dynamic template development."
+  }
+];
