@@ -95,11 +95,11 @@ export const DEFAULT_SITE_CONTENT = {
     title: "Let's Discuss Your Next Project",
     desc: "Available for Senior Developer roles, custom CMS/Shopify builds, brand identity design, and SEO growth consulting.",
     email: "thakoraryan2002@gmail.com",
-    phone: "+91 93132 87588",
+    phone: "+91 76987 95009",
     location: "Ahmedabad, Gujarat, India",
     linkedin: "https://www.linkedin.com/in/aryan-thakor",
     instagram: "https://www.instagram.com/aryan_thakor_official",
-    whatsapp: "https://wa.me/919313287588",
+    whatsapp: "https://wa.me/917698795009",
     github: "https://github.com/aryanthakor",
     availability: "Available for Senior Roles & Commercial Contracts",
     socials: [
@@ -124,7 +124,7 @@ export const DEFAULT_SITE_CONTENT = {
       {
         id: "whatsapp",
         platform: "WhatsApp",
-        url: "https://wa.me/919313287588",
+        url: "https://wa.me/917698795009",
         enabled: true
       }
     ]

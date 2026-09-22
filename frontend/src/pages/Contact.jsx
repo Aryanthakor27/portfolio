@@ -51,8 +51,8 @@ export default function Contact({ onShowToast }) {
   };
 
   const currentEmail = contact?.email || 'thakoraryan2002@gmail.com';
-  const currentPhone = contact?.phone || '+91 93132 87588';
-  const currentWhatsApp = contact?.whatsapp || 'https://wa.me/919313287588';
+  const currentPhone = contact?.phone || '+91 76987 95009';
+  const currentWhatsApp = contact?.whatsapp || 'https://wa.me/917698795009';
   const currentLinkedIn = contact?.linkedin || 'https://www.linkedin.com/in/aryan-thakor';
   const currentInstagram = contact?.instagram || 'https://www.instagram.com/aryan_thakor_official';
   const currentLocation = contact?.location || 'Ahmedabad, Gujarat, India';

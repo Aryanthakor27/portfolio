@@ -93,7 +93,7 @@ export default function Home({ onPreviewDesign }) {
                 <FileText size={16} />
                 <span>Download CV</span>
               </a>
-              <a href={contact?.whatsapp || "https://wa.me/919313287588"} target="_blank" rel="noopener noreferrer" className="btn btn-secondary whatsapp-btn">
+              <a href={contact?.whatsapp || "https://wa.me/917698795009"} target="_blank" rel="noopener noreferrer" className="btn btn-secondary whatsapp-btn">
                 <Phone size={16} />
                 <span>WhatsApp</span>
               </a>

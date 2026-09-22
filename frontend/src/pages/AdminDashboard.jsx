@@ -326,7 +326,7 @@ export default function AdminDashboard({ onShowToast }) {
             { id: 'linkedin', platform: 'LinkedIn', url: c.linkedin || 'https://www.linkedin.com/in/aryan-thakor', enabled: true },
             { id: 'instagram', platform: 'Instagram', url: c.instagram || 'https://www.instagram.com/aryan_thakor_official', enabled: true },
             { id: 'github', platform: 'GitHub', url: c.github || 'https://github.com/aryanthakor', enabled: true },
-            { id: 'whatsapp', platform: 'WhatsApp', url: c.whatsapp || 'https://wa.me/919313287588', enabled: true }
+            { id: 'whatsapp', platform: 'WhatsApp', url: c.whatsapp || 'https://wa.me/917698795009', enabled: true }
           ];
         }
         setContactForm(c);
@@ -359,7 +359,7 @@ export default function AdminDashboard({ onShowToast }) {
             { id: 'linkedin', platform: 'LinkedIn', url: c.linkedin || 'https://www.linkedin.com/in/aryan-thakor', enabled: true },
             { id: 'instagram', platform: 'Instagram', url: c.instagram || 'https://www.instagram.com/aryan_thakor_official', enabled: true },
             { id: 'github', platform: 'GitHub', url: c.github || 'https://github.com/aryanthakor', enabled: true },
-            { id: 'whatsapp', platform: 'WhatsApp', url: c.whatsapp || 'https://wa.me/919313287588', enabled: true }
+            { id: 'whatsapp', platform: 'WhatsApp', url: c.whatsapp || 'https://wa.me/917698795009', enabled: true }
           ];
         }
         setContactForm(c);
@@ -1643,7 +1643,7 @@ export default function AdminDashboard({ onShowToast }) {
                           type="text"
                           value={contactForm.phone || ''}
                           onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                          placeholder="+91 93132 87588"
+                          placeholder="+91 76987 95009"
                         />
                       </div>
                     </div>
@@ -1655,7 +1655,7 @@ export default function AdminDashboard({ onShowToast }) {
                           type="text"
                           value={contactForm.whatsapp || ''}
                           onChange={(e) => setContactForm({ ...contactForm, whatsapp: e.target.value })}
-                          placeholder="https://wa.me/919313287588"
+                          placeholder="https://wa.me/917698795009"
                         />
                       </div>
                       <div className="form-group">
