@@ -2,14 +2,15 @@
   "name": "aryan-thakor-mern-portfolio",
   "version": "1.0.0",
   "private": true,
-  "description": "Aryan Thakor Portfolio - Full MERN Stack Application",
+  "type": "module",
   "scripts": {
     "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,cyan\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm start --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
-    "build": "npm install --prefix backend && npm install --prefix frontend --include=dev && npm run build --prefix frontend",
+    "build": "node build.js",
+    "postinstall": "node build.js",
     "start": "node backend/server.js",
-    "install:all": "npm install --prefix backend && npm install --prefix frontend"
+    "install:all": "node build.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
