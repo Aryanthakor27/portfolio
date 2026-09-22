@@ -20,7 +20,11 @@ export default function Footer() {
     <footer className="footer">
       <div className="container footer-content">
         <div className="footer-brand">
-          <span className="logo-text">ARYAN<span className="dot">.</span></span>
+          {content?.branding?.logoImage ? (
+            <img src={content.branding.logoImage} alt={content?.branding?.logoText || "Aryan Thakor"} className="footer-custom-logo-img" />
+          ) : (
+            <span className="logo-text">{content?.branding?.logoText || "ARYAN"}<span className="dot">.</span></span>
+          )}
           <p>{hero?.roleBadge || "Sr. Web Developer • CMS Specialist • UI/UX & Graphic Designer • Digiva Inc • Ahmedabad, India"}</p>
         </div>
 

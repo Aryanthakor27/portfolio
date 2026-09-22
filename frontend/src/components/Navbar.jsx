@@ -3,10 +3,13 @@ import { NavLink, Link, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Download, Lock, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { downloadResume } from '../utils/downloadResume';
+import { useContent } from '../context/ContentContext';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { content } = useContent();
+  const branding = content?.branding;
 
   // Close mobile drawer automatically when route changes
   useEffect(() => {
@@ -37,10 +40,16 @@ export default function Navbar() {
     <header className="navbar-wrapper">
       <div className="navbar-container">
         <Link to="/" className="brand-logo" onClick={closeMenu}>
-          <div className="logo-symbol">
-            <span></span><span></span><span></span>
-          </div>
-          <span className="logo-text">ARYAN<span className="dot">.</span></span>
+          {branding?.logoImage ? (
+            <img src={branding.logoImage} alt={branding?.logoText || "Aryan Thakor"} className="brand-custom-logo-img" />
+          ) : (
+            <>
+              <div className="logo-symbol">
+                <span></span><span></span><span></span>
+              </div>
+              <span className="logo-text">{branding?.logoText || "ARYAN"}<span className="dot">.</span></span>
+            </>
+          )}
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -118,10 +127,16 @@ export default function Navbar() {
           <div className="mobile-drawer-panel" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-drawer-header">
               <Link to="/" className="brand-logo" onClick={closeMenu}>
-                <div className="logo-symbol">
-                  <span></span><span></span><span></span>
-                </div>
-                <span className="logo-text">ARYAN<span className="dot">.</span></span>
+                {branding?.logoImage ? (
+                  <img src={branding.logoImage} alt={branding?.logoText || "Aryan Thakor"} className="brand-custom-logo-img" />
+                ) : (
+                  <>
+                    <div className="logo-symbol">
+                      <span></span><span></span><span></span>
+                    </div>
+                    <span className="logo-text">{branding?.logoText || "ARYAN"}<span className="dot">.</span></span>
+                  </>
+                )}
               </Link>
               <button className="mobile-drawer-close" onClick={closeMenu} aria-label="Close menu">
                 <X size={20} />

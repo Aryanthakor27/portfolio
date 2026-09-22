@@ -128,12 +128,16 @@ export default function Home({ onPreviewDesign }) {
             <div className="ambient-glow"></div>
             <div className="profile-card glass-card">
               <div className="card-inner">
-                <img src="/assets/profile/aryan_portrait.jpg" alt="Aryan Thakor Senior Web Developer" className="profile-img" />
+                <img
+                  src={hero?.profileImage || "/assets/profile/aryan_portrait.jpg"}
+                  alt={hero?.name || "Aryan Thakor Senior Web Developer"}
+                  className="profile-img"
+                />
                 <div className="profile-overlay-badge">
                   <Award size={20} color="#A855F7" />
                   <div>
-                    <h4>Aryan Thakor</h4>
-                    <p>Web Developer • CMS & UI Designer</p>
+                    <h4>{hero?.name || "Aryan Thakor"}</h4>
+                    <p>{hero?.roleBadge ? hero.roleBadge.split('•')[0].trim() : "Web Developer • CMS & UI Designer"}</p>
                   </div>
                 </div>
               </div>

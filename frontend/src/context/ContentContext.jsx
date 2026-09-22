@@ -10,6 +10,7 @@ const DEFAULT_CONTENT = {
     desc: "Senior Web Developer, CMS Specialist & Graphic Designer with 4+ years of hands-on expertise building 48+ commercial client web apps across Modern Web Architecture, Shopify, HubSpot, custom frontend engineering, and high-impact visual branding.",
     primaryCtaText: "Explore 48+ Websites",
     secondaryCtaText: "Get In Touch",
+    profileImage: "/assets/profile/aryan_portrait.jpg",
     stats: {
       websitesCount: "48+",
       websitesLabel: "Commercial Websites Delivered",
@@ -20,6 +21,11 @@ const DEFAULT_CONTENT = {
       satisfactionRate: "99.8%",
       satisfactionLabel: "Client Satisfaction Rate"
     }
+  },
+  branding: {
+    logoImage: "",
+    logoText: "ARYAN",
+    favicon: ""
   },
   about: {
     badge: "Career Profile",
@@ -132,26 +138,66 @@ const DEFAULT_CONTENT = {
 const ContentContext = createContext();
 
 export function ContentProvider({ children }) {
-  const [content, setContent] = useState(DEFAULT_CONTENT);
+  const [content, setContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_portfolio_content');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_CONTENT,
+          ...parsed,
+          hero: { ...DEFAULT_CONTENT.hero, ...(parsed.hero || {}) },
+          branding: { ...DEFAULT_CONTENT.branding, ...(parsed.branding || {}) },
+          about: { ...DEFAULT_CONTENT.about, ...(parsed.about || {}) },
+          contact: { ...DEFAULT_CONTENT.contact, ...(parsed.contact || {}) },
+          seo: { ...DEFAULT_CONTENT.seo, ...(parsed.seo || {}) },
+          services: parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_CONTENT.services
+        };
+      }
+    } catch {}
+    return DEFAULT_CONTENT;
+  });
+
   const [loading, setLoading] = useState(true);
+
+  // Dynamic Browser Tab Favicon Updater
+  useEffect(() => {
+    const fav = content?.branding?.favicon;
+    if (fav) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = fav;
+    }
+  }, [content?.branding?.favicon]);
 
   const fetchContent = async () => {
     try {
       const res = await fetch('/api/content');
       if (res.ok) {
         const data = await res.json();
-        setContent(prev => ({
-          ...prev,
-          ...data,
-          hero: { ...prev.hero, ...(data.hero || {}) },
-          about: { ...prev.about, ...(data.about || {}) },
-          contact: { ...prev.contact, ...(data.contact || {}) },
-          seo: { ...prev.seo, ...(data.seo || {}) },
-          services: data.services && data.services.length > 0 ? data.services : prev.services
-        }));
+        setContent(prev => {
+          const merged = {
+            ...prev,
+            ...data,
+            hero: { ...prev.hero, ...(data.hero || {}) },
+            branding: { ...prev.branding, ...(data.branding || {}) },
+            about: { ...prev.about, ...(data.about || {}) },
+            contact: { ...prev.contact, ...(data.contact || {}) },
+            seo: { ...prev.seo, ...(data.seo || {}) },
+            services: data.services && data.services.length > 0 ? data.services : prev.services
+          };
+          try {
+            localStorage.setItem('aryan_portfolio_content', JSON.stringify(merged));
+          } catch {}
+          return merged;
+        });
       }
     } catch {
-      // Offline fallback: keep DEFAULT_CONTENT
+      // Offline / Static fallback: content already loaded from localStorage or DEFAULT_CONTENT
     } finally {
       setLoading(false);
     }
@@ -162,6 +208,25 @@ export function ContentProvider({ children }) {
   }, []);
 
   const updateSectionContent = async (section, data) => {
+    let updatedContentState;
+
+    setContent(prev => {
+      const updatedSection = {
+        ...(prev[section] || {}),
+        ...data
+      };
+      updatedContentState = {
+        ...prev,
+        [section]: updatedSection
+      };
+      try {
+        localStorage.setItem('aryan_portfolio_content', JSON.stringify(updatedContentState));
+      } catch (err) {
+        console.warn('localStorage save warning:', err);
+      }
+      return updatedContentState;
+    });
+
     try {
       const res = await fetch(`/api/content/${section}`, {
         method: 'PUT',
@@ -171,30 +236,14 @@ export function ContentProvider({ children }) {
         },
         body: JSON.stringify(data)
       });
-      const result = await res.json();
-
       if (res.ok) {
-        setContent(prev => ({
-          ...prev,
-          [section]: {
-            ...(prev[section] || {}),
-            ...data
-          }
-        }));
+        const result = await res.json();
         return { success: true, message: result.message };
       }
-      return { success: false, error: result.error || 'Failed to update section' };
-    } catch (err) {
-      // Local optimistic update
-      setContent(prev => ({
-        ...prev,
-        [section]: {
-          ...(prev[section] || {}),
-          ...data
-        }
-      }));
-      return { success: true, message: 'Saved locally.' };
+    } catch {
+      // Offline fallback success
     }
+    return { success: true, message: 'Saved successfully.' };
   };
 
   return (

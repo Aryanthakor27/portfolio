@@ -31,26 +31,29 @@ import {
   Settings,
   Upload,
   Download,
-  Share2
+  Share2,
+  Image as ImageIcon,
+  Camera
 } from 'lucide-react';
 import AdminPasscodeModal from '../components/AdminPasscodeModal';
 import ThemeToggle from '../components/ThemeToggle';
 import { useContent } from '../context/ContentContext';
 import { downloadResume } from '../utils/downloadResume';
+import { optimizeImageFile } from '../utils/imageUtils';
 import SocialIcon from '../components/SocialIcon';
 import { websitesData } from '../data/websitesData';
 import { designsData } from '../data/designsData';
 
 export default function AdminDashboard({ onShowToast }) {
   const navigate = useNavigate();
-  const { content: cmsContent, refreshContent } = useContent();
+  const { content: cmsContent, refreshContent, updateSectionContent } = useContent();
 
   const [isAuthenticated, setIsAuthenticated] = useState(
     sessionStorage.getItem('aryan_admin_auth') === 'true'
   );
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'cms' | 'websites' | 'designs' | 'messages' | 'security'
-  const [cmsSubTab, setCmsSubTab] = useState('hero'); // 'hero' | 'about' | 'services' | 'contact' | 'seo'
+  const [cmsSubTab, setCmsSubTab] = useState('hero'); // 'hero' | 'branding' | 'about' | 'services' | 'contact' | 'resume' | 'seo'
   const [loading, setLoading] = useState(true);
 
   // Datasets with fallback to localStorage & bundled dataset
@@ -85,6 +88,13 @@ export default function AdminDashboard({ onShowToast }) {
 
   // CMS Editable Forms
   const [heroForm, setHeroForm] = useState(cmsContent?.hero || {});
+  const [brandingForm, setBrandingForm] = useState(
+    cmsContent?.branding || {
+      logoImage: '',
+      logoText: 'ARYAN',
+      favicon: ''
+    }
+  );
   const [aboutForm, setAboutForm] = useState(cmsContent?.about || {});
   const [contactForm, setContactForm] = useState(cmsContent?.contact || {});
   const [seoForm, setSeoForm] = useState(cmsContent?.seo || {});
@@ -218,6 +228,43 @@ export default function AdminDashboard({ onShowToast }) {
     }
   };
 
+  // --- Branding & Photo File Handlers ---
+  const handleLogoFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await optimizeImageFile(file, 600, 300, 0.9);
+      setBrandingForm(prev => ({ ...prev, logoImage: dataUrl }));
+      if (onShowToast) onShowToast('✓ Logo selected! Remember to click "Save Branding".');
+    } catch (err) {
+      if (onShowToast) onShowToast('⚠️ Failed to load logo image.');
+    }
+  };
+
+  const handleFaviconFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await optimizeImageFile(file, 128, 128, 0.9);
+      setBrandingForm(prev => ({ ...prev, favicon: dataUrl }));
+      if (onShowToast) onShowToast('✓ Favicon selected! Remember to click "Save Favicon".');
+    } catch (err) {
+      if (onShowToast) onShowToast('⚠️ Failed to load favicon.');
+    }
+  };
+
+  const handleHeroPhotoSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await optimizeImageFile(file, 1000, 1000, 0.88);
+      setHeroForm(prev => ({ ...prev, profileImage: dataUrl }));
+      if (onShowToast) onShowToast('✓ Photo selected! Remember to click "Save".');
+    } catch (err) {
+      if (onShowToast) onShowToast('⚠️ Failed to load profile photo.');
+    }
+  };
+
   // Load all dashboard data
   const loadAllData = async () => {
     setLoading(true);
@@ -271,6 +318,7 @@ export default function AdminDashboard({ onShowToast }) {
 
       if (contentRes.hero) {
         setHeroForm(contentRes.hero);
+        if (contentRes.branding) setBrandingForm(contentRes.branding);
         setAboutForm(contentRes.about || {});
         const c = contentRes.contact || {};
         if (!c.socials || c.socials.length === 0) {
@@ -302,6 +350,7 @@ export default function AdminDashboard({ onShowToast }) {
   useEffect(() => {
     if (cmsContent) {
       if (cmsContent.hero) setHeroForm(cmsContent.hero);
+      if (cmsContent.branding) setBrandingForm(cmsContent.branding);
       if (cmsContent.about) setAboutForm(cmsContent.about);
       if (cmsContent.contact) {
         const c = { ...cmsContent.contact };
@@ -385,24 +434,33 @@ export default function AdminDashboard({ onShowToast }) {
   const saveCmsSection = async (section, data) => {
     setCmsSaving(true);
     try {
-      const res = await fetch(`/api/content/${section}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('aryan_admin_token') || ''}`
-        },
-        body: JSON.stringify(data)
-      });
-      const result = await res.json();
-
-      if (res.ok) {
-        if (onShowToast) onShowToast(`✓ ${section.toUpperCase()} section updated on live portfolio!`);
-        refreshContent();
+      if (updateSectionContent) {
+        await updateSectionContent(section, data);
       } else {
-        if (onShowToast) onShowToast(result.error || 'Failed to save section.');
+        try {
+          const local = JSON.parse(localStorage.getItem('aryan_portfolio_content') || '{}');
+          local[section] = data;
+          localStorage.setItem('aryan_portfolio_content', JSON.stringify(local));
+        } catch {}
       }
+
+      try {
+        const res = await fetch(`/api/content/${section}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('aryan_admin_token') || ''}`
+          },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          refreshContent();
+        }
+      } catch {}
+
+      if (onShowToast) onShowToast(`✓ ${section.toUpperCase()} updated successfully on live portfolio!`);
     } catch {
-      if (onShowToast) onShowToast('Network error saving section.');
+      if (onShowToast) onShowToast('Failed to save section.');
     } finally {
       setCmsSaving(false);
     }
@@ -897,7 +955,13 @@ export default function AdminDashboard({ onShowToast }) {
                   className={`sub-tab-btn ${cmsSubTab === 'hero' ? 'active' : ''}`}
                   onClick={() => setCmsSubTab('hero')}
                 >
-                  Hero & Tagline
+                  Hero & Bio
+                </button>
+                <button
+                  className={`sub-tab-btn ${cmsSubTab === 'branding' ? 'active' : ''}`}
+                  onClick={() => setCmsSubTab('branding')}
+                >
+                  Logo, Favicon & Photo 🎨
                 </button>
                 <button
                   className={`sub-tab-btn ${cmsSubTab === 'about' ? 'active' : ''}`}
@@ -943,12 +1007,56 @@ export default function AdminDashboard({ onShowToast }) {
                   <div className="cms-form-header">
                     <div>
                       <h3>Hero Section Editor</h3>
-                      <p>Edit top greeting, headline, subtitle, bio, and experience counters.</p>
+                      <p>Edit top greeting, headline, subtitle, bio, photo, and experience counters.</p>
                     </div>
                     <button type="submit" disabled={cmsSaving} className="btn-save">
                       <Save size={16} />
                       <span>{cmsSaving ? 'Saving...' : 'Save Hero Section'}</span>
                     </button>
+                  </div>
+
+                  {/* Home Hero Profile Photo */}
+                  <div className="admin-photo-upload-box">
+                    <div className="admin-photo-thumb-wrap">
+                      <img
+                        src={heroForm.profileImage || '/assets/profile/aryan_portrait.jpg'}
+                        alt="Profile Preview"
+                        className="admin-photo-thumb"
+                      />
+                    </div>
+                    <div className="admin-photo-details">
+                      <label className="admin-field-title">Homepage Profile Photo</label>
+                      <p className="admin-field-subtitle">Photo displayed in the circular card on your Home page Hero section.</p>
+                      <div className="upload-btn-wrap">
+                        <label className="btn btn-primary upload-file-btn">
+                          <Camera size={15} />
+                          <span>Upload New Photo</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleHeroPhotoSelect}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                        {heroForm.profileImage && heroForm.profileImage !== '/assets/profile/aryan_portrait.jpg' && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary text-danger"
+                            onClick={() => setHeroForm({ ...heroForm, profileImage: '/assets/profile/aryan_portrait.jpg' })}
+                          >
+                            <RefreshCw size={14} />
+                            <span>Reset to Original</span>
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        className="mt-2 text-sm"
+                        value={heroForm.profileImage || ''}
+                        onChange={(e) => setHeroForm({ ...heroForm, profileImage: e.target.value })}
+                        placeholder="Or enter Image URL (e.g. /assets/profile/aryan_portrait.jpg)"
+                      />
+                    </div>
                   </div>
 
                   <div className="form-row">
@@ -1050,6 +1158,251 @@ export default function AdminDashboard({ onShowToast }) {
                     </div>
                   </div>
                 </form>
+              )}
+
+              {/* Sub-tab: Logo, Favicon & Photo Branding */}
+              {cmsSubTab === 'branding' && (
+                <div className="cms-branding-grid">
+                  {/* CARD 1: SITE BRAND LOGO */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveCmsSection('branding', brandingForm);
+                    }}
+                    className="cms-form glass-card branding-card"
+                  >
+                    <div className="cms-form-header">
+                      <div>
+                        <h3>🌟 Site Brand Logo (Navbar & Footer)</h3>
+                        <p>Customize the logo displayed in the top header navbar and site footer.</p>
+                      </div>
+                      <button type="submit" disabled={cmsSaving} className="btn-save">
+                        <Save size={16} />
+                        <span>{cmsSaving ? 'Saving...' : 'Save Logo'}</span>
+                      </button>
+                    </div>
+
+                    {/* Logo Live Preview */}
+                    <div className="branding-preview-box">
+                      <label className="preview-label">Live Navbar Logo Preview</label>
+                      <div className="preview-nav-mockup">
+                        {brandingForm.logoImage ? (
+                          <img
+                            src={brandingForm.logoImage}
+                            alt="Logo Preview"
+                            className="brand-custom-logo-img"
+                          />
+                        ) : (
+                          <div className="brand-logo">
+                            <div className="logo-symbol">
+                              <span></span><span></span><span></span>
+                            </div>
+                            <span className="logo-text">{brandingForm.logoText || 'ARYAN'}<span className="dot">.</span></span>
+                          </div>
+                        )}
+                        <span className="preview-badge">Live Preview</span>
+                      </div>
+                    </div>
+
+                    {/* Logo Upload Option */}
+                    <div className="form-group">
+                      <label>Upload Logo File (PNG with transparency, SVG, JPG, WEBP)</label>
+                      <div className="upload-btn-wrap">
+                        <label className="btn btn-secondary upload-file-btn">
+                          <Upload size={16} />
+                          <span>Choose Logo Image</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/svg+xml,image/jpeg,image/webp"
+                            onChange={handleLogoFileSelect}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                        {brandingForm.logoImage && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary text-danger"
+                            onClick={() => setBrandingForm({ ...brandingForm, logoImage: '' })}
+                          >
+                            <Trash2 size={16} />
+                            <span>Remove Image (Use Text Logo)</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Logo URL Option */}
+                    <div className="form-group">
+                      <label>Or Paste Logo Image URL</label>
+                      <input
+                        type="text"
+                        value={brandingForm.logoImage || ''}
+                        onChange={(e) => setBrandingForm({ ...brandingForm, logoImage: e.target.value })}
+                        placeholder="e.g. https://.../my-logo.png"
+                      />
+                    </div>
+
+                    {/* Text Logo Alternative */}
+                    <div className="form-group">
+                      <label>Custom Brand Text (Used when no image is uploaded)</label>
+                      <input
+                        type="text"
+                        value={brandingForm.logoText || ''}
+                        onChange={(e) => setBrandingForm({ ...brandingForm, logoText: e.target.value })}
+                        placeholder="e.g. ARYAN"
+                      />
+                    </div>
+                  </form>
+
+                  {/* CARD 2: BROWSER TAB FAVICON */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveCmsSection('branding', brandingForm);
+                    }}
+                    className="cms-form glass-card branding-card"
+                  >
+                    <div className="cms-form-header">
+                      <div>
+                        <h3>🌐 Browser Tab Favicon</h3>
+                        <p>Change the icon displayed in the browser tab beside your site title.</p>
+                      </div>
+                      <button type="submit" disabled={cmsSaving} className="btn-save">
+                        <Save size={16} />
+                        <span>{cmsSaving ? 'Saving...' : 'Save Favicon'}</span>
+                      </button>
+                    </div>
+
+                    {/* Favicon Simulated Tab Preview */}
+                    <div className="branding-preview-box">
+                      <label className="preview-label">Browser Tab Live Preview</label>
+                      <div className="favicon-tab-mockup">
+                        {brandingForm.favicon ? (
+                          <img src={brandingForm.favicon} alt="Favicon Preview" className="tab-favicon-img" />
+                        ) : (
+                          <Globe size={16} color="#A855F7" />
+                        )}
+                        <span className="tab-title-text">Aryan Thakor | Senior Web Developer</span>
+                        <X size={14} className="tab-close-icon" />
+                      </div>
+                    </div>
+
+                    {/* Favicon Upload Option */}
+                    <div className="form-group">
+                      <label>Upload Favicon File (.ico, .png, .svg)</label>
+                      <div className="upload-btn-wrap">
+                        <label className="btn btn-secondary upload-file-btn">
+                          <Upload size={16} />
+                          <span>Choose Favicon File</span>
+                          <input
+                            type="file"
+                            accept="image/x-icon,image/png,image/svg+xml"
+                            onChange={handleFaviconFileSelect}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                        {brandingForm.favicon && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary text-danger"
+                            onClick={() => setBrandingForm({ ...brandingForm, favicon: '' })}
+                          >
+                            <Trash2 size={16} />
+                            <span>Reset to Default Favicon</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Favicon URL Option */}
+                    <div className="form-group">
+                      <label>Or Paste Favicon URL</label>
+                      <input
+                        type="text"
+                        value={brandingForm.favicon || ''}
+                        onChange={(e) => setBrandingForm({ ...brandingForm, favicon: e.target.value })}
+                        placeholder="e.g. /favicon.ico or https://.../favicon.png"
+                      />
+                    </div>
+                  </form>
+
+                  {/* CARD 3: HOME HERO PROFILE PHOTO */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveCmsSection('hero', heroForm);
+                    }}
+                    className="cms-form glass-card branding-card"
+                  >
+                    <div className="cms-form-header">
+                      <div>
+                        <h3>📸 Homepage Hero Profile Photo</h3>
+                        <p>Change the main photo displayed on the Home page Hero card.</p>
+                      </div>
+                      <button type="submit" disabled={cmsSaving} className="btn-save">
+                        <Save size={16} />
+                        <span>{cmsSaving ? 'Saving...' : 'Save Photo'}</span>
+                      </button>
+                    </div>
+
+                    {/* Hero Photo Preview */}
+                    <div className="branding-preview-box">
+                      <label className="preview-label">Live Homepage Photo Preview</label>
+                      <div className="hero-photo-preview-wrap">
+                        <div className="hero-photo-circle">
+                          <img
+                            src={heroForm.profileImage || '/assets/profile/aryan_portrait.jpg'}
+                            alt="Profile Preview"
+                            className="preview-portrait-img"
+                          />
+                        </div>
+                        <div className="hero-photo-info">
+                          <h4>{heroForm.name || 'Aryan Thakor'}</h4>
+                          <p>{heroForm.roleBadge || 'Sr. Web Developer & Graphic Designer'}</p>
+                          <span className="badge-status-dot">● Active on Home Page</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Photo Upload Option */}
+                    <div className="form-group">
+                      <label>Upload New Photo from Computer or Phone (JPG, PNG, WEBP)</label>
+                      <div className="upload-btn-wrap">
+                        <label className="btn btn-primary upload-file-btn">
+                          <Camera size={16} />
+                          <span>Choose New Photo</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleHeroPhotoSelect}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                        {heroForm.profileImage && heroForm.profileImage !== '/assets/profile/aryan_portrait.jpg' && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary text-danger"
+                            onClick={() => setHeroForm({ ...heroForm, profileImage: '/assets/profile/aryan_portrait.jpg' })}
+                          >
+                            <RefreshCw size={16} />
+                            <span>Reset to Original Portrait</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Photo URL Option */}
+                    <div className="form-group">
+                      <label>Or Paste Image URL</label>
+                      <input
+                        type="text"
+                        value={heroForm.profileImage || ''}
+                        onChange={(e) => setHeroForm({ ...heroForm, profileImage: e.target.value })}
+                        placeholder="e.g. /assets/profile/aryan_portrait.jpg or https://.../photo.jpg"
+                      />
+                    </div>
+                  </form>
+                </div>
               )}
 
               {/* Sub-tab 2: About & Experience */}

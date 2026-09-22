@@ -5153,6 +5153,218 @@ html.light .footer-brand .logo-text {
   }
 }
 
+/* ==========================================================================
+   DYNAMIC BRANDING, LOGO & PROFILE PHOTO STYLES
+   ========================================================================== */
 
+/* Navbar & Footer Custom Logo Image */
+.brand-custom-logo-img {
+  max-height: 38px;
+  max-width: 170px;
+  object-fit: contain;
+  display: block;
+  border-radius: 6px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+.brand-custom-logo-img:hover {
+  transform: scale(1.04);
+}
 
+.footer-custom-logo-img {
+  max-height: 48px;
+  max-width: 190px;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* Hero Section Profile Photo Box in Admin */
+.admin-photo-upload-box {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.admin-photo-thumb-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--accent-primary);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.25);
+  flex-shrink: 0;
+  background: #111;
+}
+
+.admin-photo-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-photo-details {
+  flex: 1;
+}
+
+.admin-field-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  display: block;
+}
+
+.admin-field-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* CMS Branding Grid */
+.cms-branding-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 26px;
+}
+
+.branding-card {
+  padding: 24px 26px;
+}
+
+.branding-preview-box {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 22px;
+}
+
+.preview-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* Navbar Logo Mockup */
+.preview-nav-mockup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 18px;
+}
+
+.preview-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Simulated Browser Tab */
+.favicon-tab-mockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #1e2430;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px 8px 0 0;
+  padding: 8px 16px;
+  max-width: 320px;
+}
+
+.tab-favicon-img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.tab-title-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #e6edf3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-close-icon {
+  color: #8b949e;
+  cursor: pointer;
+}
+
+/* Hero Photo Preview in Branding */
+.hero-photo-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.hero-photo-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--accent-primary);
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.35);
+  flex-shrink: 0;
+  background: #161b22;
+}
+
+.preview-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-photo-info h4 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.hero-photo-info p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.badge-status-dot {
+  font-size: 12px;
+  color: #10B981;
+  font-weight: 600;
+}
+
+/* Upload Buttons Wrap */
+.upload-btn-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.upload-file-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
