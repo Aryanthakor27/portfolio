@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, ExternalLink, Play } from 'lucide-react';
 
 export default function LightboxModal({ item, onClose }) {
   if (!item) return null;
@@ -20,6 +20,21 @@ export default function LightboxModal({ item, onClose }) {
             <span className="category-tag">{item.tag}</span>
             <h3>{item.title}</h3>
             <p>{item.caption || item.desc}</p>
+            {item.videoUrl && (
+              <div style={{ marginTop: '16px' }}>
+                <a
+                  href={item.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Play size={14} fill="#FFFFFF" />
+                  <span>Watch Video / Demo</span>
+                  <ExternalLink size={12} />
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>

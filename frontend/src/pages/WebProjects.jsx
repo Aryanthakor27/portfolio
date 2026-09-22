@@ -19,9 +19,34 @@ export default function WebProjects() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [customCats, setCustomCats] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_custom_web_categories');
+      return saved ? JSON.parse(saved) : [
+        { id: 'ecommerce', label: 'E-Commerce & Beauty' },
+        { id: 'hospitality', label: 'Hotels & Resorts' },
+        { id: 'corporate', label: 'Corporate, Tech & Finance' },
+        { id: 'industrial', label: 'Industrial & Logistics' },
+        { id: 'health', label: 'Healthcare & Lifestyle' }
+      ];
+    } catch {
+      return [
+        { id: 'ecommerce', label: 'E-Commerce & Beauty' },
+        { id: 'hospitality', label: 'Hotels & Resorts' },
+        { id: 'corporate', label: 'Corporate, Tech & Finance' },
+        { id: 'industrial', label: 'Industrial & Logistics' },
+        { id: 'health', label: 'Healthcare & Lifestyle' }
+      ];
+    }
+  });
+
   useEffect(() => {
     const handleUpdate = () => {
       setWebsites(getStoredWebsites());
+      try {
+        const saved = localStorage.getItem('aryan_custom_web_categories');
+        if (saved) setCustomCats(JSON.parse(saved));
+      } catch {}
     };
     window.addEventListener('aryan_portfolio_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -45,12 +70,11 @@ export default function WebProjects() {
 
   const categories = useMemo(() => [
     { id: 'all', label: `All Websites (${websites.length})` },
-    { id: 'ecommerce', label: `E-Commerce & Beauty (${websites.filter(s => s.category === 'ecommerce').length})` },
-    { id: 'hospitality', label: `Hotels & Resorts (${websites.filter(s => s.category === 'hospitality').length})` },
-    { id: 'corporate', label: `Corporate, Tech & Finance (${websites.filter(s => s.category === 'corporate').length})` },
-    { id: 'industrial', label: `Industrial & Logistics (${websites.filter(s => s.category === 'industrial').length})` },
-    { id: 'health', label: `Healthcare & Lifestyle (${websites.filter(s => s.category === 'health').length})` }
-  ], [websites]);
+    ...customCats.map(c => ({
+      id: c.id,
+      label: `${c.label} (${websites.filter(s => s.category === c.id).length})`
+    }))
+  ], [websites, customCats]);
 
   const filteredWebsites = useMemo(() => {
     return websites.filter(site => {

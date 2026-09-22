@@ -17,9 +17,36 @@ export default function GraphicDesigns({ onPreviewDesign }) {
   const [designs, setDesigns] = useState(getStoredDesigns);
   const [activeCategory, setActiveCategory] = useState('all');
 
+  const [customCats, setCustomCats] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_custom_design_categories');
+      return saved ? JSON.parse(saved) : [
+        { id: 'logos', label: 'Logos & Branding' },
+        { id: 'posts', label: 'Social Media Posts' },
+        { id: 'manipulation', label: 'Product Manipulation' },
+        { id: 'retouching', label: 'Photo Restoration & Retouch' },
+        { id: 'video-editing', label: 'Video Editing & Motion' },
+        { id: 'reels', label: 'Shorts & Reels' }
+      ];
+    } catch {
+      return [
+        { id: 'logos', label: 'Logos & Branding' },
+        { id: 'posts', label: 'Social Media Posts' },
+        { id: 'manipulation', label: 'Product Manipulation' },
+        { id: 'retouching', label: 'Photo Restoration & Retouch' },
+        { id: 'video-editing', label: 'Video Editing & Motion' },
+        { id: 'reels', label: 'Shorts & Reels' }
+      ];
+    }
+  });
+
   useEffect(() => {
     const handleUpdate = () => {
       setDesigns(getStoredDesigns());
+      try {
+        const saved = localStorage.getItem('aryan_custom_design_categories');
+        if (saved) setCustomCats(JSON.parse(saved));
+      } catch {}
     };
     window.addEventListener('aryan_portfolio_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -43,11 +70,11 @@ export default function GraphicDesigns({ onPreviewDesign }) {
 
   const categories = useMemo(() => [
     { id: 'all', label: `All Designs (${designs.length})` },
-    { id: 'logos', label: `Logos & Branding (${designs.filter(d => d.category === 'logos').length})` },
-    { id: 'posts', label: `Social Media Posts (${designs.filter(d => d.category === 'posts').length})` },
-    { id: 'manipulation', label: `Product Manipulation (${designs.filter(d => d.category === 'manipulation').length})` },
-    { id: 'retouching', label: `Photo Restoration & Retouch (${designs.filter(d => d.category === 'retouching').length})` }
-  ], [designs]);
+    ...customCats.map(c => ({
+      id: c.id,
+      label: `${c.label} (${designs.filter(d => d.category === c.id).length})`
+    }))
+  ], [designs, customCats]);
 
   const filteredDesigns = useMemo(() => {
     return activeCategory === 'all' 

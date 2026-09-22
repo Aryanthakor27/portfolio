@@ -8,24 +8,36 @@
 // Helper to detect device category
 function detectDevice() {
   const ua = navigator.userAgent || '';
-  const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-  const isTablet = /(iPad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk)/i.test(ua);
+  const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const hasTouch = typeof window !== 'undefined' && (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
 
-  if (isTablet) return { type: 'Tablet', icon: 'tablet' };
-  if (isMobile) return { type: 'Mobile', icon: 'mobile' };
+  const isMobileUA = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+  const isTabletUA = /(iPad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk)/i.test(ua);
+
+  // If screen width is 768px or less, or mobile user agent, it is DEFINITELY Mobile!
+  if (screenWidth <= 768 || isMobileUA) {
+    return { type: 'Mobile', icon: 'mobile' };
+  }
+
+  // Tablets (e.g. iPad, Galaxy Tab, 769px to 1024px with touch)
+  if (isTabletUA || (screenWidth > 768 && screenWidth <= 1024 && hasTouch)) {
+    return { type: 'Tablet', icon: 'tablet' };
+  }
+
   return { type: 'Desktop', icon: 'desktop' };
 }
 
 // Helper to detect Operating System
 function detectOS() {
   const ua = navigator.userAgent || '';
+  if (/iPhone/i.test(ua)) return 'iPhone (iOS)';
+  if (/iPad/i.test(ua)) return 'iPad (iPadOS)';
+  if (/Android/i.test(ua)) return 'Android';
   if (/Windows NT 10.0/i.test(ua)) return 'Windows 10/11';
   if (/Windows NT/i.test(ua)) return 'Windows';
   if (/Macintosh|Mac OS X/i.test(ua)) return 'macOS';
-  if (/iPhone|iPad|iPod/i.test(ua)) return 'iOS';
-  if (/Android/i.test(ua)) return 'Android';
   if (/Linux/i.test(ua)) return 'Linux';
-  return 'Unknown OS';
+  return 'Mobile / Desktop';
 }
 
 // Helper to detect Browser
@@ -146,8 +158,8 @@ export async function trackVisitor(pagePath = window.location.pathname) {
       browser,
       page: pagePath || '/',
       timestamp: Date.now(),
-      screenWidth: window.innerWidth,
-      screenHeight: window.innerHeight,
+      screenWidth: typeof window !== 'undefined' ? window.innerWidth : 0,
+      screenHeight: typeof window !== 'undefined' ? window.innerHeight : 0,
       referrer: document.referrer ? new URL(document.referrer).hostname : 'Direct / Search'
     };
 
@@ -182,7 +194,16 @@ export async function trackVisitor(pagePath = window.location.pathname) {
     localStorage.setItem('aryan_visitor_logs', JSON.stringify(logs));
     window.dispatchEvent(new Event('aryan_visitor_tracked'));
 
-    // Optional: send to backend if running
+    // 1. Cross-Device Cloud Sync: broadcast to ntfy pub/sub so Admin on desktop receives it immediately
+    try {
+      fetch('https://ntfy.sh/aryan_portfolio_telemetry_2026', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(visitRecord)
+      }).catch(() => {});
+    } catch {}
+
+    // 2. Optional: send to backend if running
     try {
       fetch('/api/analytics/visit', {
         method: 'POST',

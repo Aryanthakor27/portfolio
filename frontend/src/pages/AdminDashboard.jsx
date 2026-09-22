@@ -44,7 +44,10 @@ import {
   Archive,
   Award,
   FileCheck,
-  GraduationCap
+  GraduationCap,
+  FolderPlus,
+  Video,
+  Play
 } from 'lucide-react';
 import AdminPasscodeModal from '../components/AdminPasscodeModal';
 import ThemeToggle from '../components/ThemeToggle';
@@ -197,6 +200,7 @@ export default function AdminDashboard({ onShowToast }) {
     category: 'logos',
     tag: 'Branding',
     image: '',
+    videoUrl: '',
     caption: ''
   });
 
@@ -213,6 +217,58 @@ export default function AdminDashboard({ onShowToast }) {
     fileUrl: '',
     fileType: 'pdf',
     previewImage: ''
+  });
+
+  // Custom Category Creation State
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({
+    type: 'web',
+    name: '',
+    id: ''
+  });
+
+  const [customWebCategories, setCustomWebCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_custom_web_categories');
+      return saved ? JSON.parse(saved) : [
+        { id: 'ecommerce', label: 'E-Commerce & Beauty' },
+        { id: 'hospitality', label: 'Hotels & Resorts' },
+        { id: 'corporate', label: 'Corporate & Tech' },
+        { id: 'industrial', label: 'Industrial & Logistics' },
+        { id: 'health', label: 'Healthcare & Lifestyle' }
+      ];
+    } catch {
+      return [
+        { id: 'ecommerce', label: 'E-Commerce & Beauty' },
+        { id: 'hospitality', label: 'Hotels & Resorts' },
+        { id: 'corporate', label: 'Corporate & Tech' },
+        { id: 'industrial', label: 'Industrial & Logistics' },
+        { id: 'health', label: 'Healthcare & Lifestyle' }
+      ];
+    }
+  });
+
+  const [customDesignCategories, setCustomDesignCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_custom_design_categories');
+      return saved ? JSON.parse(saved) : [
+        { id: 'logos', label: 'Logos & Branding' },
+        { id: 'posts', label: 'Social Media Posts' },
+        { id: 'manipulation', label: 'Product Manipulation' },
+        { id: 'retouching', label: 'Photo Restoration & Retouch' },
+        { id: 'video-editing', label: 'Video Editing & Motion' },
+        { id: 'reels', label: 'Shorts & Reels' }
+      ];
+    } catch {
+      return [
+        { id: 'logos', label: 'Logos & Branding' },
+        { id: 'posts', label: 'Social Media Posts' },
+        { id: 'manipulation', label: 'Product Manipulation' },
+        { id: 'retouching', label: 'Photo Restoration & Retouch' },
+        { id: 'video-editing', label: 'Video Editing & Motion' },
+        { id: 'reels', label: 'Shorts & Reels' }
+      ];
+    }
   });
 
   // 2FA Setup State
@@ -460,8 +516,17 @@ export default function AdminDashboard({ onShowToast }) {
   useEffect(() => {
     if (isAuthenticated) {
       loadAllData();
+      fetchCloudVisitorLogs();
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'analytics') {
+      fetchCloudVisitorLogs();
+      const interval = setInterval(fetchCloudVisitorLogs, 8000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, activeTab]);
 
   useEffect(() => {
     // Purge any expired items in recycle bin (older than 30 days)
@@ -899,6 +964,138 @@ export default function AdminDashboard({ onShowToast }) {
     setShowCredModal(true);
   };
 
+  const handleCredFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const isImg = file.type.startsWith('image/');
+
+    if (!isPdf && !isImg) {
+      if (onShowToast) onShowToast('⚠️ Please select a valid PDF or Image file.');
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      if (onShowToast) onShowToast('⚠️ File size exceeds 15MB limit.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      if (isPdf) {
+        setCredForm(prev => ({
+          ...prev,
+          fileUrl: dataUrl,
+          fileType: 'pdf'
+        }));
+      } else {
+        setCredForm(prev => ({
+          ...prev,
+          fileUrl: dataUrl,
+          previewImage: dataUrl,
+          fileType: 'image'
+        }));
+      }
+      if (onShowToast) onShowToast(`✓ Selected "${file.name}" (${(file.size / 1024).toFixed(1)} KB)`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // --- Category Actions ---
+  const openAddCategory = (type = 'web') => {
+    setCategoryForm({
+      type,
+      name: '',
+      id: ''
+    });
+    setShowCategoryModal(true);
+  };
+
+  const handleSaveCategory = (e) => {
+    e.preventDefault();
+    if (!categoryForm.name.trim()) {
+      if (onShowToast) onShowToast('Category name is required.');
+      return;
+    }
+
+    const generatedId = categoryForm.id.trim()
+      ? categoryForm.id.trim().toLowerCase().replace(/\s+/g, '-')
+      : categoryForm.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+
+    const newCat = {
+      id: generatedId,
+      label: categoryForm.name.trim()
+    };
+
+    if (categoryForm.type === 'web') {
+      setCustomWebCategories(prev => {
+        const filtered = prev.filter(c => c.id !== generatedId);
+        const updated = [...filtered, newCat];
+        localStorage.setItem('aryan_custom_web_categories', JSON.stringify(updated));
+        return updated;
+      });
+      setWebsiteCategory(generatedId);
+      if (onShowToast) onShowToast(`✓ Created "${newCat.label}" web category!`);
+    } else {
+      setCustomDesignCategories(prev => {
+        const filtered = prev.filter(c => c.id !== generatedId);
+        const updated = [...filtered, newCat];
+        localStorage.setItem('aryan_custom_design_categories', JSON.stringify(updated));
+        return updated;
+      });
+      setDesignCategory(generatedId);
+      if (onShowToast) onShowToast(`✓ Created "${newCat.label}" design/video category!`);
+    }
+
+    try {
+      window.dispatchEvent(new Event('aryan_portfolio_updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+
+    setShowCategoryModal(false);
+  };
+
+  // --- Cross-Device Cloud Visitor Telemetry Polling ---
+  const fetchCloudVisitorLogs = async () => {
+    try {
+      const res = await fetch('https://ntfy.sh/aryan_portfolio_telemetry_2026/json?poll=1');
+      if (res.ok) {
+        const text = await res.text();
+        const lines = text.trim().split('\n');
+        const cloudVisits = [];
+        for (const line of lines) {
+          try {
+            const parsed = JSON.parse(line);
+            if (parsed.event === 'message' && parsed.message) {
+              const visitData = typeof parsed.message === 'string' ? JSON.parse(parsed.message) : parsed.message;
+              if (visitData && (visitData.ip || visitData.device)) {
+                cloudVisits.push(visitData);
+              }
+            }
+          } catch {}
+        }
+        if (cloudVisits.length > 0) {
+          setVisitorLogs(prev => {
+            const existingIds = new Set(prev.map(p => p.id || `${p.ip}_${p.timestamp}`));
+            const merged = [...prev];
+            cloudVisits.forEach(cv => {
+              const key = cv.id || `${cv.ip}_${cv.timestamp}`;
+              if (!existingIds.has(key)) {
+                existingIds.add(key);
+                merged.unshift(cv);
+              }
+            });
+            const finalLogs = merged.slice(0, 100);
+            localStorage.setItem('aryan_visitor_logs', JSON.stringify(finalLogs));
+            return finalLogs;
+          });
+        }
+      }
+    } catch {}
+  };
+
   const handleSaveCred = async (e) => {
     e.preventDefault();
     if (!credForm.title) {
@@ -1211,6 +1408,7 @@ export default function AdminDashboard({ onShowToast }) {
       const raw = localStorage.getItem('aryan_visitor_logs');
       setVisitorLogs(raw ? JSON.parse(raw) : []);
     } catch {}
+    fetchCloudVisitorLogs();
     if (onShowToast) onShowToast('Visitor telemetry refreshed.');
   };
 
@@ -2645,15 +2843,23 @@ export default function AdminDashboard({ onShowToast }) {
                     onChange={(e) => setWebsiteCategory(e.target.value)}
                   >
                     <option value="all">All Categories ({websites.length})</option>
-                    <option value="ecommerce">E-Commerce & Beauty</option>
-                    <option value="hospitality">Hotels & Resorts</option>
-                    <option value="corporate">Corporate, Tech & Finance</option>
-                    <option value="industrial">Industrial & Logistics</option>
-                    <option value="health">Healthcare & Lifestyle</option>
+                    {customWebCategories.map(c => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
                   </select>
                 </div>
 
-                <div className="toolbar-right">
+                <div className="toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => openAddCategory('web')}
+                    className="btn-secondary-action"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    title="Create a new category for web projects"
+                  >
+                    <FolderPlus size={16} />
+                    <span>+ New Category</span>
+                  </button>
                   <button onClick={openAddWebsite} className="btn-primary-action">
                     <Plus size={16} />
                     <span>Add New Website</span>
@@ -2744,14 +2950,23 @@ export default function AdminDashboard({ onShowToast }) {
                     onChange={(e) => setDesignCategory(e.target.value)}
                   >
                     <option value="all">All Categories ({designs.length})</option>
-                    <option value="logos">Logos & Branding</option>
-                    <option value="posts">Social Media Posts</option>
-                    <option value="manipulation">Product Manipulation</option>
-                    <option value="retouching">Photo Restoration & Retouch</option>
+                    {customDesignCategories.map(c => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
                   </select>
                 </div>
 
-                <div className="toolbar-right">
+                <div className="toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => openAddCategory('design')}
+                    className="btn-secondary-action"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    title="Create a new category for designs or video editing"
+                  >
+                    <FolderPlus size={16} />
+                    <span>+ New Category</span>
+                  </button>
                   <button onClick={openAddDesign} className="btn-primary-action">
                     <Plus size={16} />
                     <span>Add New Design</span>
@@ -3436,11 +3651,9 @@ export default function AdminDashboard({ onShowToast }) {
                     value={websiteForm.category}
                     onChange={(e) => setWebsiteForm({ ...websiteForm, category: e.target.value })}
                   >
-                    <option value="ecommerce">E-Commerce & Beauty</option>
-                    <option value="hospitality">Hotels & Resorts</option>
-                    <option value="corporate">Corporate, Tech & Finance</option>
-                    <option value="industrial">Industrial & Logistics</option>
-                    <option value="health">Healthcare & Lifestyle</option>
+                    {customWebCategories.map(c => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -3518,10 +3731,9 @@ export default function AdminDashboard({ onShowToast }) {
                     value={designForm.category}
                     onChange={(e) => setDesignForm({ ...designForm, category: e.target.value })}
                   >
-                    <option value="logos">Logos & Branding</option>
-                    <option value="posts">Social Media Posts</option>
-                    <option value="manipulation">Product Manipulation</option>
-                    <option value="retouching">Photo Restoration & Retouch</option>
+                    {customDesignCategories.map(c => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -3531,13 +3743,13 @@ export default function AdminDashboard({ onShowToast }) {
                   <label>Tag / Specialty</label>
                   <input
                     type="text"
-                    placeholder="e.g. Branding, Vector Art, Retouch"
+                    placeholder="e.g. Branding, Vector Art, Video Editing"
                     value={designForm.tag}
                     onChange={(e) => setDesignForm({ ...designForm, tag: e.target.value })}
                   />
                 </div>
                 <div className="form-group">
-                  <label>Image Path or URL *</label>
+                  <label>Thumbnail / Image URL *</label>
                   <input
                     type="text"
                     required
@@ -3546,6 +3758,19 @@ export default function AdminDashboard({ onShowToast }) {
                     onChange={(e) => setDesignForm({ ...designForm, image: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Video size={15} style={{ color: '#06B6D4' }} />
+                  <span>Video URL / Embed (Optional - for Video Editing & Motion Projects)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. https://www.youtube.com/watch?v=... or MP4/Vimeo link"
+                  value={designForm.videoUrl || ''}
+                  onChange={(e) => setDesignForm({ ...designForm, videoUrl: e.target.value })}
+                />
               </div>
 
               {designForm.image && (
@@ -3590,19 +3815,125 @@ export default function AdminDashboard({ onShowToast }) {
       {/* MODAL: Add / Edit Certificate & Experience Letter */}
       {showCredModal && (
         <div className="admin-modal-overlay">
-          <div className="admin-modal">
-            <div className="admin-modal-header">
+          <div className="admin-modal" style={{ maxWidth: '640px' }}>
+            <div className="modal-header">
               <h3>{editingCred ? 'Edit Certificate / Credential' : 'Add Certificate or Experience Letter'}</h3>
               <button
                 type="button"
                 onClick={() => setShowCredModal(false)}
-                className="btn-modal-close"
+                className="close-btn"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveCred} className="admin-modal-form">
+            <form onSubmit={handleSaveCred} className="admin-form">
+              {/* Dedicated File Upload Picker Dropzone */}
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                  <Upload size={15} style={{ color: '#06B6D4' }} />
+                  <span>Upload Certificate / Letter (PDF or Image)</span>
+                </label>
+                <div style={{
+                  border: '2px dashed rgba(6, 182, 212, 0.4)',
+                  borderRadius: '12px',
+                  padding: '16px 20px',
+                  textAlign: 'center',
+                  background: 'rgba(6, 182, 212, 0.04)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <input
+                    type="file"
+                    id="cred-file-input"
+                    accept=".pdf,image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleCredFileSelect}
+                  />
+                  <label htmlFor="cred-file-input" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                    <Upload size={24} style={{ color: '#06B6D4' }} />
+                    <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      Click to Browse Document from Device
+                    </span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      Supports official PDF certificates & JPG/PNG images up to 15MB
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Live Preview of Selected/Existing Certificate */}
+              {(credForm.fileUrl || credForm.previewImage) && (
+                <div className="image-preview-box" style={{ marginBottom: '16px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--accent-cyan)', marginBottom: '8px' }}>
+                    <Award size={15} /> Attached Document Preview:
+                  </span>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid var(--border-subtle)'
+                  }}>
+                    {credForm.fileType === 'pdf' ? (
+                      <div style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '8px',
+                        background: 'rgba(230, 57, 70, 0.15)',
+                        border: '1px solid rgba(230, 57, 70, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#E63946',
+                        flexShrink: 0
+                      }}>
+                        <FileCheck size={22} />
+                      </div>
+                    ) : (
+                      <img
+                        src={credForm.previewImage || credForm.fileUrl}
+                        alt="Preview"
+                        style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {credForm.title || 'Attached Certificate'}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                        Format: {credForm.fileType.toUpperCase()} • {credForm.institution || 'Aryan Thakor'}
+                      </div>
+                    </div>
+                    {credForm.fileUrl && (
+                      <a
+                        href={credForm.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          borderRadius: '6px',
+                          background: 'rgba(6, 182, 212, 0.15)',
+                          color: '#06B6D4',
+                          border: '1px solid rgba(6, 182, 212, 0.3)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          textDecoration: 'none'
+                        }}
+                      >
+                        <ExternalLink size={12} /> Test View
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="form-group">
                 <label>Credential Title *</label>
                 <input
@@ -3687,7 +4018,7 @@ export default function AdminDashboard({ onShowToast }) {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Document File Path / URL</label>
+                  <label>Document URL / Direct Link</label>
                   <input
                     type="text"
                     placeholder="e.g. /assets/documents/Arena_Animation_Certificate.pdf"
@@ -3717,24 +4048,76 @@ export default function AdminDashboard({ onShowToast }) {
                 </div>
               </div>
 
-              {credForm.fileType === 'image' && (
-                <div className="form-group">
-                  <label>Image Preview URL (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. /assets/documents/Rowwat_Internship_Letter.jpg"
-                    value={credForm.previewImage}
-                    onChange={(e) => setCredForm({ ...credForm, previewImage: e.target.value })}
-                  />
-                </div>
-              )}
-
               <div className="modal-actions">
                 <button type="button" onClick={() => setShowCredModal(false)} className="btn-cancel">
                   Cancel
                 </button>
                 <button type="submit" className="btn-save">
                   <span>{editingCred ? 'Update Certificate' : 'Add to Portfolio'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Create New Custom Category */}
+      {showCategoryModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal" style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FolderPlus size={20} style={{ color: '#06B6D4' }} />
+                <h3 style={{ margin: 0 }}>Create New Category</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className="close-btn"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="admin-form">
+              <div className="form-group">
+                <label>Category Target</label>
+                <select
+                  value={categoryForm.type}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, type: e.target.value })}
+                >
+                  <option value="web">Web Projects Category</option>
+                  <option value="design">Graphic Design / Video Editing Category</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Video Editing, Motion Graphics, AI Tools"
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Category Slug / ID (Optional - auto generated)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. video-editing"
+                  value={categoryForm.id}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, id: e.target.value })}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowCategoryModal(false)} className="btn-cancel">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-save">
+                  <span>Create Category</span>
                 </button>
               </div>
             </form>
