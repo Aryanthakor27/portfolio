@@ -59,8 +59,10 @@ export default function AdminDashboard({ onShowToast }) {
   // Datasets with fallback to localStorage & bundled dataset
   const [websites, setWebsites] = useState(() => {
     try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]'));
       const saved = localStorage.getItem('aryan_admin_websites');
-      return saved ? JSON.parse(saved) : websitesData;
+      const base = saved ? JSON.parse(saved) : websitesData;
+      return base.filter(w => !deletedList.has(String(w.id).trim()));
     } catch {
       return websitesData;
     }
@@ -68,8 +70,10 @@ export default function AdminDashboard({ onShowToast }) {
 
   const [designs, setDesigns] = useState(() => {
     try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]'));
       const saved = localStorage.getItem('aryan_admin_designs');
-      return saved ? JSON.parse(saved) : designsData;
+      const base = saved ? JSON.parse(saved) : designsData;
+      return base.filter(d => !deletedList.has(String(d.id).trim()));
     } catch {
       return designsData;
     }
@@ -82,6 +86,14 @@ export default function AdminDashboard({ onShowToast }) {
     } catch {
       return [];
     }
+  });
+
+  // In-App Custom Delete Confirmation Modal State
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    isOpen: false,
+    type: '', // 'website' | 'design' | 'message'
+    id: null,
+    title: ''
   });
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -281,27 +293,42 @@ export default function AdminDashboard({ onShowToast }) {
 
       if (resInfo && resInfo.filename) setResumeInfo(resInfo);
 
+      const deletedWebsites = new Set(JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]'));
+      const deletedDesigns = new Set(JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]'));
+
       if (webRes && webRes.data && webRes.data.length > 0) {
-        setWebsites(webRes.data);
-        localStorage.setItem('aryan_admin_websites', JSON.stringify(webRes.data));
+        const cleanData = webRes.data.filter(w => !deletedWebsites.has(String(w.id).trim()));
+        setWebsites(cleanData);
+        localStorage.setItem('aryan_admin_websites', JSON.stringify(cleanData));
       } else {
         const saved = localStorage.getItem('aryan_admin_websites');
         if (saved) {
-          try { setWebsites(JSON.parse(saved)); } catch { setWebsites(websitesData); }
+          try {
+            const parsed = JSON.parse(saved).filter(w => !deletedWebsites.has(String(w.id).trim()));
+            setWebsites(parsed);
+          } catch {
+            setWebsites(websitesData.filter(w => !deletedWebsites.has(String(w.id).trim())));
+          }
         } else {
-          setWebsites(websitesData);
+          setWebsites(websitesData.filter(w => !deletedWebsites.has(String(w.id).trim())));
         }
       }
 
       if (desRes && desRes.data && desRes.data.length > 0) {
-        setDesigns(desRes.data);
-        localStorage.setItem('aryan_admin_designs', JSON.stringify(desRes.data));
+        const cleanData = desRes.data.filter(d => !deletedDesigns.has(String(d.id).trim()));
+        setDesigns(cleanData);
+        localStorage.setItem('aryan_admin_designs', JSON.stringify(cleanData));
       } else {
         const saved = localStorage.getItem('aryan_admin_designs');
         if (saved) {
-          try { setDesigns(JSON.parse(saved)); } catch { setDesigns(designsData); }
+          try {
+            const parsed = JSON.parse(saved).filter(d => !deletedDesigns.has(String(d.id).trim()));
+            setDesigns(parsed);
+          } catch {
+            setDesigns(designsData.filter(d => !deletedDesigns.has(String(d.id).trim())));
+          }
         } else {
-          setDesigns(designsData);
+          setDesigns(designsData.filter(d => !deletedDesigns.has(String(d.id).trim())));
         }
       }
 
@@ -634,19 +661,27 @@ export default function AdminDashboard({ onShowToast }) {
     } catch {}
   };
 
-  const handleDeleteWebsite = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
-
-    setWebsites(prev => {
-      const next = prev.filter(w => w.id !== id);
-      localStorage.setItem('aryan_admin_websites', JSON.stringify(next));
-      return next;
+  const promptDeleteWebsite = (id, name) => {
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'website',
+      id,
+      title: name || 'This website project'
     });
-    if (onShowToast) onShowToast(`"${name}" deleted successfully.`);
+  };
+  const handleDeleteWebsite = promptDeleteWebsite;
 
-    try {
-      fetch(`/api/websites/${id}`, { method: 'DELETE' }).catch(() => {});
-    } catch {}
+  const handleResetWebsites = () => {
+    if (window.confirm('Restore all 48 original website projects to your portfolio?')) {
+      setWebsites(websitesData);
+      try {
+        localStorage.setItem('aryan_admin_websites', JSON.stringify(websitesData));
+        localStorage.removeItem('aryan_deleted_websites');
+        window.dispatchEvent(new Event('aryan_portfolio_updated'));
+        window.dispatchEvent(new Event('storage'));
+      } catch {}
+      if (onShowToast) onShowToast('✓ All 48 original website projects restored!');
+    }
   };
 
   // --- Design Actions ---
@@ -708,19 +743,94 @@ export default function AdminDashboard({ onShowToast }) {
     } catch {}
   };
 
-  const handleDeleteDesign = async (id, title) => {
-    if (!window.confirm(`Are you sure you want to delete design "${title}"?`)) return;
-
-    setDesigns(prev => {
-      const next = prev.filter(d => d.id !== id);
-      localStorage.setItem('aryan_admin_designs', JSON.stringify(next));
-      return next;
+  const promptDeleteDesign = (id, title) => {
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'design',
+      id,
+      title: title || 'This graphic design'
     });
-    if (onShowToast) onShowToast(`"${title}" deleted successfully.`);
+  };
+  const handleDeleteDesign = promptDeleteDesign;
 
-    try {
-      fetch(`/api/designs/${id}`, { method: 'DELETE' }).catch(() => {});
-    } catch {}
+  const handleResetDesigns = () => {
+    if (window.confirm('Restore all original graphic designs to your portfolio?')) {
+      setDesigns(designsData);
+      try {
+        localStorage.setItem('aryan_admin_designs', JSON.stringify(designsData));
+        localStorage.removeItem('aryan_deleted_designs');
+        window.dispatchEvent(new Event('aryan_portfolio_updated'));
+        window.dispatchEvent(new Event('storage'));
+      } catch {}
+      if (onShowToast) onShowToast('✓ Original graphic designs restored!');
+    }
+  };
+
+  // Execution when user confirms delete in custom modal
+  const executeDeleteConfirmed = async () => {
+    const { type, id, title } = deleteConfirm;
+    if (!id) return;
+    const targetIdStr = String(id).trim();
+
+    if (type === 'website') {
+      setWebsites(prev => {
+        const next = prev.filter(w => String(w.id).trim() !== targetIdStr);
+        try {
+          localStorage.setItem('aryan_admin_websites', JSON.stringify(next));
+          const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]');
+          if (!deletedList.includes(targetIdStr)) {
+            deletedList.push(targetIdStr);
+            localStorage.setItem('aryan_deleted_websites', JSON.stringify(deletedList));
+          }
+        } catch {}
+        return next;
+      });
+
+      try {
+        window.dispatchEvent(new Event('aryan_portfolio_updated'));
+        window.dispatchEvent(new Event('storage'));
+      } catch {}
+
+      if (onShowToast) onShowToast(`✓ Project "${title}" deleted successfully.`);
+
+      try {
+        const token = sessionStorage.getItem('aryan_admin_token') || '';
+        fetch(`/api/websites/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => {});
+      } catch {}
+    } else if (type === 'design') {
+      setDesigns(prev => {
+        const next = prev.filter(d => String(d.id).trim() !== targetIdStr);
+        try {
+          localStorage.setItem('aryan_admin_designs', JSON.stringify(next));
+          const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]');
+          if (!deletedList.includes(targetIdStr)) {
+            deletedList.push(targetIdStr);
+            localStorage.setItem('aryan_deleted_designs', JSON.stringify(deletedList));
+          }
+        } catch {}
+        return next;
+      });
+
+      try {
+        window.dispatchEvent(new Event('aryan_portfolio_updated'));
+        window.dispatchEvent(new Event('storage'));
+      } catch {}
+
+      if (onShowToast) onShowToast(`✓ Graphic design "${title}" deleted successfully.`);
+
+      try {
+        const token = sessionStorage.getItem('aryan_admin_token') || '';
+        fetch(`/api/designs/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => {});
+      } catch {}
+    }
+
+    setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
   };
 
   // --- Message Actions ---
@@ -2120,6 +2230,10 @@ export default function AdminDashboard({ onShowToast }) {
                 </div>
 
                 <div className="toolbar-right">
+                  <button onClick={handleResetWebsites} className="btn-reset-data" title="Restore all original 48 projects">
+                    <RefreshCw size={14} />
+                    <span>Restore Defaults</span>
+                  </button>
                   <button onClick={openAddWebsite} className="btn-primary-action">
                     <Plus size={16} />
                     <span>Add New Website</span>
@@ -2183,7 +2297,7 @@ export default function AdminDashboard({ onShowToast }) {
                               <Edit size={15} />
                             </button>
                             <button
-                              onClick={() => handleDeleteWebsite(site.id, site.name)}
+                              onClick={() => promptDeleteWebsite(site.id, site.name)}
                               className="action-btn delete"
                               title="Delete website"
                             >
@@ -2218,6 +2332,10 @@ export default function AdminDashboard({ onShowToast }) {
                 </div>
 
                 <div className="toolbar-right">
+                  <button onClick={handleResetDesigns} className="btn-reset-data" title="Restore original graphic designs">
+                    <RefreshCw size={14} />
+                    <span>Restore Defaults</span>
+                  </button>
                   <button onClick={openAddDesign} className="btn-primary-action">
                     <Plus size={16} />
                     <span>Add New Design</span>
@@ -2258,7 +2376,7 @@ export default function AdminDashboard({ onShowToast }) {
                             <Edit size={14} /> Edit
                           </button>
                           <button
-                            onClick={() => handleDeleteDesign(design.id, design.title)}
+                            onClick={() => promptDeleteDesign(design.id, design.title)}
                             className="btn-delete-sm"
                           >
                             <Trash2 size={14} /> Delete
@@ -2695,6 +2813,43 @@ export default function AdminDashboard({ onShowToast }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Custom In-App Delete Confirmation */}
+      {deleteConfirm.isOpen && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal delete-confirm-modal">
+            <div className="delete-modal-icon-wrap">
+              <AlertCircle size={34} />
+            </div>
+
+            <h3 className="delete-modal-title">
+              Delete {deleteConfirm.type === 'website' ? 'Website Project' : 'Graphic Design'}?
+            </h3>
+
+            <p className="delete-modal-desc">
+              Are you sure you want to permanently delete <strong>"{deleteConfirm.title}"</strong> from your portfolio? It will be removed immediately from your live showcase.
+            </p>
+
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' })}
+                className="btn-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeDeleteConfirmed}
+                className="btn-delete-confirm"
+              >
+                <Trash2 size={16} />
+                <span>Yes, Delete</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

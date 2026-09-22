@@ -12,37 +12,63 @@ export default function Home({ onPreviewDesign }) {
   const { content } = useContent();
   const { hero, contact } = content;
 
-  const [websites, setWebsites] = useState(() => {
+  const getStoredWebsites = () => {
     try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]'));
       const saved = localStorage.getItem('aryan_admin_websites');
-      return saved ? JSON.parse(saved) : websitesData;
+      const base = saved ? JSON.parse(saved) : websitesData;
+      return base.filter(s => !deletedList.has(String(s.id).trim()));
     } catch {
       return websitesData;
     }
-  });
-  const [designs, setDesigns] = useState(() => {
+  };
+
+  const getStoredDesigns = () => {
     try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]'));
       const saved = localStorage.getItem('aryan_admin_designs');
-      return saved ? JSON.parse(saved) : designsData;
+      const base = saved ? JSON.parse(saved) : designsData;
+      return base.filter(d => !deletedList.has(String(d.id).trim()));
     } catch {
       return designsData;
     }
-  });
+  };
+
+  const [websites, setWebsites] = useState(getStoredWebsites);
+  const [designs, setDesigns] = useState(getStoredDesigns);
 
   useEffect(() => {
+    const handleUpdate = () => {
+      setWebsites(getStoredWebsites());
+      setDesigns(getStoredDesigns());
+    };
+    window.addEventListener('aryan_portfolio_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
     fetch('/api/websites')
       .then(r => r.json())
       .then(res => {
-        if (res.data && res.data.length > 0) setWebsites(res.data);
+        if (res.data && res.data.length > 0) {
+          const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]'));
+          setWebsites(res.data.filter(s => !deletedList.has(String(s.id).trim())));
+        }
       })
       .catch(() => {});
 
     fetch('/api/designs')
       .then(r => r.json())
       .then(res => {
-        if (res.data && res.data.length > 0) setDesigns(res.data);
+        if (res.data && res.data.length > 0) {
+          const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]'));
+          setDesigns(res.data.filter(d => !deletedList.has(String(d.id).trim())));
+        }
       })
       .catch(() => {});
+
+    return () => {
+      window.removeEventListener('aryan_portfolio_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, []);
 
   const featuredWebsites = websites.slice(0, 6);

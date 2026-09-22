@@ -3,25 +3,42 @@ import DesignCard from '../components/DesignCard';
 import { designsData } from '../data/designsData';
 
 export default function GraphicDesigns({ onPreviewDesign }) {
-  const [designs, setDesigns] = useState(() => {
+  const getStoredDesigns = () => {
     try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]'));
       const saved = localStorage.getItem('aryan_admin_designs');
-      return saved ? JSON.parse(saved) : designsData;
+      const base = saved ? JSON.parse(saved) : designsData;
+      return base.filter(d => !deletedList.has(String(d.id).trim()));
     } catch {
       return designsData;
     }
-  });
+  };
+
+  const [designs, setDesigns] = useState(getStoredDesigns);
   const [activeCategory, setActiveCategory] = useState('all');
 
   useEffect(() => {
+    const handleUpdate = () => {
+      setDesigns(getStoredDesigns());
+    };
+    window.addEventListener('aryan_portfolio_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
     fetch('/api/designs')
       .then(r => r.json())
       .then(res => {
         if (res.data && res.data.length > 0) {
-          setDesigns(res.data);
+          const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]'));
+          const clean = res.data.filter(d => !deletedList.has(String(d.id).trim()));
+          setDesigns(clean);
         }
       })
       .catch(() => {});
+
+    return () => {
+      window.removeEventListener('aryan_portfolio_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, []);
 
   const categories = useMemo(() => [

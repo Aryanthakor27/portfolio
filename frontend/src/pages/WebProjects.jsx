@@ -4,28 +4,43 @@ import WebsiteCard from '../components/WebsiteCard';
 import { websitesData } from '../data/websitesData';
 
 export default function WebProjects() {
-  const [websites, setWebsites] = useState(() => {
+  const getStoredWebsites = () => {
     try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]'));
       const saved = localStorage.getItem('aryan_admin_websites');
-      return saved ? JSON.parse(saved) : websitesData;
+      const base = saved ? JSON.parse(saved) : websitesData;
+      return base.filter(s => !deletedList.has(String(s.id).trim()));
     } catch {
       return websitesData;
     }
-  });
+  };
+
+  const [websites, setWebsites] = useState(getStoredWebsites);
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    const handleUpdate = () => {
+      setWebsites(getStoredWebsites());
+    };
+    window.addEventListener('aryan_portfolio_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
     fetch('/api/websites')
       .then(r => r.json())
       .then(res => {
         if (res.data && res.data.length > 0) {
-          setWebsites(res.data);
+          const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]'));
+          const clean = res.data.filter(s => !deletedList.has(String(s.id).trim()));
+          setWebsites(clean);
         }
       })
-      .catch(() => {
-        // Fallback to static data
-      });
+      .catch(() => {});
+
+    return () => {
+      window.removeEventListener('aryan_portfolio_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, []);
 
   const categories = useMemo(() => [
