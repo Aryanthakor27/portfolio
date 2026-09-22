@@ -70,7 +70,7 @@ export default function WebProjects() {
     <div className="web-projects-page container">
       <div className="page-header">
         <span className="section-badge">Client Track Record</span>
-        <h1 className="section-title">48+ Developed & Managed Websites</h1>
+        <h1 className="section-title">{websites.length}+ Developed & Managed Websites</h1>
         <p className="section-desc">Live production web applications engineered across Modern Web Architecture, Shopify, HubSpot, custom frontends, and technical SEO campaigns.</p>
       </div>
 

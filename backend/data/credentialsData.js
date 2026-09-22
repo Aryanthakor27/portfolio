@@ -1,0 +1,33 @@
+/**
+ * credentialsData.js
+ * Default certifications and verified experience credentials for Aryan Thakor.
+ */
+
+export const credentialsData = [
+  {
+    id: "arena-graphic-design",
+    type: "certificate",
+    badge: "Certified",
+    institution: "ARENA ANIMATION",
+    title: "Certificate of Merit in Graphic Designing",
+    subtitle: "Dept. of Media & Entertainment • Arena Animation Satellite",
+    desc: "Completed 150 Hours intensive professional course covering advanced Graphic Design, Visual Typography, and Creative Artwork with Grade: Credit.",
+    date: "31-Dec-2025",
+    fileUrl: "/assets/documents/Arena_Animation_Certificate.pdf",
+    fileType: "pdf",
+    previewImage: ""
+  },
+  {
+    id: "rowwat-internship-letter",
+    type: "letter",
+    badge: "Verified Letter",
+    institution: "ROWWAT (NOW DIGIVA)",
+    title: "Frontend Developer (React JS) Internship Letter",
+    subtitle: "Rowwat Technologies (now Digiva Inc) • Ratnakar Nine Square, Ahmedabad",
+    desc: "Official confirmation letter for 6-month industry internship in React JS & Frontend Development under Senior Project Management, issued by CEO Rajni Patel (Rowwat Technologies, earlier brand of Digiva Inc).",
+    date: "15-Jan-2024",
+    fileUrl: "/assets/documents/Rowwat_Internship_Letter.jpg",
+    fileType: "image",
+    previewImage: "/assets/documents/Rowwat_Internship_Letter.jpg"
+  }
+];

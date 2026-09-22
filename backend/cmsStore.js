@@ -14,13 +14,13 @@ export const DEFAULT_SITE_CONTENT = {
     roleBadge: "Sr. Web Developer & Graphic Designer • Ahmedabad, India",
     headline: "Hi, I'm Aryan Thakor",
     tagline: "Building High-Performance Websites & Distinct Brand Visuals",
-    desc: "Senior Web Developer, CMS Specialist & Graphic Designer with 4+ years of hands-on expertise building 48+ commercial client web apps across Modern Web Architecture, Shopify, HubSpot, custom frontend engineering, and high-impact visual branding.",
-    primaryCtaText: "Explore 48+ Websites",
+    desc: "Senior Web Developer, CMS Specialist & Graphic Designer with 3+ years of hands-on expertise building commercial client web apps across Modern Web Architecture, Shopify, HubSpot, custom frontend engineering, and high-impact visual branding.",
+    primaryCtaText: "Explore Web Projects",
     secondaryCtaText: "Get In Touch",
     stats: {
       websitesCount: "48+",
       websitesLabel: "Commercial Websites Delivered",
-      experienceYears: "4+",
+      experienceYears: "3+",
       experienceLabel: "Years Development Experience",
       deliveryRate: "100%",
       deliveryLabel: "On-Time Sprint Delivery",
@@ -98,7 +98,7 @@ export const DEFAULT_SITE_CONTENT = {
     phone: "+91 76987 95009",
     location: "Ahmedabad, Gujarat, India",
     linkedin: "https://www.linkedin.com/in/aryan-thakor",
-    instagram: "https://www.instagram.com/aryan_thakor_official",
+    instagram: "https://www.instagram.com/im__the_aryan",
     whatsapp: "https://wa.me/917698795009",
     github: "https://github.com/aryanthakor",
     availability: "Available for Senior Roles & Commercial Contracts",
@@ -112,7 +112,7 @@ export const DEFAULT_SITE_CONTENT = {
       {
         id: "instagram",
         platform: "Instagram",
-        url: "https://www.instagram.com/aryan_thakor_official",
+        url: "https://www.instagram.com/im__the_aryan",
         enabled: true
       },
       {

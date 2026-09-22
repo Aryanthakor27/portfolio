@@ -627,24 +627,24 @@ body.theme-light .mobile-admin-link {
    HOME PAGE (HERO & HIGHLIGHTS)
    ========================================================================== */
 .hero-wrapper {
-  padding: clamp(48px, 7vw, 76px) 0 clamp(48px, 6vw, 72px) 0;
+  padding: clamp(36px, 5vw, 56px) 0 clamp(24px, 3.5vw, 36px) 0;
 }
 
 .home-section {
-  padding: clamp(64px, 8vw, 96px) 0;
+  padding: clamp(36px, 4.5vw, 48px) 0;
   position: relative;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .home-section .page-header {
-  padding: 0 0 44px 0;
+  padding: 0 0 24px 0;
 }
 
 .section-cta-wrap {
   display: flex;
   justify-content: center;
-  margin-top: 48px;
-  margin-bottom: 12px;
+  margin-top: 28px;
+  margin-bottom: 0px;
 }
 
 .hero-grid {
@@ -6412,4 +6412,146 @@ html.light .page-pill {
 html.light .bin-card-footer {
   border-top-color: rgba(15, 23, 42, 0.06) !important;
 }
+
+/* ==========================================================================
+   ADMIN CERTIFICATES & CREDENTIALS TAB
+   ========================================================================== */
+.credentials-tab .panel-toolbar h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.admin-cred-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+  margin-top: 10px;
+}
+
+.admin-cred-card {
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.25s ease;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.admin-cred-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.3);
+}
+
+.admin-cred-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cred-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-primary);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.cred-inst-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--accent-cyan);
+  background: rgba(6, 182, 212, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(6, 182, 212, 0.25);
+}
+
+.admin-cred-body h4 {
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.admin-cred-sub {
+  font-size: 12.5px;
+  color: var(--accent-secondary);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.admin-cred-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.admin-cred-date {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.admin-cred-link-preview {
+  margin-top: 8px;
+}
+
+.admin-cert-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.admin-cert-link:hover {
+  background: var(--accent-cyan);
+  color: #FFFFFF;
+}
+
+.admin-cred-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Light Theme Overrides for Admin Certificates */
+html.light .admin-cred-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .admin-cred-actions {
+  border-top-color: rgba(15, 23, 42, 0.06) !important;
+}
+
 

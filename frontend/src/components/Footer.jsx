@@ -11,7 +11,7 @@ export default function Footer() {
     ? contact.socials.filter(s => s.enabled !== false && s.url)
     : [
         { id: 'linkedin', platform: 'LinkedIn', url: contact?.linkedin || 'https://www.linkedin.com/in/aryan-thakor' },
-        { id: 'instagram', platform: 'Instagram', url: contact?.instagram || 'https://www.instagram.com/aryan_thakor_official' },
+        { id: 'instagram', platform: 'Instagram', url: contact?.instagram || 'https://www.instagram.com/im__the_aryan' },
         { id: 'github', platform: 'GitHub', url: contact?.github || 'https://github.com/aryanthakor' },
         { id: 'whatsapp', platform: 'WhatsApp', url: contact?.whatsapp || 'https://wa.me/917698795009' }
       ].filter(s => !!s.url);

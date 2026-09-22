@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { websitesData } from "./data/websitesData.js";
 import { designsData } from "./data/designsData.js";
+import { credentialsData } from "./data/credentialsData.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,6 +12,7 @@ const STORE_DIR = path.join(__dirname, "data", "store");
 const WEBSITES_FILE = path.join(STORE_DIR, "websites.json");
 const DESIGNS_FILE = path.join(STORE_DIR, "designs.json");
 const MESSAGES_FILE = path.join(STORE_DIR, "messages.json");
+const CREDENTIALS_FILE = path.join(STORE_DIR, "credentials.json");
 
 // Ensure store directory and initial JSON files exist
 async function initStore() {
@@ -33,6 +35,12 @@ async function initStore() {
       await fs.access(MESSAGES_FILE);
     } catch {
       await fs.writeFile(MESSAGES_FILE, JSON.stringify([], null, 2), "utf8");
+    }
+
+    try {
+      await fs.access(CREDENTIALS_FILE);
+    } catch {
+      await fs.writeFile(CREDENTIALS_FILE, JSON.stringify(credentialsData, null, 2), "utf8");
     }
   } catch (err) {
     console.error("Error initializing data store:", err);
@@ -165,3 +173,55 @@ export async function deleteMessage(id) {
   await fs.writeFile(MESSAGES_FILE, JSON.stringify(filtered, null, 2), "utf8");
   return true;
 }
+
+// Credentials (Certificates & Letters) CRUD
+export async function getCredentials() {
+  await initStore();
+  const data = await fs.readFile(CREDENTIALS_FILE, "utf8");
+  return JSON.parse(data);
+}
+
+export async function addCredential(item) {
+  const credentials = await getCredentials();
+  const newCredential = {
+    id: item.id || `cred-${Date.now()}`,
+    type: item.type || "certificate",
+    badge: item.badge ? item.badge.trim() : "Certified",
+    institution: item.institution ? item.institution.trim() : "CERTIFIED",
+    title: item.title.trim(),
+    subtitle: item.subtitle ? item.subtitle.trim() : "",
+    desc: item.desc ? item.desc.trim() : "",
+    date: item.date ? item.date.trim() : "",
+    fileUrl: item.fileUrl ? item.fileUrl.trim() : "",
+    fileType: item.fileType || (item.fileUrl && item.fileUrl.toLowerCase().endsWith('.pdf') ? "pdf" : "image"),
+    previewImage: item.previewImage ? item.previewImage.trim() : (item.fileType === "image" ? item.fileUrl : ""),
+    createdAt: new Date().toISOString()
+  };
+  credentials.unshift(newCredential);
+  await fs.writeFile(CREDENTIALS_FILE, JSON.stringify(credentials, null, 2), "utf8");
+  return newCredential;
+}
+
+export async function updateCredential(id, updatedFields) {
+  const credentials = await getCredentials();
+  const index = credentials.findIndex(c => String(c.id) === String(id));
+  if (index === -1) return null;
+
+  credentials[index] = {
+    ...credentials[index],
+    ...updatedFields,
+    id: credentials[index].id
+  };
+
+  await fs.writeFile(CREDENTIALS_FILE, JSON.stringify(credentials, null, 2), "utf8");
+  return credentials[index];
+}
+
+export async function deleteCredential(id) {
+  const credentials = await getCredentials();
+  const filtered = credentials.filter(c => String(c.id) !== String(id));
+  if (filtered.length === credentials.length) return false;
+  await fs.writeFile(CREDENTIALS_FILE, JSON.stringify(filtered, null, 2), "utf8");
+  return true;
+}
+

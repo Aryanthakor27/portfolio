@@ -41,7 +41,10 @@ import {
   MapPin,
   Clock,
   RotateCcw,
-  Archive
+  Archive,
+  Award,
+  FileCheck,
+  GraduationCap
 } from 'lucide-react';
 import AdminPasscodeModal from '../components/AdminPasscodeModal';
 import ThemeToggle from '../components/ThemeToggle';
@@ -51,6 +54,7 @@ import { optimizeImageFile } from '../utils/imageUtils';
 import SocialIcon from '../components/SocialIcon';
 import { websitesData } from '../data/websitesData';
 import { designsData } from '../data/designsData';
+import { credentialsData } from '../data/credentialsData';
 
 export default function AdminDashboard({ onShowToast }) {
   const navigate = useNavigate();
@@ -93,6 +97,17 @@ export default function AdminDashboard({ onShowToast }) {
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
+    }
+  });
+
+  const [credentials, setCredentials] = useState(() => {
+    try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_credentials') || '[]'));
+      const saved = localStorage.getItem('aryan_admin_credentials');
+      const base = saved ? JSON.parse(saved) : credentialsData;
+      return base.filter(c => !deletedList.has(String(c.id).trim()));
+    } catch {
+      return credentialsData;
     }
   });
 
@@ -183,6 +198,21 @@ export default function AdminDashboard({ onShowToast }) {
     tag: 'Branding',
     image: '',
     caption: ''
+  });
+
+  const [showCredModal, setShowCredModal] = useState(false);
+  const [editingCred, setEditingCred] = useState(null);
+  const [credForm, setCredForm] = useState({
+    title: '',
+    institution: '',
+    type: 'certificate',
+    badge: 'Certified',
+    subtitle: '',
+    desc: '',
+    date: '',
+    fileUrl: '',
+    fileType: 'pdf',
+    previewImage: ''
   });
 
   // 2FA Setup State
@@ -321,19 +351,21 @@ export default function AdminDashboard({ onShowToast }) {
     setLoading(true);
     try {
       const token = sessionStorage.getItem('aryan_admin_token') || '';
-      const [webRes, desRes, msgRes, statsRes, contentRes, resInfo] = await Promise.all([
+      const [webRes, desRes, msgRes, statsRes, contentRes, resInfo, credRes] = await Promise.all([
         fetch('/api/websites').then(r => r.json()).catch(() => ({ data: [] })),
         fetch('/api/designs').then(r => r.json()).catch(() => ({ data: [] })),
         fetch('/api/contact').then(r => r.json()).catch(() => ({ messages: [] })),
         fetch('/api/admin/stats').then(r => r.json()).catch(() => ({})),
         fetch('/api/content').then(r => r.json()).catch(() => ({})),
-        fetch('/api/resume/info').then(r => r.json()).catch(() => null)
+        fetch('/api/resume/info').then(r => r.json()).catch(() => null),
+        fetch('/api/credentials').then(r => r.json()).catch(() => ({ data: [] }))
       ]);
 
       if (resInfo && resInfo.filename) setResumeInfo(resInfo);
 
       const deletedWebsites = new Set(JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]'));
       const deletedDesigns = new Set(JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]'));
+      const deletedCredentials = new Set(JSON.parse(localStorage.getItem('aryan_deleted_credentials') || '[]'));
 
       if (webRes && webRes.data && webRes.data.length > 0) {
         const cleanData = webRes.data.filter(w => !deletedWebsites.has(String(w.id).trim()));
@@ -371,6 +403,24 @@ export default function AdminDashboard({ onShowToast }) {
         }
       }
 
+      if (credRes && credRes.data && credRes.data.length > 0) {
+        const cleanData = credRes.data.filter(c => !deletedCredentials.has(String(c.id).trim()));
+        setCredentials(cleanData);
+        localStorage.setItem('aryan_admin_credentials', JSON.stringify(cleanData));
+      } else {
+        const saved = localStorage.getItem('aryan_admin_credentials');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved).filter(c => !deletedCredentials.has(String(c.id).trim()));
+            setCredentials(parsed);
+          } catch {
+            setCredentials(credentialsData.filter(c => !deletedCredentials.has(String(c.id).trim())));
+          }
+        } else {
+          setCredentials(credentialsData.filter(c => !deletedCredentials.has(String(c.id).trim())));
+        }
+      }
+
       if (msgRes && msgRes.messages && msgRes.messages.length > 0) {
         setMessages(msgRes.messages);
       } else {
@@ -390,7 +440,7 @@ export default function AdminDashboard({ onShowToast }) {
         if (!c.socials || c.socials.length === 0) {
           c.socials = [
             { id: 'linkedin', platform: 'LinkedIn', url: c.linkedin || 'https://www.linkedin.com/in/aryan-thakor', enabled: true },
-            { id: 'instagram', platform: 'Instagram', url: c.instagram || 'https://www.instagram.com/aryan_thakor_official', enabled: true },
+            { id: 'instagram', platform: 'Instagram', url: c.instagram || 'https://www.instagram.com/im__the_aryan', enabled: true },
             { id: 'github', platform: 'GitHub', url: c.github || 'https://github.com/aryanthakor', enabled: true },
             { id: 'whatsapp', platform: 'WhatsApp', url: c.whatsapp || 'https://wa.me/917698795009', enabled: true }
           ];
@@ -458,7 +508,7 @@ export default function AdminDashboard({ onShowToast }) {
         if (!c.socials || c.socials.length === 0) {
           c.socials = [
             { id: 'linkedin', platform: 'LinkedIn', url: c.linkedin || 'https://www.linkedin.com/in/aryan-thakor', enabled: true },
-            { id: 'instagram', platform: 'Instagram', url: c.instagram || 'https://www.instagram.com/aryan_thakor_official', enabled: true },
+            { id: 'instagram', platform: 'Instagram', url: c.instagram || 'https://www.instagram.com/im__the_aryan', enabled: true },
             { id: 'github', platform: 'GitHub', url: c.github || 'https://github.com/aryanthakor', enabled: true },
             { id: 'whatsapp', platform: 'WhatsApp', url: c.whatsapp || 'https://wa.me/917698795009', enabled: true }
           ];
@@ -814,6 +864,90 @@ export default function AdminDashboard({ onShowToast }) {
   };
   const handleDeleteDesign = promptDeleteDesign;
 
+  // --- Credentials & Certificates Actions ---
+  const openAddCred = () => {
+    setEditingCred(null);
+    setCredForm({
+      title: '',
+      institution: '',
+      type: 'certificate',
+      badge: 'Certified',
+      subtitle: '',
+      desc: '',
+      date: '',
+      fileUrl: '',
+      fileType: 'pdf',
+      previewImage: ''
+    });
+    setShowCredModal(true);
+  };
+
+  const openEditCred = (cred) => {
+    setEditingCred(cred);
+    setCredForm({
+      title: cred.title || '',
+      institution: cred.institution || '',
+      type: cred.type || 'certificate',
+      badge: cred.badge || 'Certified',
+      subtitle: cred.subtitle || '',
+      desc: cred.desc || '',
+      date: cred.date || '',
+      fileUrl: cred.fileUrl || '',
+      fileType: cred.fileType || 'pdf',
+      previewImage: cred.previewImage || ''
+    });
+    setShowCredModal(true);
+  };
+
+  const handleSaveCred = async (e) => {
+    e.preventDefault();
+    if (!credForm.title) {
+      if (onShowToast) onShowToast('Title is required.');
+      return;
+    }
+
+    const updatedCred = {
+      id: editingCred ? editingCred.id : `cred_${Date.now()}`,
+      ...credForm
+    };
+
+    setCredentials(prev => {
+      const next = editingCred
+        ? prev.map(c => c.id === editingCred.id ? updatedCred : c)
+        : [updatedCred, ...prev];
+      localStorage.setItem('aryan_admin_credentials', JSON.stringify(next));
+      return next;
+    });
+
+    setShowCredModal(false);
+    try {
+      window.dispatchEvent(new Event('aryan_portfolio_updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+
+    if (onShowToast) onShowToast(editingCred ? 'Certificate updated successfully!' : 'Certificate added successfully!');
+
+    try {
+      const endpoint = editingCred ? `/api/credentials/${editingCred.id}` : '/api/credentials';
+      const method = editingCred ? 'PUT' : 'POST';
+      fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credForm)
+      }).catch(() => {});
+    } catch {}
+  };
+
+  const promptDeleteCred = (id, title) => {
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'credential',
+      id,
+      title: title || 'This certificate / credential'
+    });
+  };
+  const handleDeleteCred = promptDeleteCred;
+
   // Execution when user confirms delete in custom modal -> Moves to Recycle Bin for 30 days
   const executeDeleteConfirmed = async () => {
     const { type, id, title } = deleteConfirm;
@@ -927,6 +1061,59 @@ export default function AdminDashboard({ onShowToast }) {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => {});
       } catch {}
+    } else if (type === 'credential') {
+      const targetItem = credentials.find(c => String(c.id).trim() === targetIdStr);
+
+      setCredentials(prev => {
+        const next = prev.filter(c => String(c.id).trim() !== targetIdStr);
+        try {
+          localStorage.setItem('aryan_admin_credentials', JSON.stringify(next));
+          const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_credentials') || '[]');
+          if (!deletedList.includes(targetIdStr)) {
+            deletedList.push(targetIdStr);
+            localStorage.setItem('aryan_deleted_credentials', JSON.stringify(deletedList));
+          }
+        } catch {}
+        return next;
+      });
+
+      // Add to Recycle Bin with 30-day retention
+      const binEntry = {
+        id: `bin_cred_${targetIdStr}_${now}`,
+        originalId: targetItem ? targetItem.id : id,
+        type: 'credential',
+        title: targetItem ? targetItem.title : title,
+        subtitle: targetItem ? (targetItem.institution || targetItem.subtitle) : '',
+        category: targetItem ? targetItem.type : 'certificate',
+        badge: targetItem ? targetItem.badge : 'Certificate',
+        image: targetItem ? (targetItem.previewImage || '') : '',
+        data: targetItem || { id, title },
+        deletedAt: now,
+        expiresAt: now + thirtyDaysMs
+      };
+
+      setRecycleBin(prev => {
+        const next = [binEntry, ...prev.filter(b => String(b.originalId).trim() !== targetIdStr)];
+        try {
+          localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+
+      try {
+        window.dispatchEvent(new Event('aryan_portfolio_updated'));
+        window.dispatchEvent(new Event('storage'));
+      } catch {}
+
+      if (onShowToast) onShowToast(`🗑️ "${title}" moved to Recycle Bin (30-day retention).`);
+
+      try {
+        const token = sessionStorage.getItem('aryan_admin_token') || '';
+        fetch(`/api/credentials/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => {});
+      } catch {}
     }
 
     setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
@@ -955,6 +1142,17 @@ export default function AdminDashboard({ onShowToast }) {
           const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]');
           const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
           localStorage.setItem('aryan_deleted_designs', JSON.stringify(updatedList));
+        } catch {}
+        return next;
+      });
+    } else if (binItem.type === 'credential') {
+      setCredentials(prev => {
+        const next = [binItem.data, ...prev.filter(c => String(c.id).trim() !== targetOriginalId)];
+        try {
+          localStorage.setItem('aryan_admin_credentials', JSON.stringify(next));
+          const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_credentials') || '[]');
+          const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
+          localStorage.setItem('aryan_deleted_credentials', JSON.stringify(updatedList));
         } catch {}
         return next;
       });
@@ -1118,6 +1316,13 @@ export default function AdminDashboard({ onShowToast }) {
             >
               <Palette size={18} />
               <span>Graphic Designs ({designs.length})</span>
+            </button>
+            <button
+              className={`nav-tab-btn ${activeTab === 'credentials' ? 'active' : ''}`}
+              onClick={() => setActiveTab('credentials')}
+            >
+              <Award size={18} />
+              <span>Certificates ({credentials.length})</span>
             </button>
             <button
               className={`nav-tab-btn ${activeTab === 'messages' ? 'active' : ''}`}
@@ -2601,7 +2806,79 @@ export default function AdminDashboard({ onShowToast }) {
             </div>
           )}
 
-          {/* TAB 5: CLIENT INQUIRIES */}
+          {/* TAB 5: CERTIFICATES & EXPERIENCE LETTERS */}
+          {activeTab === 'credentials' && (
+            <div className="tab-content credentials-tab">
+              <div className="panel-toolbar">
+                <div className="toolbar-left">
+                  <h3>Verified Credentials & Experience Letters ({credentials.length})</h3>
+                </div>
+                <div className="toolbar-right">
+                  <button onClick={openAddCred} className="btn-primary-action">
+                    <Plus size={16} />
+                    <span>Add Certificate</span>
+                  </button>
+                </div>
+              </div>
+
+              {credentials.length === 0 ? (
+                <div className="empty-box">
+                  <Award size={40} />
+                  <h3>No credentials listed</h3>
+                  <p>Click "Add Certificate" above to publish verified certifications or internship letters to your portfolio.</p>
+                </div>
+              ) : (
+                <div className="admin-cred-grid">
+                  {credentials.map((cred) => {
+                    const isPdf = cred.fileType === 'pdf' || (cred.fileUrl && cred.fileUrl.toLowerCase().endsWith('.pdf'));
+                    return (
+                      <div key={cred.id} className="admin-cred-card glass-card">
+                        <div className="admin-cred-top">
+                          <span className="cred-type-pill">
+                            <Award size={13} />
+                            <span>{cred.badge || 'Certified'}</span>
+                          </span>
+                          <span className="cred-inst-pill">{cred.institution || 'CERTIFIED'}</span>
+                        </div>
+
+                        <div className="admin-cred-body">
+                          <h4>{cred.title}</h4>
+                          {cred.subtitle && <p className="admin-cred-sub">{cred.subtitle}</p>}
+                          <p className="admin-cred-desc">{cred.desc}</p>
+                          {cred.date && <span className="admin-cred-date">Issued: {cred.date}</span>}
+
+                          {cred.fileUrl && (
+                            <div className="admin-cred-link-preview">
+                              <a
+                                href={cred.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="admin-cert-link"
+                              >
+                                <ExternalLink size={13} />
+                                <span>{isPdf ? 'View PDF File' : 'View Image Letter'}</span>
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="admin-cred-actions">
+                          <button onClick={() => openEditCred(cred)} className="btn-edit-sm">
+                            <Edit size={14} /> <span>Edit</span>
+                          </button>
+                          <button onClick={() => promptDeleteCred(cred.id, cred.title)} className="btn-delete-sm">
+                            <Trash2 size={14} /> <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 6: CLIENT INQUIRIES */}
           {activeTab === 'messages' && (
             <div className="tab-content messages-tab">
               <div className="panel-toolbar">
@@ -3303,6 +3580,161 @@ export default function AdminDashboard({ onShowToast }) {
                 </button>
                 <button type="submit" className="btn-save">
                   <span>{editingDesign ? 'Update Design' : 'Add Design to Portfolio'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Add / Edit Certificate & Experience Letter */}
+      {showCredModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal">
+            <div className="admin-modal-header">
+              <h3>{editingCred ? 'Edit Certificate / Credential' : 'Add Certificate or Experience Letter'}</h3>
+              <button
+                type="button"
+                onClick={() => setShowCredModal(false)}
+                className="btn-modal-close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCred} className="admin-modal-form">
+              <div className="form-group">
+                <label>Credential Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Certificate of Merit in Graphic Designing"
+                  value={credForm.title}
+                  onChange={(e) => setCredForm({ ...credForm, title: e.target.value })}
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Issuing Institution / Company *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. ARENA ANIMATION, ROWWAT / DIGIVA"
+                    value={credForm.institution}
+                    onChange={(e) => setCredForm({ ...credForm, institution: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Credential Type</label>
+                  <select
+                    value={credForm.type}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      const defaultBadge = newType === 'certificate' ? 'Certified' : newType === 'letter' ? 'Verified Letter' : 'Degree';
+                      setCredForm({ ...credForm, type: newType, badge: defaultBadge });
+                    }}
+                  >
+                    <option value="certificate">Professional Certificate</option>
+                    <option value="letter">Experience / Internship Letter</option>
+                    <option value="degree">Academic Degree / Diploma</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Badge Label</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Certified, Verified Letter"
+                    value={credForm.badge}
+                    onChange={(e) => setCredForm({ ...credForm, badge: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Issue Date / Duration</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 31-Dec-2025 or 2024 - 2025"
+                    value={credForm.date}
+                    onChange={(e) => setCredForm({ ...credForm, date: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Department / Subtitle</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Dept. of Media & Entertainment • Arena Animation Satellite"
+                  value={credForm.subtitle}
+                  onChange={(e) => setCredForm({ ...credForm, subtitle: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description / Verification Notes</label>
+                <textarea
+                  rows="3"
+                  placeholder="Course hours, skills covered, grade, or role responsibilities..."
+                  value={credForm.desc}
+                  onChange={(e) => setCredForm({ ...credForm, desc: e.target.value })}
+                ></textarea>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Document File Path / URL</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. /assets/documents/Arena_Animation_Certificate.pdf"
+                    value={credForm.fileUrl}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const isPdf = val.toLowerCase().endsWith('.pdf');
+                      setCredForm({
+                        ...credForm,
+                        fileUrl: val,
+                        fileType: isPdf ? 'pdf' : (credForm.fileType || 'image'),
+                        previewImage: !isPdf && !credForm.previewImage ? val : credForm.previewImage
+                      });
+                    }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>File Format</label>
+                  <select
+                    value={credForm.fileType}
+                    onChange={(e) => setCredForm({ ...credForm, fileType: e.target.value })}
+                  >
+                    <option value="pdf">PDF Document (Opens in new tab)</option>
+                    <option value="image">Image Letter (Opens lightbox viewer)</option>
+                  </select>
+                </div>
+              </div>
+
+              {credForm.fileType === 'image' && (
+                <div className="form-group">
+                  <label>Image Preview URL (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. /assets/documents/Rowwat_Internship_Letter.jpg"
+                    value={credForm.previewImage}
+                    onChange={(e) => setCredForm({ ...credForm, previewImage: e.target.value })}
+                  />
+                </div>
+              )}
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowCredModal(false)} className="btn-cancel">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-save">
+                  <span>{editingCred ? 'Update Certificate' : 'Add to Portfolio'}</span>
                 </button>
               </div>
             </form>

@@ -4,12 +4,38 @@ import { ArrowUpRight, Download, Lock, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { downloadResume } from '../utils/downloadResume';
 import { useContent } from '../context/ContentContext';
+import { websitesData } from '../data/websitesData';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { content } = useContent();
   const branding = content?.branding;
+
+  const getStoredWebsitesCount = () => {
+    try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]'));
+      const saved = localStorage.getItem('aryan_admin_websites');
+      const base = saved ? JSON.parse(saved) : websitesData;
+      return base.filter(s => !deletedList.has(String(s.id).trim())).length;
+    } catch {
+      return websitesData.length;
+    }
+  };
+
+  const [websitesCount, setWebsitesCount] = useState(getStoredWebsitesCount);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setWebsitesCount(getStoredWebsitesCount());
+    };
+    window.addEventListener('aryan_portfolio_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('aryan_portfolio_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   // Close mobile drawer automatically when route changes
   useEffect(() => {
@@ -71,7 +97,7 @@ export default function Navbar() {
           </li>
           <li>
             <NavLink to="/web-projects" className={({ isActive }) => `nav-item highlight-nav ${isActive ? 'active' : ''}`}>
-              Websites (48+)
+              Websites ({websitesCount}+)
             </NavLink>
           </li>
           <li>
@@ -154,7 +180,7 @@ export default function Navbar() {
                 Services
               </NavLink>
               <NavLink to="/web-projects" onClick={closeMenu} className={({ isActive }) => `mobile-nav-link highlight ${isActive ? 'active' : ''}`}>
-                Websites (48+)
+                Websites ({websitesCount}+)
               </NavLink>
               <NavLink to="/designs" onClick={closeMenu} className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}>
                 Designs

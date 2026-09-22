@@ -91,7 +91,9 @@ export default function Home({ onPreviewDesign }) {
             </h1>
 
             <p className="hero-subtitle">
-              {hero?.desc || "Senior Web Developer, Team Lead & Visual Designer at Digiva Inc (formerly Rowwat Technologies). Proven track record of engineering & delivering 48+ live client websites."}
+              {hero?.desc
+                ? hero.desc.replace(/48\+/g, `${websites.length}+`).replace(/4\+ years/g, '3+ years')
+                : `Senior Web Developer, Team Lead & Visual Designer at Digiva Inc (formerly Rowwat Technologies). Proven track record of engineering & delivering ${websites.length}+ live client websites.`}
             </p>
 
             {/* Core Badges */}
@@ -107,7 +109,7 @@ export default function Home({ onPreviewDesign }) {
             <div className="hero-actions">
               <Link to="/web-projects" className="btn btn-primary">
                 <Globe size={16} />
-                <span>{hero?.primaryCtaText || "Explore 48+ Websites"}</span>
+                <span>{hero?.primaryCtaText ? hero.primaryCtaText.replace(/48\+/g, `${websites.length}+`) : `Explore ${websites.length}+ Websites`}</span>
               </Link>
               <a 
                 href="/api/resume/download" 
@@ -128,12 +130,12 @@ export default function Home({ onPreviewDesign }) {
             {/* Stats Row */}
             <div className="stats-row">
               <div className="stat-item">
-                <span className="stat-number">{hero?.stats?.websitesCount || `${websites.length}+`}</span>
+                <span className="stat-number">{`${websites.length}+`}</span>
                 <span className="stat-label">{hero?.stats?.websitesLabel || "Live Sites Delivered"}</span>
               </div>
               <div className="stat-divider"></div>
               <div className="stat-item">
-                <span className="stat-number">{hero?.stats?.experienceYears || "4+"}</span>
+                <span className="stat-number">{hero?.stats?.experienceYears || "3+"}</span>
                 <span className="stat-label">{hero?.stats?.experienceLabel || "Years Experience"}</span>
               </div>
               <div className="stat-divider"></div>
@@ -189,7 +191,7 @@ export default function Home({ onPreviewDesign }) {
 
           <div className="section-cta-wrap">
             <Link to="/web-projects" className="btn btn-cyan btn-lg">
-              <span>View All 48+ Client Websites</span>
+              <span>View All {websites.length}+ Client Websites</span>
               <ArrowRight size={18} />
             </Link>
           </div>
@@ -213,7 +215,7 @@ export default function Home({ onPreviewDesign }) {
 
           <div className="section-cta-wrap">
             <Link to="/designs" className="btn btn-primary btn-lg">
-              <span>Explore Full Design Portfolio</span>
+              <span>Explore All {designs.length}+ Creative Designs</span>
               <ArrowRight size={18} />
             </Link>
           </div>

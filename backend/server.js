@@ -11,7 +11,11 @@ import {
   deleteDesign,
   getMessages,
   addMessage,
-  deleteMessage
+  deleteMessage,
+  getCredentials,
+  addCredential,
+  updateCredential,
+  deleteCredential
 } from "./dataStore.js";
 import {
   getContent,
@@ -248,12 +252,14 @@ app.get("/api/admin/stats", async (req, res) => {
   try {
     const websites = await getWebsites();
     const designs = await getDesigns();
+    const credentials = await getCredentials();
     const messages = await getMessages();
     const authConfig = await getAuthConfig();
 
     res.json({
       totalWebsites: websites.length,
       totalDesigns: designs.length,
+      totalCredentials: credentials.length,
       totalMessages: messages.length,
       twoFactorEnabled: !!authConfig.twoFactorEnabled,
       recentMessages: messages.slice(0, 5)
@@ -382,6 +388,56 @@ app.delete("/api/designs/:id", async (req, res) => {
     res.json({ success: true, message: "Graphic design deleted successfully!" });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete graphic design." });
+  }
+});
+
+// Credentials (Certificates & Letters)
+app.get("/api/credentials", async (req, res) => {
+  try {
+    const results = await getCredentials();
+    res.json({ total: results.length, data: results });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to retrieve credentials." });
+  }
+});
+
+app.post("/api/credentials", async (req, res) => {
+  try {
+    const { title, type, badge, institution, subtitle, desc, date, fileUrl, fileType, previewImage } = req.body;
+    if (!title) {
+      return res.status(400).json({ error: "Credential title is required." });
+    }
+
+    const created = await addCredential({ title, type, badge, institution, subtitle, desc, date, fileUrl, fileType, previewImage });
+    res.status(201).json({ success: true, message: "Credential added successfully!", data: created });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add credential." });
+  }
+});
+
+app.put("/api/credentials/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updated = await updateCredential(id, req.body);
+    if (!updated) {
+      return res.status(404).json({ error: "Credential not found." });
+    }
+    res.json({ success: true, message: "Credential updated successfully!", data: updated });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update credential." });
+  }
+});
+
+app.delete("/api/credentials/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const success = await deleteCredential(id);
+    if (!success) {
+      return res.status(404).json({ error: "Credential not found." });
+    }
+    res.json({ success: true, message: "Credential deleted successfully!" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete credential." });
   }
 });
 

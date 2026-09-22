@@ -54,7 +54,7 @@ export default function Contact({ onShowToast }) {
   const currentPhone = contact?.phone || '+91 76987 95009';
   const currentWhatsApp = contact?.whatsapp || 'https://wa.me/917698795009';
   const currentLinkedIn = contact?.linkedin || 'https://www.linkedin.com/in/aryan-thakor';
-  const currentInstagram = contact?.instagram || 'https://www.instagram.com/aryan_thakor_official';
+  const currentInstagram = contact?.instagram || 'https://www.instagram.com/im__the_aryan';
   const currentLocation = contact?.location || 'Ahmedabad, Gujarat, India';
 
   // Build full list of social links from contact CMS

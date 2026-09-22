@@ -1,81 +1,121 @@
-import React from 'react';
-import { Award, FileCheck, ExternalLink, Maximize2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Award, FileCheck, ExternalLink, Maximize2, GraduationCap, ShieldCheck } from 'lucide-react';
+import { credentialsData } from '../data/credentialsData';
 
 export default function Credentials({ onPreviewLetter }) {
+  const getStoredCredentials = () => {
+    try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_credentials') || '[]'));
+      const saved = localStorage.getItem('aryan_admin_credentials');
+      const base = saved ? JSON.parse(saved) : credentialsData;
+      return base.filter(c => !deletedList.has(String(c.id).trim()));
+    } catch {
+      return credentialsData;
+    }
+  };
+
+  const [credentials, setCredentials] = useState(getStoredCredentials);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setCredentials(getStoredCredentials());
+    };
+    window.addEventListener('aryan_portfolio_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    fetch('/api/credentials')
+      .then(r => r.json())
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_credentials') || '[]'));
+          const clean = res.data.filter(c => !deletedList.has(String(c.id).trim()));
+          setCredentials(clean);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      window.removeEventListener('aryan_portfolio_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  // Find previewable image letters
+  const featuredDocument = credentials.find(c => c.previewImage || (c.fileUrl && !c.fileUrl.toLowerCase().endsWith('.pdf')));
+
   return (
     <div className="credentials-page container">
       <div className="page-header">
         <span className="section-badge">Verified Credentials</span>
-        <h1 className="section-title">Certifications & Experience Letters</h1>
-        <p className="section-desc">Certified training in Graphic Design from Arena Animation and official Frontend Developer industry internship credentials.</p>
+        <h1 className="section-title">Certifications & Experience Letters ({credentials.length})</h1>
+        <p className="section-desc">Certified training in Graphic Design from Arena Animation, official Frontend Developer industry credentials, and verified achievements.</p>
       </div>
 
       <div className="credentials-grid">
-        {/* Arena Animation */}
-        <div className="cred-card glass-card">
-          <div className="cred-badge"><Award size={14} /> Certified</div>
-          <div className="cred-icon-box arena">
-            <span className="inst-tag">ARENA ANIMATION</span>
-          </div>
-          <h3>Certificate of Merit in Graphic Designing</h3>
-          <p className="cred-sub">Dept. of Media & Entertainment • Arena Animation Satellite</p>
-          <p className="cred-desc">
-            Completed 150 Hours intensive professional course covering advanced Graphic Design, Visual Typography, and Creative Artwork with <strong>Grade: Credit</strong>.
-          </p>
-          <div className="cred-footer">
-            <span>Date of Issue: 31-Dec-2025</span>
-            <a 
-              href="/assets/documents/Arena_Animation_Certificate.pdf" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="view-cert-btn"
-            >
-              <span>View PDF</span> <ExternalLink size={13} />
-            </a>
-          </div>
-        </div>
-
-        {/* Rowwat Technologies (now Digiva Inc) */}
-        <div className="cred-card glass-card">
-          <div className="cred-badge"><FileCheck size={14} /> Verified Letter</div>
-          <div className="cred-icon-box rowwat">
-            <span className="inst-tag">ROWWAT (NOW DIGIVA)</span>
-          </div>
-          <h3>Frontend Developer (React JS) Internship Letter</h3>
-          <p className="cred-sub">Rowwat Technologies (now Digiva Inc) • Ratnakar Nine Square, Ahmedabad</p>
-          <p className="cred-desc">
-            Official confirmation letter for 6-month industry internship in React JS & Frontend Development under Senior Project Management, issued by CEO Rajni Patel (Rowwat Technologies, earlier brand of Digiva Inc).
-          </p>
-          <div className="cred-footer">
-            <span>Date: 15-Jan-2024</span>
-            <button 
-              className="view-cert-btn"
-              onClick={() => onPreviewLetter({
-                title: "Rowwat Technologies (now Digiva Inc) Internship Letter",
-                tag: "Verified Experience Letter",
-                image: "/assets/documents/Rowwat_Internship_Letter.jpg",
-                caption: "Official internship confirmation letter issued by CEO Rajni Patel for Thakor Aryan Nareshkumar (Rowwat Technologies, now Digiva Inc)."
-              })}
-            >
-              <span>View Letter</span> <Maximize2 size={13} />
-            </button>
-          </div>
-        </div>
+        {credentials.map((cred) => {
+          const isPdf = cred.fileType === 'pdf' || (cred.fileUrl && cred.fileUrl.toLowerCase().endsWith('.pdf'));
+          return (
+            <div key={cred.id} className="cred-card glass-card">
+              <div className="cred-badge">
+                {cred.type === 'certificate' ? <Award size={14} /> : cred.type === 'degree' ? <GraduationCap size={14} /> : <FileCheck size={14} />}
+                <span>{cred.badge || 'Verified'}</span>
+              </div>
+              <div className={`cred-icon-box ${cred.type || 'arena'}`}>
+                <span className="inst-tag">{cred.institution || 'CERTIFIED'}</span>
+              </div>
+              <h3>{cred.title}</h3>
+              {cred.subtitle && <p className="cred-sub">{cred.subtitle}</p>}
+              <p className="cred-desc">{cred.desc}</p>
+              
+              <div className="cred-footer">
+                <span>{cred.date ? `Date: ${cred.date}` : 'Verified Credential'}</span>
+                {cred.fileUrl && (
+                  isPdf ? (
+                    <a 
+                      href={cred.fileUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="view-cert-btn"
+                    >
+                      <span>View PDF</span> <ExternalLink size={13} />
+                    </a>
+                  ) : (
+                    <button 
+                      className="view-cert-btn"
+                      onClick={() => onPreviewLetter && onPreviewLetter({
+                        title: cred.title,
+                        tag: cred.badge || "Verified Experience Document",
+                        image: cred.previewImage || cred.fileUrl,
+                        caption: cred.desc || cred.subtitle
+                      })}
+                    >
+                      <span>View Document</span> <Maximize2 size={13} />
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Embedded Letter Preview Box */}
-      <div className="sub-section-header">
-        <span className="section-badge">Official Document</span>
-        <h2 className="section-title">Rowwat Technologies (now Digiva Inc) Internship Letter</h2>
-      </div>
+      {/* Embedded Document Preview Box */}
+      {featuredDocument && (featuredDocument.previewImage || featuredDocument.fileUrl) && (
+        <>
+          <div className="sub-section-header">
+            <span className="section-badge">Official Document</span>
+            <h2 className="section-title">{featuredDocument.title}</h2>
+          </div>
 
-      <div className="glass-card letter-preview-box">
-        <img 
-          src="/assets/documents/Rowwat_Internship_Letter.jpg" 
-          alt="Rowwat Technologies (now Digiva Inc) Official Internship Letter" 
-          style={{ maxWidth: '680px', width: '100%', margin: '0 auto', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)' }}
-        />
-      </div>
+          <div className="glass-card letter-preview-box">
+            <img 
+              src={featuredDocument.previewImage || featuredDocument.fileUrl} 
+              alt={featuredDocument.title} 
+              style={{ maxWidth: '680px', width: '100%', margin: '0 auto', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)', display: 'block' }}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
