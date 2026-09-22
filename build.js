@@ -23,16 +23,25 @@ try {
   console.log("\n⚡ [3/3] Building Vite frontend production bundle...");
   execSync("npm run build --prefix frontend", { stdio: "inherit", cwd: __dirname });
 
-  // Step 4: Verification
-  const distHtml = path.join(__dirname, "frontend", "dist", "index.html");
-  if (!fs.existsSync(distHtml)) {
-    throw new Error("Build verification failed: frontend/dist/index.html was not found.");
+  // Step 4: Sync to root ./dist for Render Static Site compatibility
+  const rootDist = path.join(__dirname, "dist");
+  const frontendDist = path.join(__dirname, "frontend", "dist");
+  if (fs.existsSync(rootDist)) {
+    fs.rmSync(rootDist, { recursive: true, force: true });
+  }
+  fs.cpSync(frontendDist, rootDist, { recursive: true });
+
+  // Step 5: Verification
+  const distHtml = path.join(frontendDist, "index.html");
+  const rootHtml = path.join(rootDist, "index.html");
+  if (!fs.existsSync(distHtml) || !fs.existsSync(rootHtml)) {
+    throw new Error("Build verification failed: index.html was not found in dist.");
   }
 
   console.log("\n========================================================");
   console.log("✅ SUCCESS: Aryan Thakor Portfolio built successfully!");
-  console.log("   Frontend bundle verified at: frontend/dist");
-  console.log("   Ready to serve via Express on Render.com");
+  console.log("   Ready for Web Service (via Express backend)");
+  console.log("   Ready for Static Site (via ./dist or ./frontend/dist)");
   console.log("========================================================\n");
 } catch (err) {
   console.error("\n❌ Build failed with error:", err.message || err);

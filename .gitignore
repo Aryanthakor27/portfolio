@@ -11,7 +11,8 @@ G D.zip
 extracted_designs/
 
 # Build outputs
-# frontend/dist/
+dist/
+frontend/dist/
 
 # Environment and secrets
 .env
