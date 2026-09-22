@@ -8,7 +8,6 @@
     "dev:backend": "npm start --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "build": "node build.js",
-    "postinstall": "node build.js",
     "start": "node backend/server.js",
     "install:all": "node build.js"
   },
