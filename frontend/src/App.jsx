@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LightboxModal from './components/LightboxModal';
 import Toast from './components/Toast';
 import SEO from './components/SEO';
+import { trackVisitor } from './utils/visitorTracker';
 
 // Pages
 import Home from './pages/Home';
@@ -21,6 +22,13 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState(null);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  // Track visitor telemetry on public pages (non-blocking)
+  useEffect(() => {
+    if (!isAdminRoute) {
+      trackVisitor(location.pathname);
+    }
+  }, [location.pathname, isAdminRoute]);
 
   const showToast = (msg) => {
     setToastMessage(msg);

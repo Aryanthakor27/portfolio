@@ -563,6 +563,64 @@ app.post("/api/admin/resume/upload", requireAuth, async (req, res) => {
   }
 });
 
+// ==========================================================================
+// VISITOR ANALYTICS & TELEMETRY ENDPOINTS
+// ==========================================================================
+const ANALYTICS_STORE_FILE = path.join(BACKEND_STORE_DIR, "visitorLogs.json");
+
+function getVisitorLogs() {
+  try {
+    if (fs.existsSync(ANALYTICS_STORE_FILE)) {
+      return JSON.parse(fs.readFileSync(ANALYTICS_STORE_FILE, "utf-8"));
+    }
+  } catch {}
+  return [];
+}
+
+function saveVisitorLogs(logs) {
+  try {
+    if (!fs.existsSync(BACKEND_STORE_DIR)) {
+      fs.mkdirSync(BACKEND_STORE_DIR, { recursive: true });
+    }
+    fs.writeFileSync(ANALYTICS_STORE_FILE, JSON.stringify(logs.slice(0, 100), null, 2), "utf-8");
+  } catch {}
+}
+
+app.post("/api/analytics/visit", (req, res) => {
+  try {
+    const visit = req.body;
+    if (!visit || !visit.ip) {
+      return res.status(400).json({ error: "Invalid visit payload" });
+    }
+    const logs = getVisitorLogs();
+    const existingIndex = logs.findIndex(l => l.id === visit.id);
+    if (existingIndex !== -1) {
+      logs[existingIndex] = {
+        ...logs[existingIndex],
+        page: visit.page,
+        timestamp: Date.now(),
+        pageViews: (logs[existingIndex].pageViews || 1) + 1
+      };
+    } else {
+      visit.pageViews = 1;
+      logs.unshift(visit);
+    }
+    saveVisitorLogs(logs);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to record visitor" });
+  }
+});
+
+app.get("/api/analytics/visitors", (req, res) => {
+  res.json({ visitors: getVisitorLogs() });
+});
+
+app.delete("/api/analytics/visitors", (req, res) => {
+  saveVisitorLogs([]);
+  res.json({ success: true, message: "Visitor logs cleared." });
+});
+
 // --- Serve Frontend Static Build in Production ---
 const FRONTEND_DIST = path.resolve(__dirname, "../frontend/dist");
 if (fs.existsSync(FRONTEND_DIST)) {

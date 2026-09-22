@@ -33,7 +33,15 @@ import {
   Download,
   Share2,
   Image as ImageIcon,
-  Camera
+  Camera,
+  Activity,
+  Users,
+  Monitor,
+  Tablet,
+  MapPin,
+  Clock,
+  RotateCcw,
+  Archive
 } from 'lucide-react';
 import AdminPasscodeModal from '../components/AdminPasscodeModal';
 import ThemeToggle from '../components/ThemeToggle';
@@ -52,7 +60,7 @@ export default function AdminDashboard({ onShowToast }) {
     sessionStorage.getItem('aryan_admin_auth') === 'true'
   );
 
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'cms' | 'websites' | 'designs' | 'messages' | 'security'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'cms' | 'websites' | 'designs' | 'messages' | 'analytics' | 'recyclebin' | 'security'
   const [cmsSubTab, setCmsSubTab] = useState('hero'); // 'hero' | 'branding' | 'about' | 'services' | 'contact' | 'resume' | 'seo'
   const [loading, setLoading] = useState(true);
 
@@ -88,6 +96,35 @@ export default function AdminDashboard({ onShowToast }) {
     }
   });
 
+  // Recycle Bin State (auto-purges items older than 30 days)
+  const [recycleBin, setRecycleBin] = useState(() => {
+    try {
+      const raw = localStorage.getItem('aryan_recycle_bin');
+      const items = raw ? JSON.parse(raw) : [];
+      const now = Date.now();
+      const validItems = items.filter(item => {
+        const expiry = item.expiresAt || (item.deletedAt + 30 * 24 * 60 * 60 * 1000);
+        return now < expiry;
+      });
+      if (validItems.length !== items.length) {
+        localStorage.setItem('aryan_recycle_bin', JSON.stringify(validItems));
+      }
+      return validItems;
+    } catch {
+      return [];
+    }
+  });
+
+  // Visitor Telemetry Logs State
+  const [visitorLogs, setVisitorLogs] = useState(() => {
+    try {
+      const raw = localStorage.getItem('aryan_visitor_logs');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // In-App Custom Delete Confirmation Modal State
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
@@ -95,6 +132,8 @@ export default function AdminDashboard({ onShowToast }) {
     id: null,
     title: ''
   });
+
+  const [emptyBinModal, setEmptyBinModal] = useState(false);
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
@@ -373,6 +412,41 @@ export default function AdminDashboard({ onShowToast }) {
       loadAllData();
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    // Purge any expired items in recycle bin (older than 30 days)
+    const purgeExpired = () => {
+      setRecycleBin(prev => {
+        const now = Date.now();
+        const valid = prev.filter(item => {
+          const expiry = item.expiresAt || (item.deletedAt + 30 * 24 * 60 * 60 * 1000);
+          return now < expiry;
+        });
+        if (valid.length !== prev.length) {
+          localStorage.setItem('aryan_recycle_bin', JSON.stringify(valid));
+        }
+        return valid;
+      });
+    };
+
+    purgeExpired();
+
+    // Listen for visitor tracking updates
+    const handleVisitorUpdate = () => {
+      try {
+        const raw = localStorage.getItem('aryan_visitor_logs');
+        if (raw) setVisitorLogs(JSON.parse(raw));
+      } catch {}
+    };
+
+    window.addEventListener('aryan_visitor_tracked', handleVisitorUpdate);
+    window.addEventListener('storage', handleVisitorUpdate);
+
+    return () => {
+      window.removeEventListener('aryan_visitor_tracked', handleVisitorUpdate);
+      window.removeEventListener('storage', handleVisitorUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     if (cmsContent) {
@@ -671,19 +745,6 @@ export default function AdminDashboard({ onShowToast }) {
   };
   const handleDeleteWebsite = promptDeleteWebsite;
 
-  const handleResetWebsites = () => {
-    if (window.confirm('Restore all 48 original website projects to your portfolio?')) {
-      setWebsites(websitesData);
-      try {
-        localStorage.setItem('aryan_admin_websites', JSON.stringify(websitesData));
-        localStorage.removeItem('aryan_deleted_websites');
-        window.dispatchEvent(new Event('aryan_portfolio_updated'));
-        window.dispatchEvent(new Event('storage'));
-      } catch {}
-      if (onShowToast) onShowToast('✓ All 48 original website projects restored!');
-    }
-  };
-
   // --- Design Actions ---
   const openAddDesign = () => {
     setEditingDesign(null);
@@ -753,26 +814,17 @@ export default function AdminDashboard({ onShowToast }) {
   };
   const handleDeleteDesign = promptDeleteDesign;
 
-  const handleResetDesigns = () => {
-    if (window.confirm('Restore all original graphic designs to your portfolio?')) {
-      setDesigns(designsData);
-      try {
-        localStorage.setItem('aryan_admin_designs', JSON.stringify(designsData));
-        localStorage.removeItem('aryan_deleted_designs');
-        window.dispatchEvent(new Event('aryan_portfolio_updated'));
-        window.dispatchEvent(new Event('storage'));
-      } catch {}
-      if (onShowToast) onShowToast('✓ Original graphic designs restored!');
-    }
-  };
-
-  // Execution when user confirms delete in custom modal
+  // Execution when user confirms delete in custom modal -> Moves to Recycle Bin for 30 days
   const executeDeleteConfirmed = async () => {
     const { type, id, title } = deleteConfirm;
     if (!id) return;
     const targetIdStr = String(id).trim();
+    const now = Date.now();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
 
     if (type === 'website') {
+      const targetItem = websites.find(w => String(w.id).trim() === targetIdStr);
+
       setWebsites(prev => {
         const next = prev.filter(w => String(w.id).trim() !== targetIdStr);
         try {
@@ -786,12 +838,34 @@ export default function AdminDashboard({ onShowToast }) {
         return next;
       });
 
+      // Add to Recycle Bin with 30-day retention
+      const binEntry = {
+        id: `bin_web_${targetIdStr}_${now}`,
+        originalId: targetItem ? targetItem.id : id,
+        type: 'website',
+        title: targetItem ? targetItem.name : title,
+        subtitle: targetItem ? (targetItem.domain || targetItem.url) : '',
+        category: targetItem ? targetItem.category : 'ecommerce',
+        badge: targetItem ? (targetItem.badge || targetItem.tech) : 'Website',
+        data: targetItem || { id, name: title },
+        deletedAt: now,
+        expiresAt: now + thirtyDaysMs
+      };
+
+      setRecycleBin(prev => {
+        const next = [binEntry, ...prev.filter(b => String(b.originalId).trim() !== targetIdStr)];
+        try {
+          localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+
       try {
         window.dispatchEvent(new Event('aryan_portfolio_updated'));
         window.dispatchEvent(new Event('storage'));
       } catch {}
 
-      if (onShowToast) onShowToast(`✓ Project "${title}" deleted successfully.`);
+      if (onShowToast) onShowToast(`🗑️ "${title}" moved to Recycle Bin (30-day retention).`);
 
       try {
         const token = sessionStorage.getItem('aryan_admin_token') || '';
@@ -801,6 +875,8 @@ export default function AdminDashboard({ onShowToast }) {
         }).catch(() => {});
       } catch {}
     } else if (type === 'design') {
+      const targetItem = designs.find(d => String(d.id).trim() === targetIdStr);
+
       setDesigns(prev => {
         const next = prev.filter(d => String(d.id).trim() !== targetIdStr);
         try {
@@ -814,12 +890,35 @@ export default function AdminDashboard({ onShowToast }) {
         return next;
       });
 
+      // Add to Recycle Bin with 30-day retention
+      const binEntry = {
+        id: `bin_des_${targetIdStr}_${now}`,
+        originalId: targetItem ? targetItem.id : id,
+        type: 'design',
+        title: targetItem ? targetItem.title : title,
+        subtitle: targetItem ? (targetItem.tag || targetItem.category) : '',
+        category: targetItem ? targetItem.category : 'logos',
+        badge: targetItem ? targetItem.tag : 'Design Work',
+        image: targetItem ? targetItem.image : '',
+        data: targetItem || { id, title },
+        deletedAt: now,
+        expiresAt: now + thirtyDaysMs
+      };
+
+      setRecycleBin(prev => {
+        const next = [binEntry, ...prev.filter(b => String(b.originalId).trim() !== targetIdStr)];
+        try {
+          localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+
       try {
         window.dispatchEvent(new Event('aryan_portfolio_updated'));
         window.dispatchEvent(new Event('storage'));
       } catch {}
 
-      if (onShowToast) onShowToast(`✓ Graphic design "${title}" deleted successfully.`);
+      if (onShowToast) onShowToast(`🗑️ Design "${title}" moved to Recycle Bin (30-day retention).`);
 
       try {
         const token = sessionStorage.getItem('aryan_admin_token') || '';
@@ -831,6 +930,90 @@ export default function AdminDashboard({ onShowToast }) {
     }
 
     setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
+  };
+
+  // --- Recycle Bin Handlers ---
+  const handleRestoreFromBin = (binItem) => {
+    const targetOriginalId = String(binItem.originalId).trim();
+
+    if (binItem.type === 'website') {
+      setWebsites(prev => {
+        const next = [binItem.data, ...prev.filter(w => String(w.id).trim() !== targetOriginalId)];
+        try {
+          localStorage.setItem('aryan_admin_websites', JSON.stringify(next));
+          const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]');
+          const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
+          localStorage.setItem('aryan_deleted_websites', JSON.stringify(updatedList));
+        } catch {}
+        return next;
+      });
+    } else if (binItem.type === 'design') {
+      setDesigns(prev => {
+        const next = [binItem.data, ...prev.filter(d => String(d.id).trim() !== targetOriginalId)];
+        try {
+          localStorage.setItem('aryan_admin_designs', JSON.stringify(next));
+          const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]');
+          const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
+          localStorage.setItem('aryan_deleted_designs', JSON.stringify(updatedList));
+        } catch {}
+        return next;
+      });
+    }
+
+    setRecycleBin(prev => {
+      const next = prev.filter(b => b.id !== binItem.id);
+      try {
+        localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    try {
+      window.dispatchEvent(new Event('aryan_portfolio_updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+
+    if (onShowToast) onShowToast(`✓ Restored "${binItem.title}" back to active portfolio!`);
+  };
+
+  const handlePermanentDeleteFromBin = (binItem) => {
+    setRecycleBin(prev => {
+      const next = prev.filter(b => b.id !== binItem.id);
+      try {
+        localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    if (onShowToast) onShowToast(`Permanently deleted "${binItem.title}".`);
+  };
+
+  const handleEmptyRecycleBin = () => {
+    setRecycleBin([]);
+    try {
+      localStorage.setItem('aryan_recycle_bin', '[]');
+    } catch {}
+    setEmptyBinModal(false);
+    if (onShowToast) onShowToast('✓ Recycle Bin emptied. All deleted items wiped.');
+  };
+
+  // --- Visitor Analytics Handlers ---
+  const handleClearVisitorLogs = () => {
+    if (window.confirm('Clear all visitor tracking logs?')) {
+      setVisitorLogs([]);
+      try {
+        localStorage.removeItem('aryan_visitor_logs');
+        fetch('/api/analytics/visitors', { method: 'DELETE' }).catch(() => {});
+      } catch {}
+      if (onShowToast) onShowToast('Visitor traffic logs cleared.');
+    }
+  };
+
+  const handleRefreshVisitorLogs = () => {
+    try {
+      const raw = localStorage.getItem('aryan_visitor_logs');
+      setVisitorLogs(raw ? JSON.parse(raw) : []);
+    } catch {}
+    if (onShowToast) onShowToast('Visitor telemetry refreshed.');
   };
 
   // --- Message Actions ---
@@ -950,6 +1133,20 @@ export default function AdminDashboard({ onShowToast }) {
               <ShieldCheck size={18} />
               <span>Security & 2FA {twoFactorEnabled ? '🛡️' : '⚠️'}</span>
             </button>
+            <button
+              className={`nav-tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+              onClick={() => setActiveTab('analytics')}
+            >
+              <Activity size={18} />
+              <span>Live Visitors ({visitorLogs.length})</span>
+            </button>
+            <button
+              className={`nav-tab-btn ${activeTab === 'recyclebin' ? 'active' : ''}`}
+              onClick={() => setActiveTab('recyclebin')}
+            >
+              <Trash2 size={18} />
+              <span>Recycle Bin ({recycleBin.length})</span>
+            </button>
           </nav>
         </aside>
 
@@ -1018,6 +1215,28 @@ export default function AdminDashboard({ onShowToast }) {
                     <span className="stat-label">Live Resume (CV)</span>
                     <span className="stat-number">{resumeInfo.formattedSize || 'Active'}</span>
                     <span className="stat-sub">Click to Update or Test Download</span>
+                  </div>
+                </div>
+
+                <div className="stat-card" onClick={() => setActiveTab('analytics')}>
+                  <div className="stat-icon-wrapper cyan">
+                    <Activity size={24} />
+                  </div>
+                  <div className="stat-info">
+                    <span className="stat-label">Live Site Visitors</span>
+                    <span className="stat-number">{visitorLogs.length}</span>
+                    <span className="stat-sub">IP, Location, Device & Telemetry</span>
+                  </div>
+                </div>
+
+                <div className="stat-card" onClick={() => setActiveTab('recyclebin')}>
+                  <div className="stat-icon-wrapper amber">
+                    <Trash2 size={24} />
+                  </div>
+                  <div className="stat-info">
+                    <span className="stat-label">Recycle Bin</span>
+                    <span className="stat-number">{recycleBin.length}</span>
+                    <span className="stat-sub">30-day auto retention & restore</span>
                   </div>
                 </div>
               </div>
@@ -2230,10 +2449,6 @@ export default function AdminDashboard({ onShowToast }) {
                 </div>
 
                 <div className="toolbar-right">
-                  <button onClick={handleResetWebsites} className="btn-reset-data" title="Restore all original 48 projects">
-                    <RefreshCw size={14} />
-                    <span>Restore Defaults</span>
-                  </button>
                   <button onClick={openAddWebsite} className="btn-primary-action">
                     <Plus size={16} />
                     <span>Add New Website</span>
@@ -2332,10 +2547,6 @@ export default function AdminDashboard({ onShowToast }) {
                 </div>
 
                 <div className="toolbar-right">
-                  <button onClick={handleResetDesigns} className="btn-reset-data" title="Restore original graphic designs">
-                    <RefreshCw size={14} />
-                    <span>Restore Defaults</span>
-                  </button>
                   <button onClick={openAddDesign} className="btn-primary-action">
                     <Plus size={16} />
                     <span>Add New Design</span>
@@ -2612,6 +2823,288 @@ export default function AdminDashboard({ onShowToast }) {
               </div>
             </div>
           )}
+
+          {/* TAB: LIVE VISITOR TRAFFIC & TELEMETRY */}
+          {activeTab === 'analytics' && (() => {
+            const totalVisits = visitorLogs.length;
+            const uniqueIps = new Set(visitorLogs.map(v => v.ip)).size;
+            const mobileCount = visitorLogs.filter(v => v.device === 'Mobile').length;
+            const tabletCount = visitorLogs.filter(v => v.device === 'Tablet').length;
+            const desktopCount = visitorLogs.filter(v => v.device === 'Desktop').length;
+            const mobilePct = totalVisits > 0 ? Math.round(((mobileCount + tabletCount) / totalVisits) * 100) : 0;
+            const desktopPct = totalVisits > 0 ? Math.round((desktopCount / totalVisits) * 100) : 0;
+
+            const countryCounts = {};
+            visitorLogs.forEach(v => {
+              if (v.country && v.country !== 'Protected' && v.country !== 'Global') {
+                countryCounts[v.country] = (countryCounts[v.country] || 0) + 1;
+              }
+            });
+            let topCountry = 'Global / Direct';
+            let maxCount = 0;
+            Object.entries(countryCounts).forEach(([country, count]) => {
+              if (count > maxCount) {
+                maxCount = count;
+                topCountry = country;
+              }
+            });
+
+            return (
+              <div className="tab-content analytics-tab">
+                <div className="analytics-header-banner">
+                  <div className="analytics-header-text">
+                    <div className="live-indicator-row">
+                      <span className="live-pulse-dot"></span>
+                      <h2>Live Visitor Traffic & Geolocation Telemetry</h2>
+                    </div>
+                    <p>Real-time telemetry of visitors viewing your public portfolio. Tracks IP address, City, Country, Device type (Desktop vs Mobile), OS & active pages visited.</p>
+                  </div>
+                  <div className="analytics-actions">
+                    <button onClick={handleRefreshVisitorLogs} className="btn-secondary-action" title="Refresh Live Telemetry">
+                      <RefreshCw size={15} />
+                      <span>Refresh</span>
+                    </button>
+                    <button onClick={handleClearVisitorLogs} className="btn-clear-logs" title="Clear all visitor logs">
+                      <Trash2 size={15} />
+                      <span>Clear Logs</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4 Summary Stat Cards */}
+                <div className="analytics-stats-grid">
+                  <div className="stat-card">
+                    <div className="stat-icon-wrapper cyan">
+                      <Activity size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">Total Visits Tracked</span>
+                      <span className="stat-number">{totalVisits}</span>
+                      <span className="stat-sub">Across all public portfolio pages</span>
+                    </div>
+                  </div>
+
+                  <div className="stat-card">
+                    <div className="stat-icon-wrapper purple">
+                      <Users size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">Unique Visitors (IPs)</span>
+                      <span className="stat-number">{uniqueIps}</span>
+                      <span className="stat-sub">Individual client networks</span>
+                    </div>
+                  </div>
+
+                  <div className="stat-card">
+                    <div className="stat-icon-wrapper cyan">
+                      <Monitor size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">Device Breakdown</span>
+                      <span className="stat-number">{desktopPct}% Desktop</span>
+                      <span className="stat-sub">{mobilePct}% Mobile & Tablet ({mobileCount + tabletCount} mobile)</span>
+                    </div>
+                  </div>
+
+                  <div className="stat-card">
+                    <div className="stat-icon-wrapper amber">
+                      <MapPin size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">Top Location</span>
+                      <span className="stat-number">{topCountry}</span>
+                      <span className="stat-sub">Leading geographic origin</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Visitor Logs Table */}
+                <div className="analytics-table-container">
+                  <div className="section-title-row">
+                    <h3>Recent Visitor Sessions ({visitorLogs.length})</h3>
+                    <span className="telemetry-badge">📡 Real-Time Beacon Active</span>
+                  </div>
+
+                  {visitorLogs.length === 0 ? (
+                    <div className="empty-box">
+                      <Activity size={36} />
+                      <p>No visitor traffic recorded yet today.</p>
+                      <span className="empty-sub">Open your live portfolio in a private window or on your smartphone to see real-time IP, country, and device telemetry here!</span>
+                    </div>
+                  ) : (
+                    <div className="visitor-table-wrap">
+                      <table className="visitor-table">
+                        <thead>
+                          <tr>
+                            <th>Visitor IP</th>
+                            <th>Location & Country</th>
+                            <th>Device Type</th>
+                            <th>Platform & OS</th>
+                            <th>Browser</th>
+                            <th>Page Visited</th>
+                            <th>Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {visitorLogs.map((log, idx) => (
+                            <tr key={log.id || idx}>
+                              <td>
+                                <div className="visitor-ip-cell">
+                                  <span className="ip-text">{log.ip}</span>
+                                  {log.pageViews > 1 && (
+                                    <span className="page-views-badge">{log.pageViews} views</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td>
+                                <div className="location-cell">
+                                  <span className="flag-emoji">{log.flag || '🌐'}</span>
+                                  <div>
+                                    <strong>{log.city || 'Direct Visitor'}</strong>
+                                    <span className="country-sub">{log.region ? `${log.region}, ` : ''}{log.country || 'Global'}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <span className={`device-pill ${log.device?.toLowerCase()}`}>
+                                  {log.device === 'Mobile' ? <Smartphone size={13} /> : log.device === 'Tablet' ? <Tablet size={13} /> : <Monitor size={13} />}
+                                  <span>{log.device || 'Desktop'}</span>
+                                </span>
+                              </td>
+                              <td>
+                                <span className="os-text">{log.os || 'Unknown OS'}</span>
+                              </td>
+                              <td>
+                                <span className="browser-text">{log.browser || 'Web Browser'}</span>
+                              </td>
+                              <td>
+                                <span className="page-pill">{log.page || '/'}</span>
+                              </td>
+                              <td>
+                                <span className="time-text">
+                                  {log.timestamp ? (() => {
+                                    const diff = Date.now() - log.timestamp;
+                                    const mins = Math.floor(diff / 60000);
+                                    if (mins < 1) return 'Just now';
+                                    if (mins < 60) return `${mins}m ago`;
+                                    const hrs = Math.floor(mins / 60);
+                                    if (hrs < 24) return `${hrs}h ago`;
+                                    return new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+                                  })() : 'Recent'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* TAB: RECYCLE BIN (30-DAY RETENTION) */}
+          {activeTab === 'recyclebin' && (
+            <div className="tab-content recycle-bin-tab">
+              <div className="recycle-bin-header">
+                <div className="bin-header-text">
+                  <div className="bin-title-row">
+                    <Trash2 size={24} className="amber-icon" />
+                    <h2>Portfolio Recycle Bin (રીસાઇકલ બિન)</h2>
+                  </div>
+                  <p>Deleted website projects and graphic designs are safely held here for 30 days before permanent deletion. You can restore them anytime back to your live portfolio.</p>
+                </div>
+                <div className="bin-actions">
+                  <button
+                    onClick={() => setEmptyBinModal(true)}
+                    disabled={recycleBin.length === 0}
+                    className="btn-empty-bin"
+                    title="Permanently remove all items from bin"
+                  >
+                    <Trash2 size={16} />
+                    <span>Empty Recycle Bin ({recycleBin.length})</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 30-Day Auto Retention Banner */}
+              <div className="bin-retention-banner">
+                <Clock size={20} className="amber-icon" />
+                <div className="retention-info">
+                  <strong>30-Day Auto Purge Policy:</strong>
+                  <span> Each deleted item displays a countdown badge. Once 30 days pass, expired items are automatically erased. You can restore any item with a single click.</span>
+                </div>
+              </div>
+
+              {/* Deleted Items List */}
+              {recycleBin.length === 0 ? (
+                <div className="empty-box">
+                  <Archive size={42} />
+                  <h3>Recycle Bin is Empty</h3>
+                  <p>When you delete a website project or graphic design from Admin, it safely moves here instead of being lost forever.</p>
+                </div>
+              ) : (
+                <div className="bin-items-grid">
+                  {recycleBin.map((item) => {
+                    const daysLeft = Math.max(0, Math.ceil(((item.expiresAt || (item.deletedAt + 30 * 24 * 60 * 60 * 1000)) - Date.now()) / (1000 * 60 * 60 * 24)));
+                    return (
+                      <div key={item.id} className="bin-card">
+                        <div className="bin-card-top">
+                          <span className={`bin-type-badge ${item.type}`}>
+                            {item.type === 'website' ? <Globe size={13} /> : <Palette size={13} />}
+                            <span>{item.type === 'website' ? 'Web Project' : 'Graphic Design'}</span>
+                          </span>
+                          <span className={`countdown-badge ${daysLeft <= 3 ? 'urgent' : ''}`} title="Remaining days before auto-purge">
+                            <Clock size={12} />
+                            <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Expiring today'}</span>
+                          </span>
+                        </div>
+
+                        <div className="bin-card-body">
+                          {item.image && (
+                            <div className="bin-thumbnail">
+                              <img
+                                src={item.image}
+                                alt={item.title}
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            </div>
+                          )}
+                          <div className="bin-details">
+                            <h4 className="bin-item-title">{item.title}</h4>
+                            <p className="bin-item-subtitle">{item.subtitle || item.category || 'Portfolio Entry'}</p>
+                            <span className="bin-date-stamp">
+                              Deleted on: {new Date(item.deletedAt || Date.now()).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bin-card-footer">
+                          <button
+                            onClick={() => handleRestoreFromBin(item)}
+                            className="btn-restore-item"
+                            title="Restore item back to live portfolio"
+                          >
+                            <RotateCcw size={15} />
+                            <span>Restore to Portfolio</span>
+                          </button>
+                          <button
+                            onClick={() => handlePermanentDeleteFromBin(item)}
+                            className="btn-perm-delete"
+                            title="Delete permanently right now"
+                          >
+                            <Trash2 size={15} />
+                            <span>Delete Permanently</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </main>
       </div>
 
@@ -2826,11 +3319,11 @@ export default function AdminDashboard({ onShowToast }) {
             </div>
 
             <h3 className="delete-modal-title">
-              Delete {deleteConfirm.type === 'website' ? 'Website Project' : 'Graphic Design'}?
+              Move to Recycle Bin?
             </h3>
 
             <p className="delete-modal-desc">
-              Are you sure you want to permanently delete <strong>"{deleteConfirm.title}"</strong> from your portfolio? It will be removed immediately from your live showcase.
+              Are you sure you want to delete <strong>"{deleteConfirm.title}"</strong>? It will be safely moved to your <strong>Recycle Bin</strong> for 30 days, where you can restore it anytime.
             </p>
 
             <div className="delete-modal-actions">
@@ -2847,7 +3340,44 @@ export default function AdminDashboard({ onShowToast }) {
                 className="btn-delete-confirm"
               >
                 <Trash2 size={16} />
-                <span>Yes, Delete</span>
+                <span>Move to Recycle Bin</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Empty Recycle Bin Confirmation */}
+      {emptyBinModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal delete-confirm-modal">
+            <div className="delete-modal-icon-wrap" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+              <Trash2 size={34} />
+            </div>
+
+            <h3 className="delete-modal-title">
+              Empty Recycle Bin? (રીસાઇકલ બિન ખાલી કરો)
+            </h3>
+
+            <p className="delete-modal-desc">
+              Are you sure you want to permanently delete all <strong>{recycleBin.length} item(s)</strong> from your Recycle Bin? This action is irreversible and all selected items will be completely erased.
+            </p>
+
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                onClick={() => setEmptyBinModal(false)}
+                className="btn-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleEmptyRecycleBin}
+                className="btn-delete-confirm"
+              >
+                <Trash2 size={16} />
+                <span>Yes, Empty Everything</span>
               </button>
             </div>
           </div>
