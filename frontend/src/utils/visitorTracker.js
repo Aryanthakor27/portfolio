@@ -156,6 +156,7 @@ export async function trackVisitor(pagePath = window.location.pathname) {
       deviceIcon: device.icon,
       os,
       browser,
+      ua: navigator.userAgent || '',   // store raw UA for device brand detection in admin
       page: pagePath || '/',
       timestamp: Date.now(),
       screenWidth: typeof window !== 'undefined' ? window.innerWidth : 0,

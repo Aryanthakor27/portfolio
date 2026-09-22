@@ -136,8 +136,13 @@ export default function AdminDashboard({ onShowToast }) {
   // Visitor Telemetry Logs State
   const [visitorLogs, setVisitorLogs] = useState(() => {
     try {
+      const clearedAt = parseInt(localStorage.getItem('aryan_visitor_logs_cleared_at') || '0', 10);
       const raw = localStorage.getItem('aryan_visitor_logs');
-      return raw ? JSON.parse(raw) : [];
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.filter(l => (l.timestamp || 0) > clearedAt) : [];
+      }
+      return [];
     } catch {
       return [];
     }
@@ -152,6 +157,9 @@ export default function AdminDashboard({ onShowToast }) {
   });
 
   const [emptyBinModal, setEmptyBinModal] = useState(false);
+  const [clearLogsModal, setClearLogsModal] = useState(false);
+  // Ticker: forces re-render of relative timestamps every 30 seconds
+  const [tickNow, setTickNow] = useState(Date.now());
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
@@ -549,8 +557,14 @@ export default function AdminDashboard({ onShowToast }) {
     // Listen for visitor tracking updates
     const handleVisitorUpdate = () => {
       try {
+        const clearedAt = parseInt(localStorage.getItem('aryan_visitor_logs_cleared_at') || '0', 10);
         const raw = localStorage.getItem('aryan_visitor_logs');
-        if (raw) setVisitorLogs(JSON.parse(raw));
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setVisitorLogs(Array.isArray(parsed) ? parsed.filter(l => (l.timestamp || 0) > clearedAt) : []);
+        } else {
+          setVisitorLogs([]);
+        }
       } catch {}
     };
 
@@ -561,6 +575,12 @@ export default function AdminDashboard({ onShowToast }) {
       window.removeEventListener('aryan_visitor_tracked', handleVisitorUpdate);
       window.removeEventListener('storage', handleVisitorUpdate);
     };
+  }, []);
+
+  // Tick every 30s to refresh time-ago labels without a full data reload
+  useEffect(() => {
+    const ticker = setInterval(() => setTickNow(Date.now()), 30000);
+    return () => clearInterval(ticker);
   }, []);
 
   useEffect(() => {
@@ -1060,6 +1080,7 @@ export default function AdminDashboard({ onShowToast }) {
   // --- Cross-Device Cloud Visitor Telemetry Polling ---
   const fetchCloudVisitorLogs = async () => {
     try {
+      const clearedAt = parseInt(localStorage.getItem('aryan_visitor_logs_cleared_at') || '0', 10);
       const res = await fetch('https://ntfy.sh/aryan_portfolio_telemetry_2026/json?poll=1');
       if (res.ok) {
         const text = await res.text();
@@ -1071,7 +1092,11 @@ export default function AdminDashboard({ onShowToast }) {
             if (parsed.event === 'message' && parsed.message) {
               const visitData = typeof parsed.message === 'string' ? JSON.parse(parsed.message) : parsed.message;
               if (visitData && (visitData.ip || visitData.device)) {
-                cloudVisits.push(visitData);
+                const ts = visitData.timestamp || 0;
+                // Only consider visits that happened AFTER the logs were cleared
+                if (ts > clearedAt) {
+                  cloudVisits.push(visitData);
+                }
               }
             }
           } catch {}
@@ -1087,7 +1112,7 @@ export default function AdminDashboard({ onShowToast }) {
                 merged.unshift(cv);
               }
             });
-            const finalLogs = merged.slice(0, 100);
+            const finalLogs = merged.filter(l => (l.timestamp || 0) > clearedAt).slice(0, 100);
             localStorage.setItem('aryan_visitor_logs', JSON.stringify(finalLogs));
             return finalLogs;
           });
@@ -1393,23 +1418,81 @@ export default function AdminDashboard({ onShowToast }) {
 
   // --- Visitor Analytics Handlers ---
   const handleClearVisitorLogs = () => {
-    if (window.confirm('Clear all visitor tracking logs?')) {
-      setVisitorLogs([]);
-      try {
-        localStorage.removeItem('aryan_visitor_logs');
-        fetch('/api/analytics/visitors', { method: 'DELETE' }).catch(() => {});
-      } catch {}
-      if (onShowToast) onShowToast('Visitor traffic logs cleared.');
-    }
+    // Use in-app modal instead of window.confirm (which may be blocked)
+    setClearLogsModal(true);
   };
 
-  const handleRefreshVisitorLogs = () => {
+  const confirmClearVisitorLogs = () => {
+    const now = Date.now();
     try {
-      const raw = localStorage.getItem('aryan_visitor_logs');
-      setVisitorLogs(raw ? JSON.parse(raw) : []);
+      localStorage.setItem('aryan_visitor_logs_cleared_at', now.toString());
+      localStorage.removeItem('aryan_visitor_logs');
+      fetch('/api/analytics/visitors', { method: 'DELETE' }).catch(() => {});
     } catch {}
-    fetchCloudVisitorLogs();
-    if (onShowToast) onShowToast('Visitor telemetry refreshed.');
+    setVisitorLogs([]);
+    setClearLogsModal(false);
+    if (onShowToast) onShowToast('✓ Visitor traffic logs cleared successfully.');
+  };
+
+  const handleRefreshVisitorLogs = async () => {
+    try {
+      const clearedAt = parseInt(localStorage.getItem('aryan_visitor_logs_cleared_at') || '0', 10);
+      const raw = localStorage.getItem('aryan_visitor_logs');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setVisitorLogs(Array.isArray(parsed) ? parsed.filter(l => (l.timestamp || 0) > clearedAt) : []);
+      } else {
+        setVisitorLogs([]);
+      }
+    } catch {}
+    await fetchCloudVisitorLogs();
+    setTickNow(Date.now());
+    if (onShowToast) onShowToast('✓ Visitor telemetry refreshed from cloud.');
+  };
+
+  // Helper: detect device brand from OS / userAgent stored in log
+  const getDeviceBrand = (log) => {
+    const os = (log.os || '').toLowerCase();
+    const browser = (log.browser || '').toLowerCase();
+    const device = (log.device || '').toLowerCase();
+    if (os.includes('iphone') || os.includes('ipad') || os.includes('macos')) return '🍎 Apple';
+    if (os.includes('android')) {
+      // Try to guess brand from UA stored
+      const ua = (log.userAgent || log.ua || '').toLowerCase();
+      if (ua.includes('samsung') || ua.includes('sm-')) return '📱 Samsung';
+      if (ua.includes('oneplus') || ua.includes('op-')) return '📱 OnePlus';
+      if (ua.includes('redmi') || ua.includes('miui') || ua.includes('xiaomi')) return '📱 Xiaomi';
+      if (ua.includes('realme')) return '📱 Realme';
+      if (ua.includes('vivo')) return '📱 Vivo';
+      if (ua.includes('oppo')) return '📱 OPPO';
+      if (ua.includes('pixel')) return '📱 Google Pixel';
+      return '📱 Android';
+    }
+    if (os.includes('windows')) return '🖥️ Windows PC';
+    if (os.includes('linux')) return '🐧 Linux';
+    if (device === 'tablet') return '📟 Tablet';
+    return '💻 PC';
+  };
+
+  // Helper: relative time label
+  const getTimeAgo = (timestamp) => {
+    if (!timestamp) return 'Recent';
+    const diff = tickNow - timestamp;
+    const secs = Math.floor(diff / 1000);
+    if (secs < 10) return 'Just now';
+    if (secs < 60) return `${secs}s ago`;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  // Helper: is this visitor currently LIVE (visited in last 5 minutes)
+  const isLiveVisitor = (timestamp) => {
+    return timestamp && (Date.now() - timestamp) < 5 * 60 * 1000;
   };
 
   // --- Message Actions ---
@@ -3413,14 +3496,19 @@ export default function AdminDashboard({ onShowToast }) {
                 {/* Visitor Logs Table */}
                 <div className="analytics-table-container">
                   <div className="section-title-row">
-                    <h3>Recent Visitor Sessions ({visitorLogs.length})</h3>
+                    <h3>
+                      Visitor Sessions
+                      <span style={{ fontWeight: 400, fontSize: '14px', color: 'var(--text-muted)', marginLeft: 8 }}>
+                        ({visitorLogs.filter(l => isLiveVisitor(l.timestamp)).length} live · {visitorLogs.filter(l => !isLiveVisitor(l.timestamp)).length} past)
+                      </span>
+                    </h3>
                     <span className="telemetry-badge">📡 Real-Time Beacon Active</span>
                   </div>
 
                   {visitorLogs.length === 0 ? (
                     <div className="empty-box">
                       <Activity size={36} />
-                      <p>No visitor traffic recorded yet today.</p>
+                      <p>No visitor traffic recorded yet.</p>
                       <span className="empty-sub">Open your live portfolio in a private window or on your smartphone to see real-time IP, country, and device telemetry here!</span>
                     </div>
                   ) : (
@@ -3428,65 +3516,80 @@ export default function AdminDashboard({ onShowToast }) {
                       <table className="visitor-table">
                         <thead>
                           <tr>
+                            <th>Status</th>
                             <th>Visitor IP</th>
-                            <th>Location & Country</th>
+                            <th>Location</th>
+                            <th>Device Brand</th>
                             <th>Device Type</th>
-                            <th>Platform & OS</th>
-                            <th>Browser</th>
+                            <th>OS / Browser</th>
                             <th>Page Visited</th>
                             <th>Time</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {visitorLogs.map((log, idx) => (
-                            <tr key={log.id || idx}>
-                              <td>
-                                <div className="visitor-ip-cell">
-                                  <span className="ip-text">{log.ip}</span>
-                                  {log.pageViews > 1 && (
-                                    <span className="page-views-badge">{log.pageViews} views</span>
+                          {/* Sort: live visitors first, then by timestamp desc */}
+                          {[...visitorLogs].sort((a, b) => {
+                            const aLive = isLiveVisitor(a.timestamp) ? 1 : 0;
+                            const bLive = isLiveVisitor(b.timestamp) ? 1 : 0;
+                            if (aLive !== bLive) return bLive - aLive;
+                            return (b.timestamp || 0) - (a.timestamp || 0);
+                          }).map((log, idx) => {
+                            const live = isLiveVisitor(log.timestamp);
+                            return (
+                              <tr key={log.id || idx} className={live ? 'visitor-row-live' : ''}>
+                                <td>
+                                  {live ? (
+                                    <span className="live-status-badge">
+                                      <span className="live-dot-sm"></span>
+                                      LIVE
+                                    </span>
+                                  ) : (
+                                    <span className="past-status-badge">PAST</span>
                                   )}
-                                </div>
-                              </td>
-                              <td>
-                                <div className="location-cell">
-                                  <span className="flag-emoji">{log.flag || '🌐'}</span>
-                                  <div>
-                                    <strong>{log.city || 'Direct Visitor'}</strong>
-                                    <span className="country-sub">{log.region ? `${log.region}, ` : ''}{log.country || 'Global'}</span>
+                                </td>
+                                <td>
+                                  <div className="visitor-ip-cell">
+                                    <span className="ip-text">{log.ip}</span>
+                                    {log.pageViews > 1 && (
+                                      <span className="page-views-badge">{log.pageViews} views</span>
+                                    )}
                                   </div>
-                                </div>
-                              </td>
-                              <td>
-                                <span className={`device-pill ${log.device?.toLowerCase()}`}>
-                                  {log.device === 'Mobile' ? <Smartphone size={13} /> : log.device === 'Tablet' ? <Tablet size={13} /> : <Monitor size={13} />}
-                                  <span>{log.device || 'Desktop'}</span>
-                                </span>
-                              </td>
-                              <td>
-                                <span className="os-text">{log.os || 'Unknown OS'}</span>
-                              </td>
-                              <td>
-                                <span className="browser-text">{log.browser || 'Web Browser'}</span>
-                              </td>
-                              <td>
-                                <span className="page-pill">{log.page || '/'}</span>
-                              </td>
-                              <td>
-                                <span className="time-text">
-                                  {log.timestamp ? (() => {
-                                    const diff = Date.now() - log.timestamp;
-                                    const mins = Math.floor(diff / 60000);
-                                    if (mins < 1) return 'Just now';
-                                    if (mins < 60) return `${mins}m ago`;
-                                    const hrs = Math.floor(mins / 60);
-                                    if (hrs < 24) return `${hrs}h ago`;
-                                    return new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
-                                  })() : 'Recent'}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
+                                </td>
+                                <td>
+                                  <div className="location-cell">
+                                    <span className="flag-emoji">{log.flag || '🌐'}</span>
+                                    <div>
+                                      <strong>{log.city || 'Direct Visitor'}</strong>
+                                      <span className="country-sub">{log.region ? `${log.region}, ` : ''}{log.country || 'Global'}</span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className="brand-text">{getDeviceBrand(log)}</span>
+                                </td>
+                                <td>
+                                  <span className={`device-pill ${log.device?.toLowerCase()}`}>
+                                    {log.device === 'Mobile' ? <Smartphone size={13} /> : log.device === 'Tablet' ? <Tablet size={13} /> : <Monitor size={13} />}
+                                    <span>{log.device || 'Desktop'}</span>
+                                  </span>
+                                </td>
+                                <td>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <span className="os-text">{log.os || 'Unknown OS'}</span>
+                                    <span className="browser-text" style={{ fontSize: '11px', opacity: 0.75 }}>{log.browser || 'Web Browser'}</span>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className="page-pill">{log.page || '/'}</span>
+                                </td>
+                                <td>
+                                  <span className={`time-text ${live ? 'time-live' : ''}`}>
+                                    {getTimeAgo(log.timestamp)}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -3494,6 +3597,7 @@ export default function AdminDashboard({ onShowToast }) {
                 </div>
               </div>
             );
+
           })()}
 
           {/* TAB: RECYCLE BIN (30-DAY RETENTION) */}
@@ -4193,6 +4297,41 @@ export default function AdminDashboard({ onShowToast }) {
               >
                 <Trash2 size={16} />
                 <span>Yes, Empty Everything</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Visitor Logs Confirmation Modal */}
+      {clearLogsModal && (
+        <div className="admin-modal-overlay" onClick={() => setClearLogsModal(false)}>
+          <div className="admin-modal delete-confirm-modal" onClick={e => e.stopPropagation()}>
+            <div className="delete-modal-icon-wrap" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>
+              <Activity size={34} />
+            </div>
+
+            <h3 className="delete-modal-title">Clear All Visitor Logs?</h3>
+
+            <p className="delete-modal-desc">
+              This will permanently remove all <strong>{visitorLogs.length} visitor record(s)</strong> from your analytics. You won't be able to recover this data. New visitors will still be tracked after clearing.
+            </p>
+
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                onClick={() => setClearLogsModal(false)}
+                className="btn-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmClearVisitorLogs}
+                className="btn-delete-confirm"
+              >
+                <Trash2 size={16} />
+                <span>Yes, Clear All Logs</span>
               </button>
             </div>
           </div>
