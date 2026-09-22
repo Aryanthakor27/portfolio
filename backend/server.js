@@ -577,7 +577,7 @@ if (fs.existsSync(FRONTEND_DIST)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`⚡ [Backend] Aryan Thakor Portfolio API running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`⚡ [Backend] Aryan Thakor Portfolio API running on port ${PORT}`);
 });
 
