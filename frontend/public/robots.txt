@@ -1,0 +1,7 @@
+# robots.txt for Aryan Thakor Portfolio
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://aryan-portfolio-s8il.onrender.com/sitemap.xml

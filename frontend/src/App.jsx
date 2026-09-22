@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LightboxModal from './components/LightboxModal';
 import Toast from './components/Toast';
+import SEO from './components/SEO';
 
 // Pages
 import Home from './pages/Home';
@@ -30,6 +31,9 @@ export default function App() {
 
   return (
     <div className={`app-layout ${isAdminRoute ? 'admin-layout-active' : ''}`}>
+      {/* Dynamic SEO Meta & Title Manager */}
+      <SEO />
+
       {/* Navigation Header - Hidden on Admin */}
       {!isAdminRoute && <Navbar onShowToast={showToast} />}
 
@@ -40,6 +44,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
           <Route path="/web-projects" element={<WebProjects />} />
+          <Route path="/projects" element={<WebProjects />} />
           <Route path="/designs" element={<GraphicDesigns onPreviewDesign={setPreviewItem} />} />
           <Route path="/credentials" element={<Credentials onPreviewLetter={setPreviewItem} />} />
           <Route path="/contact" element={<Contact onShowToast={showToast} />} />
