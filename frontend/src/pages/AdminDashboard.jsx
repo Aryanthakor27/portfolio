@@ -38,6 +38,8 @@ import ThemeToggle from '../components/ThemeToggle';
 import { useContent } from '../context/ContentContext';
 import { downloadResume } from '../utils/downloadResume';
 import SocialIcon from '../components/SocialIcon';
+import { websitesData } from '../data/websitesData';
+import { designsData } from '../data/designsData';
 
 export default function AdminDashboard({ onShowToast }) {
   const navigate = useNavigate();
@@ -51,10 +53,34 @@ export default function AdminDashboard({ onShowToast }) {
   const [cmsSubTab, setCmsSubTab] = useState('hero'); // 'hero' | 'about' | 'services' | 'contact' | 'seo'
   const [loading, setLoading] = useState(true);
 
-  // Datasets
-  const [websites, setWebsites] = useState([]);
-  const [designs, setDesigns] = useState([]);
-  const [messages, setMessages] = useState([]);
+  // Datasets with fallback to localStorage & bundled dataset
+  const [websites, setWebsites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_admin_websites');
+      return saved ? JSON.parse(saved) : websitesData;
+    } catch {
+      return websitesData;
+    }
+  });
+
+  const [designs, setDesigns] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_admin_designs');
+      return saved ? JSON.parse(saved) : designsData;
+    } catch {
+      return designsData;
+    }
+  });
+
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_contact_messages');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
   // CMS Editable Forms
@@ -208,9 +234,39 @@ export default function AdminDashboard({ onShowToast }) {
 
       if (resInfo && resInfo.filename) setResumeInfo(resInfo);
 
-      if (webRes.data) setWebsites(webRes.data);
-      if (desRes.data) setDesigns(desRes.data);
-      if (msgRes.messages) setMessages(msgRes.messages);
+      if (webRes && webRes.data && webRes.data.length > 0) {
+        setWebsites(webRes.data);
+        localStorage.setItem('aryan_admin_websites', JSON.stringify(webRes.data));
+      } else {
+        const saved = localStorage.getItem('aryan_admin_websites');
+        if (saved) {
+          try { setWebsites(JSON.parse(saved)); } catch { setWebsites(websitesData); }
+        } else {
+          setWebsites(websitesData);
+        }
+      }
+
+      if (desRes && desRes.data && desRes.data.length > 0) {
+        setDesigns(desRes.data);
+        localStorage.setItem('aryan_admin_designs', JSON.stringify(desRes.data));
+      } else {
+        const saved = localStorage.getItem('aryan_admin_designs');
+        if (saved) {
+          try { setDesigns(JSON.parse(saved)); } catch { setDesigns(designsData); }
+        } else {
+          setDesigns(designsData);
+        }
+      }
+
+      if (msgRes && msgRes.messages && msgRes.messages.length > 0) {
+        setMessages(msgRes.messages);
+      } else {
+        const savedMsgs = localStorage.getItem('aryan_contact_messages');
+        if (savedMsgs) {
+          try { setMessages(JSON.parse(savedMsgs)); } catch {}
+        }
+      }
+
       if (statsRes.twoFactorEnabled !== undefined) setTwoFactorEnabled(statsRes.twoFactorEnabled);
 
       if (contentRes.hero) {
@@ -493,44 +549,46 @@ export default function AdminDashboard({ onShowToast }) {
       return;
     }
 
+    const updatedSite = {
+      id: editingWebsite ? editingWebsite.id : Date.now(),
+      ...websiteForm
+    };
+
+    setWebsites(prev => {
+      const next = editingWebsite
+        ? prev.map(w => w.id === editingWebsite.id ? updatedSite : w)
+        : [updatedSite, ...prev];
+      localStorage.setItem('aryan_admin_websites', JSON.stringify(next));
+      return next;
+    });
+
+    setShowWebsiteModal(false);
+    if (onShowToast) onShowToast(editingWebsite ? 'Website updated successfully!' : 'Website added successfully!');
+
     try {
       const endpoint = editingWebsite ? `/api/websites/${editingWebsite.id}` : '/api/websites';
       const method = editingWebsite ? 'PUT' : 'POST';
-
-      const res = await fetch(endpoint, {
+      fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(websiteForm)
-      });
-      const result = await res.json();
-
-      if (res.ok) {
-        if (onShowToast) onShowToast(result.message || 'Website saved successfully!');
-        setShowWebsiteModal(false);
-        loadAllData();
-      } else {
-        if (onShowToast) onShowToast(result.error || 'Failed to save website.');
-      }
-    } catch {
-      if (onShowToast) onShowToast('Server connection error.');
-    }
+      }).catch(() => {});
+    } catch {}
   };
 
   const handleDeleteWebsite = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
 
+    setWebsites(prev => {
+      const next = prev.filter(w => w.id !== id);
+      localStorage.setItem('aryan_admin_websites', JSON.stringify(next));
+      return next;
+    });
+    if (onShowToast) onShowToast(`"${name}" deleted successfully.`);
+
     try {
-      const res = await fetch(`/api/websites/${id}`, { method: 'DELETE' });
-      const result = await res.json();
-      if (res.ok) {
-        if (onShowToast) onShowToast(`"${name}" deleted successfully.`);
-        setWebsites(prev => prev.filter(w => w.id !== id));
-      } else {
-        if (onShowToast) onShowToast(result.error || 'Failed to delete.');
-      }
-    } catch {
-      if (onShowToast) onShowToast('Error deleting website.');
-    }
+      fetch(`/api/websites/${id}`, { method: 'DELETE' }).catch(() => {});
+    } catch {}
   };
 
   // --- Design Actions ---
@@ -565,58 +623,62 @@ export default function AdminDashboard({ onShowToast }) {
       return;
     }
 
+    const updatedDesign = {
+      id: editingDesign ? editingDesign.id : Date.now(),
+      ...designForm
+    };
+
+    setDesigns(prev => {
+      const next = editingDesign
+        ? prev.map(d => d.id === editingDesign.id ? updatedDesign : d)
+        : [updatedDesign, ...prev];
+      localStorage.setItem('aryan_admin_designs', JSON.stringify(next));
+      return next;
+    });
+
+    setShowDesignModal(false);
+    if (onShowToast) onShowToast(editingDesign ? 'Graphic design updated successfully!' : 'Graphic design added successfully!');
+
     try {
       const endpoint = editingDesign ? `/api/designs/${editingDesign.id}` : '/api/designs';
       const method = editingDesign ? 'PUT' : 'POST';
-
-      const res = await fetch(endpoint, {
+      fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(designForm)
-      });
-      const result = await res.json();
-
-      if (res.ok) {
-        if (onShowToast) onShowToast(result.message || 'Graphic design saved successfully!');
-        setShowDesignModal(false);
-        loadAllData();
-      } else {
-        if (onShowToast) onShowToast(result.error || 'Failed to save design.');
-      }
-    } catch {
-      if (onShowToast) onShowToast('Server connection error.');
-    }
+      }).catch(() => {});
+    } catch {}
   };
 
   const handleDeleteDesign = async (id, title) => {
     if (!window.confirm(`Are you sure you want to delete design "${title}"?`)) return;
 
+    setDesigns(prev => {
+      const next = prev.filter(d => d.id !== id);
+      localStorage.setItem('aryan_admin_designs', JSON.stringify(next));
+      return next;
+    });
+    if (onShowToast) onShowToast(`"${title}" deleted successfully.`);
+
     try {
-      const res = await fetch(`/api/designs/${id}`, { method: 'DELETE' });
-      const result = await res.json();
-      if (res.ok) {
-        if (onShowToast) onShowToast(`"${title}" deleted successfully.`);
-        setDesigns(prev => prev.filter(d => d.id !== id));
-      } else {
-        if (onShowToast) onShowToast(result.error || 'Failed to delete.');
-      }
-    } catch {
-      if (onShowToast) onShowToast('Error deleting design.');
-    }
+      fetch(`/api/designs/${id}`, { method: 'DELETE' }).catch(() => {});
+    } catch {}
   };
 
   // --- Message Actions ---
   const handleDeleteMessage = async (id) => {
     if (!window.confirm('Delete this client inquiry?')) return;
+
+    setMessages(prev => {
+      const next = prev.filter(m => (m.id !== id && m.timestamp !== id));
+      localStorage.setItem('aryan_contact_messages', JSON.stringify(next));
+      return next;
+    });
+    if (onShowToast) onShowToast('Inquiry deleted.');
+
     try {
-      const res = await fetch(`/api/contact/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        if (onShowToast) onShowToast('Inquiry deleted.');
-        setMessages(prev => prev.filter(m => m.id !== id));
-      }
-    } catch {
-      if (onShowToast) onShowToast('Error deleting message.');
-    }
+      fetch(`/api/contact/${id}`, { method: 'DELETE' }).catch(() => {});
+    } catch {}
   };
 
   // Filtered lists

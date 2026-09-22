@@ -12,8 +12,22 @@ export default function Home({ onPreviewDesign }) {
   const { content } = useContent();
   const { hero, contact } = content;
 
-  const [websites, setWebsites] = useState(websitesData);
-  const [designs, setDesigns] = useState(designsData);
+  const [websites, setWebsites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_admin_websites');
+      return saved ? JSON.parse(saved) : websitesData;
+    } catch {
+      return websitesData;
+    }
+  });
+  const [designs, setDesigns] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_admin_designs');
+      return saved ? JSON.parse(saved) : designsData;
+    } catch {
+      return designsData;
+    }
+  });
 
   useEffect(() => {
     fetch('/api/websites')

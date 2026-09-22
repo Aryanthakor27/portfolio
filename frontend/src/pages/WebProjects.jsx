@@ -4,7 +4,14 @@ import WebsiteCard from '../components/WebsiteCard';
 import { websitesData } from '../data/websitesData';
 
 export default function WebProjects() {
-  const [websites, setWebsites] = useState(websitesData);
+  const [websites, setWebsites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_admin_websites');
+      return saved ? JSON.parse(saved) : websitesData;
+    } catch {
+      return websitesData;
+    }
+  });
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 

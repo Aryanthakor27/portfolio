@@ -3,7 +3,14 @@ import DesignCard from '../components/DesignCard';
 import { designsData } from '../data/designsData';
 
 export default function GraphicDesigns({ onPreviewDesign }) {
-  const [designs, setDesigns] = useState(designsData);
+  const [designs, setDesigns] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_admin_designs');
+      return saved ? JSON.parse(saved) : designsData;
+    } catch {
+      return designsData;
+    }
+  });
   const [activeCategory, setActiveCategory] = useState('all');
 
   useEffect(() => {
