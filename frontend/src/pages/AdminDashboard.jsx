@@ -1182,25 +1182,53 @@ export default function AdminDashboard({ onShowToast }) {
                       </button>
                     </div>
 
-                    {/* Logo Live Preview */}
+                    {/* Logo Live Preview (Dark & Light) */}
                     <div className="branding-preview-box">
-                      <label className="preview-label">Live Navbar Logo Preview</label>
-                      <div className="preview-nav-mockup">
-                        {brandingForm.logoImage ? (
-                          <img
-                            src={brandingForm.logoImage}
-                            alt="Logo Preview"
-                            className="brand-custom-logo-img"
-                          />
-                        ) : (
-                          <div className="brand-logo">
-                            <div className="logo-symbol">
-                              <span></span><span></span><span></span>
-                            </div>
-                            <span className="logo-text">{brandingForm.logoText || 'ARYAN'}<span className="dot">.</span></span>
+                      <label className="preview-label">Live Navbar Logo Preview (Dark & Light Mode)</label>
+                      <div className="preview-nav-mockups-grid">
+                        {/* Dark Navbar Preview */}
+                        <div className="preview-nav-item">
+                          <span className="preview-sub-label">🌙 Dark Mode Header</span>
+                          <div className="preview-nav-mockup dark-nav">
+                            {brandingForm.logoImage ? (
+                              <img
+                                src={brandingForm.logoImage}
+                                alt="Logo Preview"
+                                className="brand-custom-logo-img"
+                              />
+                            ) : (
+                              <div className="brand-logo">
+                                <div className="logo-symbol">
+                                  <span></span><span></span><span></span>
+                                </div>
+                                <span className="logo-text">{brandingForm.logoText || 'ARYAN'}<span className="dot">.</span></span>
+                              </div>
+                            )}
+                            <span className="preview-badge dark-badge">Dark Preview</span>
                           </div>
-                        )}
-                        <span className="preview-badge">Live Preview</span>
+                        </div>
+
+                        {/* Light Navbar Preview */}
+                        <div className="preview-nav-item">
+                          <span className="preview-sub-label">☀️ Light Mode Header</span>
+                          <div className="preview-nav-mockup light-nav">
+                            {brandingForm.logoImage ? (
+                              <img
+                                src={brandingForm.logoImage}
+                                alt="Logo Preview"
+                                className="brand-custom-logo-img"
+                              />
+                            ) : (
+                              <div className="brand-logo">
+                                <div className="logo-symbol">
+                                  <span></span><span></span><span></span>
+                                </div>
+                                <span className="logo-text">{brandingForm.logoText || 'ARYAN'}<span className="dot">.</span></span>
+                              </div>
+                            )}
+                            <span className="preview-badge light-badge">Light Preview</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -1275,15 +1303,33 @@ export default function AdminDashboard({ onShowToast }) {
 
                     {/* Favicon Simulated Tab Preview */}
                     <div className="branding-preview-box">
-                      <label className="preview-label">Browser Tab Live Preview</label>
-                      <div className="favicon-tab-mockup">
-                        {brandingForm.favicon ? (
-                          <img src={brandingForm.favicon} alt="Favicon Preview" className="tab-favicon-img" />
-                        ) : (
-                          <Globe size={16} color="#A855F7" />
-                        )}
-                        <span className="tab-title-text">Aryan Thakor | Senior Web Developer</span>
-                        <X size={14} className="tab-close-icon" />
+                      <label className="preview-label">Browser Tab Live Preview (Dark & Light Browser)</label>
+                      <div className="preview-tabs-grid">
+                        <div className="preview-tab-item">
+                          <span className="preview-sub-label">🌙 Dark Browser Theme</span>
+                          <div className="favicon-tab-mockup dark-tab">
+                            {brandingForm.favicon ? (
+                              <img src={brandingForm.favicon} alt="Favicon Preview" className="tab-favicon-img" />
+                            ) : (
+                              <Globe size={16} color="#A855F7" />
+                            )}
+                            <span className="tab-title-text">Aryan Thakor | Senior Web Developer</span>
+                            <X size={14} className="tab-close-icon" />
+                          </div>
+                        </div>
+
+                        <div className="preview-tab-item">
+                          <span className="preview-sub-label">☀️ Light Browser Theme</span>
+                          <div className="favicon-tab-mockup light-tab">
+                            {brandingForm.favicon ? (
+                              <img src={brandingForm.favicon} alt="Favicon Preview" className="tab-favicon-img" />
+                            ) : (
+                              <Globe size={16} color="#A855F7" />
+                            )}
+                            <span className="tab-title-text">Aryan Thakor | Senior Web Developer</span>
+                            <X size={14} className="tab-close-icon" />
+                          </div>
+                        </div>
                       </div>
                     </div>
 

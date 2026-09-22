@@ -5238,55 +5238,180 @@ html.light .footer-brand .logo-text {
   padding: 24px 26px;
 }
 
+/* CMS Branding Preview Box */
 .branding-preview-box {
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px dashed var(--border-color);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
   border-radius: 12px;
-  padding: 16px 20px;
+  padding: 18px 20px;
   margin-bottom: 22px;
+}
+
+body.light-theme .branding-preview-box,
+html.light .branding-preview-box {
+  background: #F8FAFC !important;
+  border: 1px dashed #CBD5E1 !important;
 }
 
 .preview-label {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   display: block;
 }
 
-/* Navbar Logo Mockup */
+body.light-theme .preview-label,
+html.light .preview-label {
+  color: #475569 !important;
+}
+
+/* Dual Navbar Mockups Grid */
+.preview-nav-mockups-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .preview-nav-mockups-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.preview-nav-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-sub-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+}
+
+body.light-theme .preview-sub-label,
+html.light .preview-sub-label {
+  color: #64748B !important;
+}
+
+/* Navbar Logo Mockups */
 .preview-nav-mockup {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0d1117;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 12px 18px;
+  min-height: 52px;
 }
 
+.preview-nav-mockup.dark-nav {
+  background: #0D1117 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Force text logo to be pure white in dark mockup even when page is in light theme */
+.preview-nav-mockup.dark-nav .brand-logo .logo-text,
+body.light-theme .preview-nav-mockup.dark-nav .brand-logo .logo-text,
+html.light .preview-nav-mockup.dark-nav .brand-logo .logo-text {
+  color: #FFFFFF !important;
+}
+
+.preview-nav-mockup.light-nav {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+/* Force text logo to be dark slate in light mockup even when page is in dark theme */
+.preview-nav-mockup.light-nav .brand-logo .logo-text,
+body.dark-theme .preview-nav-mockup.light-nav .brand-logo .logo-text,
+body.light-theme .preview-nav-mockup.light-nav .brand-logo .logo-text,
+html.light .preview-nav-mockup.light-nav .brand-logo .logo-text {
+  color: #0F172A !important;
+}
+
+/* Badges */
 .preview-badge {
   font-size: 11px;
   font-weight: 600;
-  color: #10B981;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
   padding: 3px 8px;
   border-radius: 6px;
 }
 
-/* Simulated Browser Tab */
+.preview-badge.dark-badge {
+  color: #34D399;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.preview-badge.light-badge {
+  color: #0284C7;
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+}
+
+/* Dual Simulated Browser Tabs */
+.preview-tabs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.preview-tab-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 260px;
+}
+
 .favicon-tab-mockup {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: #1e2430;
-  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px 8px 0 0;
   padding: 8px 16px;
-  max-width: 320px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.favicon-tab-mockup.dark-tab {
+  background: #1E2430 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-bottom: none !important;
+}
+
+.favicon-tab-mockup.dark-tab .tab-title-text,
+body.light-theme .favicon-tab-mockup.dark-tab .tab-title-text,
+html.light .favicon-tab-mockup.dark-tab .tab-title-text {
+  color: #E6EDF3 !important;
+}
+
+.favicon-tab-mockup.dark-tab .tab-close-icon {
+  color: #8B949E !important;
+}
+
+.favicon-tab-mockup.light-tab {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(15, 23, 42, 0.14) !important;
+  border-bottom: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.favicon-tab-mockup.light-tab .tab-title-text,
+body.dark-theme .favicon-tab-mockup.light-tab .tab-title-text,
+body.light-theme .favicon-tab-mockup.light-tab .tab-title-text,
+html.light .favicon-tab-mockup.light-tab .tab-title-text {
+  color: #0F172A !important;
+}
+
+.favicon-tab-mockup.light-tab .tab-close-icon {
+  color: #64748B !important;
 }
 
 .tab-favicon-img {
@@ -5298,15 +5423,53 @@ html.light .footer-brand .logo-text {
 .tab-title-text {
   font-size: 12px;
   font-weight: 500;
-  color: #e6edf3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .tab-close-icon {
-  color: #8b949e;
   cursor: pointer;
+}
+
+/* Light Theme Overrides for Admin CMS Inputs and Cards */
+body.light-theme .admin-photo-upload-box,
+html.light .admin-photo-upload-box {
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+}
+
+body.light-theme .admin-field-title,
+html.light .admin-field-title {
+  color: #0F172A !important;
+}
+
+body.light-theme .admin-field-subtitle,
+html.light .admin-field-subtitle {
+  color: #64748B !important;
+}
+
+body.light-theme .hero-photo-circle,
+html.light .hero-photo-circle {
+  background: #FFFFFF !important;
+  border-color: var(--accent-primary) !important;
+}
+
+body.light-theme .hero-photo-info h4,
+html.light .hero-photo-info h4 {
+  color: #0F172A !important;
+}
+
+body.light-theme .hero-photo-info p,
+html.light .hero-photo-info p {
+  color: #64748B !important;
+}
+
+body.light-theme .branding-card,
+html.light .branding-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
 }
 
 /* Hero Photo Preview in Branding */
