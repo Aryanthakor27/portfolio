@@ -3403,19 +3403,48 @@ html.light .btn-reset-data:hover {
 
 @media (max-width: 900px) {
   .admin-body {
-    flex-direction: column;
+    flex-direction: column !important;
+    min-height: auto !important;
+    width: 100% !important;
+    align-items: stretch !important;
   }
   .admin-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    position: sticky !important;
+    top: 56px !important;
+    z-index: 95 !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 10px 14px !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    flex-shrink: 0 !important;
   }
   .admin-nav {
-    flex-direction: row;
-    overflow-x: auto;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 2px 0 !important;
+  }
+  .admin-nav::-webkit-scrollbar {
+    display: none !important;
   }
   .nav-tab-btn {
-    white-space: nowrap;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+  .admin-main-panel {
+    width: 100% !important;
+    padding: 20px 14px 40px 14px !important;
+    box-sizing: border-box !important;
   }
   .stats-grid {
     grid-template-columns: 1fr;
@@ -4267,14 +4296,41 @@ html.light .admin-dashboard-container {
 }
 
 body.light-theme .admin-header,
-html.light .admin-header {
+html.light .admin-header,
+[data-theme="light"] .admin-header {
   background: #FFFFFF !important;
   border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.03);
 }
 
+/* Return to Public Site button in Light Mode */
+body.light-theme .back-link,
+html.light .back-link,
+[data-theme="light"] .back-link {
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #334155 !important;
+}
+
+body.light-theme .back-link:hover,
+html.light .back-link:hover,
+[data-theme="light"] .back-link:hover {
+  background: #E2E8F0 !important;
+  border-color: #0284C7 !important;
+  color: #0284C7 !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15) !important;
+}
+
+body.light-theme .back-link svg,
+html.light .back-link svg,
+[data-theme="light"] .back-link svg {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
 body.light-theme .welcome-banner,
-html.light .welcome-banner {
+html.light .welcome-banner,
+[data-theme="light"] .welcome-banner {
   background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%) !important;
   border: 1px solid rgba(15, 23, 42, 0.12) !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
@@ -5149,18 +5205,29 @@ html.light .footer-brand .logo-text {
   .admin-body {
     flex-direction: column !important;
     min-height: auto !important;
+    width: 100% !important;
+    align-items: stretch !important;
   }
 
   .admin-sidebar {
     width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    position: sticky !important;
+    top: 56px !important;
+    z-index: 95 !important;
     border-right: none !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    padding: 12px 16px !important;
+    padding: 10px 14px !important;
     box-sizing: border-box !important;
+    overflow: visible !important;
+    flex-shrink: 0 !important;
   }
 
   body.theme-light .admin-sidebar,
-  body.light-theme .admin-sidebar {
+  body.light-theme .admin-sidebar,
+  [data-theme="light"] .admin-sidebar {
     background: #FFFFFF !important;
     border-bottom: 1px solid #E2E8F0 !important;
   }
@@ -5172,6 +5239,7 @@ html.light .footer-brand .logo-text {
     scrollbar-width: none !important;
     gap: 8px !important;
     width: 100% !important;
+    padding: 2px 0 !important;
   }
 
   .admin-nav::-webkit-scrollbar {
@@ -5296,8 +5364,22 @@ html.light .footer-brand .logo-text {
 
   /* Admin Header on Mobile */
   .admin-header {
-    padding: 10px 14px !important;
+    padding: 10px 12px !important;
     min-height: 56px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-header-left {
+    gap: 8px !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+  }
+
+  .admin-title-badge {
+    gap: 8px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
   }
 
   .admin-title-badge h1 span {
@@ -5307,10 +5389,13 @@ html.light .footer-brand .logo-text {
   .admin-title-badge h1 {
     font-size: 14.5px !important;
     white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .admin-header-right {
     gap: 6px !important;
+    flex-shrink: 0 !important;
   }
 
   .admin-header-right .btn span,
@@ -5331,6 +5416,25 @@ html.light .footer-brand .logo-text {
     align-items: center !important;
     justify-content: center !important;
     border-radius: 8px !important;
+  }
+
+  /* Admin Mobile Sidebar & Content */
+  .admin-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    position: sticky !important;
+    top: 56px !important;
+    z-index: 95 !important;
+    padding: 8px 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-main-panel {
+    padding: 16px 12px 40px 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* Admin Welcome Banner */
