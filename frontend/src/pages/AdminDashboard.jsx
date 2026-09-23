@@ -190,8 +190,9 @@ export default function AdminDashboard({ onShowToast }) {
   // In-App Custom Delete Confirmation Modal State
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
-    type: '', // 'website' | 'design' | 'credential' | 'video'
+    type: '', // 'website' | 'design' | 'credential' | 'video' | 'message'
     id: null,
+    index: null,
     title: ''
   });
 
@@ -1680,9 +1681,32 @@ export default function AdminDashboard({ onShowToast }) {
       } catch {}
 
       if (onShowToast) onShowToast(`🗑️ Video "${title}" moved to Recycle Bin (30-day retention).`);
+    } else if (type === 'message') {
+      const targetId = deleteConfirm.id;
+      const targetIndex = deleteConfirm.index;
+
+      setMessages(prev => {
+        const next = prev.filter((m, idx) => {
+          if (targetIndex !== undefined && targetIndex !== null && idx === targetIndex) return false;
+          if (targetId && (m.id === targetId || m.timestamp === targetId)) return false;
+          return true;
+        });
+        try {
+          localStorage.setItem('aryan_contact_messages', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+
+      if (onShowToast) onShowToast(`🗑️ Inquiry from "${title}" deleted.`);
+
+      try {
+        if (targetId) {
+          fetch(`/api/contact/${targetId}`, { method: 'DELETE' }).catch(() => {});
+        }
+      } catch {}
     }
 
-    setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
+    setDeleteConfirm({ isOpen: false, type: '', id: null, index: null, title: '' });
   };
 
   // --- Recycle Bin Handlers ---
@@ -1861,20 +1885,16 @@ export default function AdminDashboard({ onShowToast }) {
   };
 
   // --- Message Actions ---
-  const handleDeleteMessage = async (id) => {
-    if (!window.confirm('Delete this client inquiry?')) return;
-
-    setMessages(prev => {
-      const next = prev.filter(m => (m.id !== id && m.timestamp !== id));
-      localStorage.setItem('aryan_contact_messages', JSON.stringify(next));
-      return next;
+  const promptDeleteMessage = (msg, index) => {
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'message',
+      id: msg?.id || msg?.timestamp || `msg_${index}`,
+      index: index,
+      title: msg?.name || 'Client'
     });
-    if (onShowToast) onShowToast('Inquiry deleted.');
-
-    try {
-      fetch(`/api/contact/${id}`, { method: 'DELETE' }).catch(() => {});
-    } catch {}
   };
+  const handleDeleteMessage = promptDeleteMessage;
 
   // Filtered lists
   const filteredWebsites = websites.filter(w => {
@@ -3793,53 +3813,61 @@ export default function AdminDashboard({ onShowToast }) {
                 </div>
               ) : (
                 <div className="messages-grid">
-                  {messages.map((msg) => (
-                    <div key={msg.id} className="inquiry-card">
-                      <div className="inquiry-header">
-                        <div className="sender-info">
-                          <h4>{msg.name}</h4>
-                          <span className="sender-email">{msg.email}</span>
-                          {msg.phone && <span className="sender-phone">📞 {msg.phone}</span>}
+                  {messages.map((msg, idx) => {
+                    const msgKey = msg.id || msg.timestamp || `msg_${idx}`;
+                    const msgDate = msg.createdAt || msg.timestamp || Date.now();
+                    return (
+                      <div key={msgKey} className="inquiry-card">
+                        <div className="inquiry-header">
+                          <div className="sender-info">
+                            <h4>{msg.name}</h4>
+                            <span className="sender-email">{msg.email}</span>
+                            {msg.phone && <span className="sender-phone">📞 {msg.phone}</span>}
+                          </div>
+                          <div className="inquiry-meta">
+                            <span className="inquiry-date">
+                              {new Date(msgDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                promptDeleteMessage(msg, idx);
+                              }}
+                              className="btn-delete-msg"
+                              title="Delete this message"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
                         </div>
-                        <div className="inquiry-meta">
-                          <span className="inquiry-date">
-                            {new Date(msg.createdAt || Date.now()).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                          <button
-                            onClick={() => handleDeleteMessage(msg.id)}
-                            className="btn-delete-msg"
-                            title="Delete this message"
+
+                        <div className="inquiry-subject">
+                          <strong>Subject:</strong> {msg.subject}
+                        </div>
+
+                        <div className="inquiry-body">
+                          {msg.message}
+                        </div>
+
+                        <div className="inquiry-actions">
+                          <a
+                            href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(msg.subject || 'Portfolio Inquiry')}&body=Hi ${encodeURIComponent(msg.name)},%0D%0A%0D%0AThank you for contacting me regarding your project!`}
+                            className="btn-reply"
                           >
-                            <Trash2 size={15} />
-                          </button>
+                            <Send size={14} />
+                            <span>Reply to Client</span>
+                          </a>
                         </div>
                       </div>
-
-                      <div className="inquiry-subject">
-                        <strong>Subject:</strong> {msg.subject}
-                      </div>
-
-                      <div className="inquiry-body">
-                        {msg.message}
-                      </div>
-
-                      <div className="inquiry-actions">
-                        <a
-                          href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(msg.subject || 'Portfolio Inquiry')}&body=Hi ${encodeURIComponent(msg.name)},%0D%0A%0D%0AThank you for contacting me regarding your project!`}
-                          className="btn-reply"
-                        >
-                          <Send size={14} />
-                          <span>Reply to Client</span>
-                        </a>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -5173,17 +5201,21 @@ export default function AdminDashboard({ onShowToast }) {
             </div>
 
             <h3 className="delete-modal-title">
-              Move to Recycle Bin?
+              {deleteConfirm.type === 'message' ? 'Delete Client Inquiry?' : 'Move to Recycle Bin?'}
             </h3>
 
             <p className="delete-modal-desc">
-              Are you sure you want to delete <strong>"{deleteConfirm.title}"</strong>? It will be safely moved to your <strong>Recycle Bin</strong> for 30 days, where you can restore it anytime.
+              {deleteConfirm.type === 'message' ? (
+                <>Are you sure you want to delete the message from <strong>"{deleteConfirm.title}"</strong>? This inquiry will be permanently removed from your inbox.</>
+              ) : (
+                <>Are you sure you want to delete <strong>"{deleteConfirm.title}"</strong>? It will be safely moved to your <strong>Recycle Bin</strong> for 30 days, where you can restore it anytime.</>
+              )}
             </p>
 
             <div className="delete-modal-actions">
               <button
                 type="button"
-                onClick={() => setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' })}
+                onClick={() => setDeleteConfirm({ isOpen: false, type: '', id: null, index: null, title: '' })}
                 className="btn-cancel"
               >
                 Cancel
@@ -5194,7 +5226,7 @@ export default function AdminDashboard({ onShowToast }) {
                 className="btn-delete-confirm"
               >
                 <Trash2 size={16} />
-                <span>Move to Recycle Bin</span>
+                <span>{deleteConfirm.type === 'message' ? 'Delete Inquiry' : 'Move to Recycle Bin'}</span>
               </button>
             </div>
           </div>

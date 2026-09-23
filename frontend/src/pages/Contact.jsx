@@ -29,7 +29,13 @@ export default function Contact({ onShowToast }) {
     try {
       // 1. Save locally for Admin Dashboard inquiries list
       const existing = JSON.parse(localStorage.getItem('aryan_contact_messages') || '[]');
-      existing.push({ ...formData, timestamp: new Date().toISOString() });
+      const newInquiry = {
+        id: 'inq_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        ...formData,
+        createdAt: new Date().toISOString(),
+        timestamp: new Date().toISOString()
+      };
+      existing.push(newInquiry);
       localStorage.setItem('aryan_contact_messages', JSON.stringify(existing));
 
       // 2. Dispatch email notification directly to Aryan's email (thakoraryan2002@gmail.com)
