@@ -49,7 +49,11 @@ import {
   Video,
   Play,
   Film,
-  Copy
+  Copy,
+  Eye,
+  EyeOff,
+  MailCheck,
+  Lock
 } from 'lucide-react';
 import AdminPasscodeModal from '../components/AdminPasscodeModal';
 import ThemeToggle from '../components/ThemeToggle';
@@ -57,6 +61,7 @@ import { useContent } from '../context/ContentContext';
 import { downloadResume } from '../utils/downloadResume';
 import { optimizeImageFile } from '../utils/imageUtils';
 import SocialIcon from '../components/SocialIcon';
+import { sendPasscodeOtpEmail, sendPasscodeSuccessEmail } from '../services/emailService';
 import { websitesData } from '../data/websitesData';
 import { designsData } from '../data/designsData';
 import { credentialsData } from '../data/credentialsData';
@@ -336,9 +341,28 @@ export default function AdminDashboard({ onShowToast }) {
   const [emergencyKey, setEmergencyKey] = useState('');
   const [disablePasscode, setDisablePasscode] = useState('');
 
-  // Change Passcode State
+  // Change Passcode State (2-Step Email OTP Verification)
   const [oldPass, setOldPass] = useState('');
   const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [passcodeStep, setPasscodeStep] = useState('request'); // 'request' | 'verify'
+  const [enteredOtp, setEnteredOtp] = useState('');
+  const [activeOtp, setActiveOtp] = useState(null); // { code, expiresAt }
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isUpdatingPass, setIsUpdatingPass] = useState(false);
+  const [otpCountdown, setOtpCountdown] = useState(0);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [passcodeError, setPasscodeError] = useState('');
+  const [passcodeSuccess, setPasscodeSuccess] = useState('');
+
+  // Countdown timer for resending OTP
+  useEffect(() => {
+    let timer;
+    if (otpCountdown > 0) {
+      timer = setTimeout(() => setOtpCountdown(otpCountdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [otpCountdown]);
 
   // Resume Document State
   const [resumeInfo, setResumeInfo] = useState({
@@ -969,31 +993,117 @@ export default function AdminDashboard({ onShowToast }) {
     }
   };
 
-  const handleChangePasscode = async (e) => {
-    e.preventDefault();
-    if (!oldPass || !newPass) {
-      if (onShowToast) onShowToast('Both old and new passcode are required.');
+  // --- 2-Step Email OTP Passcode Verification Handlers ---
+  const handleRequestPasscodeOtp = async (e) => {
+    if (e) e.preventDefault();
+    setPasscodeError('');
+    setPasscodeSuccess('');
+
+    const currentStored = (localStorage.getItem('aryan_admin_passcode') || 'aryan2026').trim();
+    if (!oldPass.trim()) {
+      setPasscodeError('Please enter your current admin passcode.');
       return;
     }
 
-    try {
-      const res = await fetch('/api/admin/change-passcode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ oldPasscode: oldPass, newPasscode: newPass })
-      });
-      const result = await res.json();
-
-      if (res.ok) {
-        setOldPass('');
-        setNewPass('');
-        if (onShowToast) onShowToast('Admin passcode updated successfully!');
-      } else {
-        if (onShowToast) onShowToast(result.error || 'Failed to change passcode.');
-      }
-    } catch {
-      if (onShowToast) onShowToast('Network error.');
+    if (oldPass.trim() !== currentStored) {
+      setPasscodeError('Incorrect current passcode. Please verify your current login passcode.');
+      return;
     }
+
+    setIsSendingOtp(true);
+    try {
+      // Generate a secure 6-digit verification code
+      const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+
+      // Send to thakoraryan2002@gmail.com
+      await sendPasscodeOtpEmail({ otpCode: randomOtp, targetEmail: 'thakoraryan2002@gmail.com' });
+
+      setActiveOtp({ code: randomOtp, expiresAt });
+      setPasscodeStep('verify');
+      setOtpCountdown(60);
+      setPasscodeSuccess('Verification code sent to thakoraryan2002@gmail.com! Please check your email inbox.');
+      if (onShowToast) onShowToast('📩 Verification code dispatched to thakoraryan2002@gmail.com');
+    } catch (err) {
+      setPasscodeError('Failed to dispatch verification email. Please check connection and try again.');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyAndChangePasscode = async (e) => {
+    if (e) e.preventDefault();
+    setPasscodeError('');
+    setPasscodeSuccess('');
+
+    if (!enteredOtp.trim()) {
+      setPasscodeError('Please enter the 6-digit verification code from your email.');
+      return;
+    }
+
+    if (!activeOtp || Date.now() > activeOtp.expiresAt) {
+      setPasscodeError('Verification code has expired. Please request a new code.');
+      return;
+    }
+
+    if (enteredOtp.trim() !== activeOtp.code) {
+      setPasscodeError('Invalid verification code. Please check your email and enter the exact 6 digits.');
+      return;
+    }
+
+    if (!newPass.trim() || newPass.trim().length < 4) {
+      setPasscodeError('New passcode must be at least 4 characters long.');
+      return;
+    }
+
+    if (newPass.trim() !== confirmPass.trim()) {
+      setPasscodeError('New passcode and confirm passcode do not match.');
+      return;
+    }
+
+    if (newPass.trim() === oldPass.trim()) {
+      setPasscodeError('New passcode must be different from your current passcode.');
+      return;
+    }
+
+    setIsUpdatingPass(true);
+    try {
+      // 1. Update localStorage so login immediately works with new passcode
+      localStorage.setItem('aryan_admin_passcode', newPass.trim());
+
+      // 2. Post to backend if active
+      try {
+        await fetch('/api/admin/change-passcode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPasscode: oldPass.trim(), newPasscode: newPass.trim() })
+        });
+      } catch {}
+
+      // 3. Send success notification to email
+      sendPasscodeSuccessEmail({ targetEmail: 'thakoraryan2002@gmail.com' });
+
+      // 4. Reset form
+      setOldPass('');
+      setNewPass('');
+      setConfirmPass('');
+      setEnteredOtp('');
+      setActiveOtp(null);
+      setPasscodeStep('request');
+      setPasscodeSuccess('✓ Admin passcode successfully changed! Please use your new passcode for future logins.');
+      if (onShowToast) onShowToast('✓ Admin passcode updated successfully!');
+    } catch (err) {
+      setPasscodeError('Failed to save new passcode.');
+    } finally {
+      setIsUpdatingPass(false);
+    }
+  };
+
+  const handleCancelPasscodeChange = () => {
+    setPasscodeStep('request');
+    setEnteredOtp('');
+    setPasscodeError('');
+    setPasscodeSuccess('');
   };
 
   // --- Website Actions ---
@@ -3840,44 +3950,164 @@ export default function AdminDashboard({ onShowToast }) {
                   )}
                 </div>
 
-                {/* Change Passcode Card */}
+                {/* Change Passcode Card with Email OTP Verification */}
                 <div className="security-card glass-card">
                   <div className="sec-header">
                     <div className="sec-icon-title">
                       <KeyRound size={24} className="purple-icon" />
                       <div>
-                        <h3>Change Admin Passcode</h3>
-                        <p>Update your master login passcode (default: aryan2026).</p>
+                        <h3>Change Admin Passcode (Email Verified)</h3>
+                        <p>Update your master login passcode. Requires 6-digit OTP verification sent to <strong>thakoraryan2002@gmail.com</strong>.</p>
                       </div>
                     </div>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+                      <MailCheck size={14} /> Email OTP Protected
+                    </span>
                   </div>
 
-                  <form onSubmit={handleChangePasscode} className="cms-form">
-                    <div className="form-group">
-                      <label>Current Passcode</label>
-                      <input
-                        type="password"
-                        placeholder="Current passcode"
-                        value={oldPass}
-                        onChange={(e) => setOldPass(e.target.value)}
-                      />
-                    </div>
+                  <div className="sec-body" style={{ marginTop: '16px' }}>
+                    {passcodeSuccess && (
+                      <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', padding: '12px 16px', borderRadius: '10px', color: '#10B981', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px' }}>
+                        <CheckCircle size={18} />
+                        <span>{passcodeSuccess}</span>
+                      </div>
+                    )}
 
-                    <div className="form-group">
-                      <label>New Passcode</label>
-                      <input
-                        type="password"
-                        placeholder="At least 4 characters"
-                        value={newPass}
-                        onChange={(e) => setNewPass(e.target.value)}
-                      />
-                    </div>
+                    {passcodeError && (
+                      <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #EF4444', padding: '12px 16px', borderRadius: '10px', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px' }}>
+                        <AlertCircle size={18} />
+                        <span>{passcodeError}</span>
+                      </div>
+                    )}
 
-                    <button type="submit" className="btn-secondary-action">
-                      <Save size={16} />
-                      <span>Update Passcode</span>
-                    </button>
-                  </form>
+                    {passcodeStep === 'request' ? (
+                      <form onSubmit={handleRequestPasscodeOtp} className="cms-form">
+                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <ShieldCheck size={18} color="#10B981" />
+                            <strong style={{ fontSize: '14px', color: '#fff' }}>Step 1: Current Passcode & Security Code Request</strong>
+                          </div>
+                          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                            To safeguard your portfolio, enter your current passcode. We will dispatch a 6-digit authorization code to your registered email: <strong style={{ color: '#c084fc' }}>thakoraryan2002@gmail.com</strong>.
+                          </p>
+                        </div>
+
+                        <div className="form-group">
+                          <label>Current Admin Passcode *</label>
+                          <input
+                            type="password"
+                            placeholder="Enter current passcode (default: aryan2026)"
+                            required
+                            value={oldPass}
+                            onChange={(e) => setOldPass(e.target.value)}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={isSendingOtp}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                          >
+                            {isSendingOtp ? <RefreshCw size={16} className="spin" /> : <Send size={16} />}
+                            <span>{isSendingOtp ? 'Sending Security Code...' : 'Send Verification Code to Email'}</span>
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <form onSubmit={handleVerifyAndChangePasscode} className="cms-form">
+                        <div style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                            <MailCheck size={18} color="#c084fc" />
+                            <strong style={{ fontSize: '14px', color: '#c084fc' }}>Step 2: Enter Verification Code & New Passcode</strong>
+                          </div>
+                          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                            A 6-digit verification code has been dispatched to <strong style={{ color: '#fff' }}>thakoraryan2002@gmail.com</strong>. The code expires in 10 minutes.
+                          </p>
+                        </div>
+
+                        <div className="form-group">
+                          <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>6-Digit Email Verification Code *</span>
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Check your Gmail Inbox/Spam</span>
+                          </label>
+                          <input
+                            type="text"
+                            maxLength={6}
+                            placeholder="e.g. 849201"
+                            required
+                            value={enteredOtp}
+                            onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ''))}
+                            style={{ fontSize: '20px', letterSpacing: '4px', fontWeight: 'bold', fontFamily: 'monospace', textAlign: 'center' }}
+                          />
+                        </div>
+
+                        <div className="form-row">
+                          <div className="form-group" style={{ position: 'relative' }}>
+                            <label>New Passcode * (Min 4 chars)</label>
+                            <input
+                              type={showNewPass ? "text" : "password"}
+                              placeholder="Enter new admin passcode"
+                              required
+                              value={newPass}
+                              onChange={(e) => setNewPass(e.target.value)}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPass(!showNewPass)}
+                              style={{ position: 'absolute', right: '12px', top: '38px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                              title={showNewPass ? "Hide Passcode" : "Show Passcode"}
+                            >
+                              {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+
+                          <div className="form-group">
+                            <label>Confirm New Passcode *</label>
+                            <input
+                              type={showNewPass ? "text" : "password"}
+                              placeholder="Re-enter new admin passcode"
+                              required
+                              value={confirmPass}
+                              onChange={(e) => setConfirmPass(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '16px', alignItems: 'center' }}>
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={isUpdatingPass}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                          >
+                            {isUpdatingPass ? <RefreshCw size={16} className="spin" /> : <Save size={16} />}
+                            <span>{isUpdatingPass ? 'Verifying & Updating...' : 'Verify Code & Set New Passcode'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleRequestPasscodeOtp}
+                            disabled={otpCountdown > 0 || isSendingOtp}
+                            className="btn btn-secondary"
+                            style={{ fontSize: '13px' }}
+                          >
+                            {otpCountdown > 0 ? `Resend Code in ${otpCountdown}s` : 'Resend Code'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleCancelPasscodeChange}
+                            className="btn btn-outline"
+                            style={{ fontSize: '13px', marginLeft: 'auto' }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 </div>
 
                 {/* Secret Admin URL & Direct Access Shield Card */}

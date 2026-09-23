@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Send, Copy, CheckCircle, ExternalLink } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import SocialIcon from '../components/SocialIcon';
+import { sendInquiryEmail } from '../services/emailService';
 
 export default function Contact({ onShowToast }) {
   const { content } = useContent();
@@ -26,10 +27,15 @@ export default function Contact({ onShowToast }) {
     setIsSubmitting(true);
 
     try {
+      // 1. Save locally for Admin Dashboard inquiries list
       const existing = JSON.parse(localStorage.getItem('aryan_contact_messages') || '[]');
       existing.push({ ...formData, timestamp: new Date().toISOString() });
       localStorage.setItem('aryan_contact_messages', JSON.stringify(existing));
 
+      // 2. Dispatch email notification directly to Aryan's email (thakoraryan2002@gmail.com)
+      await sendInquiryEmail(formData);
+
+      // 3. Dispatch to backend endpoint if running
       try {
         await fetch('/api/contact', {
           method: 'POST',
@@ -39,11 +45,11 @@ export default function Contact({ onShowToast }) {
       } catch (networkErr) {}
 
       setSubmitSuccess(true);
-      onShowToast("Message sent successfully to Aryan Thakor!");
+      if (onShowToast) onShowToast("✓ Inquiry sent! Email notification dispatched to Aryan Thakor.");
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
     } catch (err) {
       setSubmitSuccess(true);
-      onShowToast("Thank you! Your message has been recorded.");
+      if (onShowToast) onShowToast("Thank you! Your message has been recorded.");
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
     } finally {
       setIsSubmitting(false);

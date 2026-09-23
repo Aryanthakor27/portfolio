@@ -58,8 +58,9 @@ export default function AdminPasscodeModal({ isOpen, onSuccess, onCancel }) {
         }
       }
 
-      // Offline fallback
-      if (passcode.trim() === 'aryan2026') {
+      // Check updated admin passcode or default 'aryan2026'
+      const expectedPasscode = (localStorage.getItem('aryan_admin_passcode') || 'aryan2026').trim();
+      if (passcode.trim() === expectedPasscode) {
         sessionStorage.setItem('aryan_admin_auth', 'true');
         onSuccess();
         return;
@@ -67,7 +68,8 @@ export default function AdminPasscodeModal({ isOpen, onSuccess, onCancel }) {
 
       setError(data.error || 'Incorrect passcode. Access denied.');
     } catch {
-      if (passcode.trim() === 'aryan2026') {
+      const expectedPasscode = (localStorage.getItem('aryan_admin_passcode') || 'aryan2026').trim();
+      if (passcode.trim() === expectedPasscode) {
         sessionStorage.setItem('aryan_admin_auth', 'true');
         onSuccess();
       } else {
