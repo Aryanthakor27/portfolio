@@ -14,6 +14,7 @@ import Services from './pages/Services';
 import WebProjects from './pages/WebProjects';
 import GraphicDesigns from './pages/GraphicDesigns';
 import Credentials from './pages/Credentials';
+import VideoEditing from './pages/VideoEditing';
 import Contact from './pages/Contact';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -54,6 +55,8 @@ export default function App() {
           <Route path="/web-projects" element={<WebProjects />} />
           <Route path="/projects" element={<WebProjects />} />
           <Route path="/designs" element={<GraphicDesigns onPreviewDesign={setPreviewItem} />} />
+          <Route path="/videos" element={<VideoEditing />} />
+          <Route path="/video-editing" element={<VideoEditing />} />
           <Route path="/credentials" element={<Credentials onPreviewLetter={setPreviewItem} />} />
           <Route path="/contact" element={<Contact onShowToast={showToast} />} />
           <Route path="/admin" element={<AdminDashboard onShowToast={showToast} />} />

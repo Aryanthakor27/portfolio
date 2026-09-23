@@ -25,7 +25,8 @@ const DEFAULT_CONTENT = {
   branding: {
     logoImage: "",
     logoText: "ARYAN",
-    favicon: ""
+    favicon: "",
+    appIcon: ""
   },
   about: {
     badge: "Career Profile",
@@ -160,7 +161,7 @@ export function ContentProvider({ children }) {
 
   const [loading, setLoading] = useState(true);
 
-  // Dynamic Browser Tab Favicon Updater
+  // Dynamic Browser Tab Favicon & PWA App Icon Updater
   useEffect(() => {
     const fav = content?.branding?.favicon;
     if (fav) {
@@ -172,7 +173,20 @@ export function ContentProvider({ children }) {
       }
       link.href = fav;
     }
-  }, [content?.branding?.favicon]);
+
+    const appIcon = content?.branding?.appIcon;
+    if (appIcon) {
+      const appleIcons = document.querySelectorAll("link[rel='apple-touch-icon']");
+      if (appleIcons.length > 0) {
+        appleIcons.forEach(el => { el.href = appIcon; });
+      } else {
+        const appleLink = document.createElement('link');
+        appleLink.rel = 'apple-touch-icon';
+        appleLink.href = appIcon;
+        document.getElementsByTagName('head')[0].appendChild(appleLink);
+      }
+    }
+  }, [content?.branding?.favicon, content?.branding?.appIcon]);
 
   const fetchContent = async () => {
     try {

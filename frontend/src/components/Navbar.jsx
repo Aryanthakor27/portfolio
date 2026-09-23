@@ -106,6 +106,11 @@ export default function Navbar() {
             </NavLink>
           </li>
           <li>
+            <NavLink to="/videos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              Video Editing
+            </NavLink>
+          </li>
+          <li>
             <NavLink to="/credentials" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               Certificates
             </NavLink>
@@ -116,9 +121,16 @@ export default function Navbar() {
         <div className="nav-actions">
           <ThemeToggle />
 
-          <Link to="/admin" className="btn-admin-nav desktop-only" title="Admin Portal (Portfolio CMS Studio)">
-            <Lock size={14} />
-          </Link>
+          {/* Admin Lock Button - Only visible if authorized on this device */}
+          {typeof window !== 'undefined' && (sessionStorage.getItem('aryan_admin_auth') === 'true' || localStorage.getItem('aryan_admin_secret_key')) && (
+            <Link
+              to={`/admin?key=${localStorage.getItem('aryan_admin_secret_key') || 'aryan2026'}`}
+              className="btn-admin-nav desktop-only"
+              title="Admin Portal (Secure)"
+            >
+              <Lock size={14} />
+            </Link>
+          )}
 
           <a
             href="/api/resume/download"
@@ -185,6 +197,9 @@ export default function Navbar() {
               <NavLink to="/designs" onClick={closeMenu} className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}>
                 Designs
               </NavLink>
+              <NavLink to="/videos" onClick={closeMenu} className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}>
+                Video Editing
+              </NavLink>
               <NavLink to="/credentials" onClick={closeMenu} className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}>
                 Credentials
               </NavLink>
@@ -207,10 +222,16 @@ export default function Navbar() {
                 <span>Let's Talk</span>
                 <ArrowUpRight size={15} />
               </Link>
-              <Link to="/admin" className="mobile-admin-link" onClick={closeMenu}>
-                <Lock size={13} />
-                <span>Admin CMS Portal</span>
-              </Link>
+              {typeof window !== 'undefined' && (sessionStorage.getItem('aryan_admin_auth') === 'true' || localStorage.getItem('aryan_admin_secret_key')) && (
+                <Link
+                  to={`/admin?key=${localStorage.getItem('aryan_admin_secret_key') || 'aryan2026'}`}
+                  className="mobile-admin-link"
+                  onClick={closeMenu}
+                >
+                  <Lock size={13} />
+                  <span>Admin CMS Portal</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>

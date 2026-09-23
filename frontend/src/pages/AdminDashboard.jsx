@@ -47,7 +47,9 @@ import {
   GraduationCap,
   FolderPlus,
   Video,
-  Play
+  Play,
+  Film,
+  Copy
 } from 'lucide-react';
 import AdminPasscodeModal from '../components/AdminPasscodeModal';
 import ThemeToggle from '../components/ThemeToggle';
@@ -58,6 +60,7 @@ import SocialIcon from '../components/SocialIcon';
 import { websitesData } from '../data/websitesData';
 import { designsData } from '../data/designsData';
 import { credentialsData } from '../data/credentialsData';
+import { videoProjectsData } from '../data/videoProjectsData';
 
 export default function AdminDashboard({ onShowToast }) {
   const navigate = useNavigate();
@@ -114,6 +117,41 @@ export default function AdminDashboard({ onShowToast }) {
     }
   });
 
+  // Video Projects Dataset
+  const [videos, setVideos] = useState(() => {
+    try {
+      const deletedList = new Set(JSON.parse(localStorage.getItem('aryan_deleted_videos') || '[]'));
+      const saved = localStorage.getItem('aryan_admin_videos');
+      const base = saved ? JSON.parse(saved) : videoProjectsData;
+      return base.filter(v => !deletedList.has(String(v.id).trim()));
+    } catch {
+      return videoProjectsData;
+    }
+  });
+
+  // Secret URL Access Protection State
+  const [adminSecretKey, setAdminSecretKey] = useState(() => {
+    return localStorage.getItem('aryan_admin_secret_key') || 'aryan2026';
+  });
+  const [inputSecretKey, setInputSecretKey] = useState(adminSecretKey);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Direct Access Blocker: Redirect unauthorized /admin visits to homepage
+  useEffect(() => {
+    const storedSecret = (localStorage.getItem('aryan_admin_secret_key') || 'aryan2026').trim();
+    const params = new URLSearchParams(window.location.search);
+    const providedKey = (params.get('key') || '').trim();
+    const hasSessionAccess = sessionStorage.getItem('aryan_admin_access_granted') === 'true';
+    const isAlreadyAuthed = sessionStorage.getItem('aryan_admin_auth') === 'true';
+
+    if (providedKey && providedKey === storedSecret) {
+      sessionStorage.setItem('aryan_admin_access_granted', 'true');
+    } else if (!hasSessionAccess && !isAlreadyAuthed) {
+      // Direct access to /admin without secret key blocked
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
   // Recycle Bin State (auto-purges items older than 30 days)
   const [recycleBin, setRecycleBin] = useState(() => {
     try {
@@ -151,7 +189,7 @@ export default function AdminDashboard({ onShowToast }) {
   // In-App Custom Delete Confirmation Modal State
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
-    type: '', // 'website' | 'design' | 'message'
+    type: '', // 'website' | 'design' | 'credential' | 'video'
     id: null,
     title: ''
   });
@@ -169,7 +207,8 @@ export default function AdminDashboard({ onShowToast }) {
     cmsContent?.branding || {
       logoImage: '',
       logoText: 'ARYAN',
-      favicon: ''
+      favicon: '',
+      appIcon: ''
     }
   );
   const [aboutForm, setAboutForm] = useState(cmsContent?.about || {});
@@ -187,9 +226,24 @@ export default function AdminDashboard({ onShowToast }) {
   const [websiteSearch, setWebsiteSearch] = useState('');
   const [websiteCategory, setWebsiteCategory] = useState('all');
   const [designCategory, setDesignCategory] = useState('all');
+  const [videoCategory, setVideoCategory] = useState('all');
+  const [videoSearch, setVideoSearch] = useState('');
 
-  // Website & Design Modals
+  // Modals
   const [showWebsiteModal, setShowWebsiteModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [editingVideo, setEditingVideo] = useState(null);
+  const [videoForm, setVideoForm] = useState({
+    title: '',
+    category: 'commercials',
+    videoUrl: '',
+    thumbnail: '',
+    client: '',
+    duration: '',
+    views: '',
+    tools: 'Premiere Pro / After Effects',
+    desc: ''
+  });
   const [editingWebsite, setEditingWebsite] = useState(null);
   const [websiteForm, setWebsiteForm] = useState({
     name: '',
@@ -398,6 +452,18 @@ export default function AdminDashboard({ onShowToast }) {
     }
   };
 
+  const handleAppIconFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await optimizeImageFile(file, 512, 512, 0.95);
+      setBrandingForm(prev => ({ ...prev, appIcon: dataUrl }));
+      if (onShowToast) onShowToast('✓ Mobile App Icon selected! Click "Save Mobile App Icon".');
+    } catch {
+      if (onShowToast) onShowToast('⚠️ Failed to load app icon image.');
+    }
+  };
+
   const handleHeroPhotoSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -408,6 +474,119 @@ export default function AdminDashboard({ onShowToast }) {
     } catch (err) {
       if (onShowToast) onShowToast('⚠️ Failed to load profile photo.');
     }
+  };
+
+  const handleVideoThumbnailSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await optimizeImageFile(file, 960, 540, 0.88);
+      setVideoForm(prev => ({ ...prev, thumbnail: dataUrl }));
+      if (onShowToast) onShowToast('✓ Video thumbnail uploaded!');
+    } catch {
+      if (onShowToast) onShowToast('⚠️ Failed to load thumbnail image.');
+    }
+  };
+
+  // Secret URL Management Handlers
+  const handleSaveSecretKey = (e) => {
+    e.preventDefault();
+    if (!inputSecretKey.trim()) {
+      if (onShowToast) onShowToast('⚠️ Secret key cannot be empty.');
+      return;
+    }
+    const cleanKey = inputSecretKey.trim();
+    localStorage.setItem('aryan_admin_secret_key', cleanKey);
+    setAdminSecretKey(cleanKey);
+    if (onShowToast) onShowToast('✓ Secret Admin Key updated! Bookmark your new URL.');
+  };
+
+  const handleCopySecretUrl = () => {
+    const secretUrl = `${window.location.origin}/admin?key=${adminSecretKey}`;
+    navigator.clipboard.writeText(secretUrl).then(() => {
+      setCopiedLink(true);
+      if (onShowToast) onShowToast('✓ Secret Admin Link copied to clipboard! Save this link to access Admin.');
+      setTimeout(() => setCopiedLink(false), 3000);
+    }).catch(() => {
+      if (onShowToast) onShowToast('⚠️ Failed to copy. Please copy the URL manually.');
+    });
+  };
+
+  // Video CRUD Handlers
+  const openAddVideo = () => {
+    setEditingVideo(null);
+    setVideoForm({
+      title: '',
+      category: 'commercials',
+      videoUrl: '',
+      thumbnail: '',
+      client: '',
+      duration: '',
+      views: '',
+      tools: 'Premiere Pro / After Effects',
+      desc: ''
+    });
+    setShowVideoModal(true);
+  };
+
+  const openEditVideo = (v) => {
+    setEditingVideo(v);
+    setVideoForm({
+      title: v.title || '',
+      category: v.category || 'commercials',
+      videoUrl: v.videoUrl || '',
+      thumbnail: v.thumbnail || '',
+      client: v.client || '',
+      duration: v.duration || '',
+      views: v.views || '',
+      tools: v.tools || 'Premiere Pro / After Effects',
+      desc: v.desc || ''
+    });
+    setShowVideoModal(true);
+  };
+
+  const handleSaveVideo = (e) => {
+    e.preventDefault();
+    if (!videoForm.title.trim()) {
+      if (onShowToast) onShowToast('⚠️ Video title is required.');
+      return;
+    }
+
+    if (editingVideo) {
+      const updated = videos.map(v => v.id === editingVideo.id ? { ...v, ...videoForm } : v);
+      setVideos(updated);
+      try {
+        localStorage.setItem('aryan_admin_videos', JSON.stringify(updated));
+      } catch {}
+      if (onShowToast) onShowToast(`✓ Video "${videoForm.title}" updated.`);
+    } else {
+      const newVid = {
+        id: 'vid_' + Date.now(),
+        ...videoForm
+      };
+      const updated = [newVid, ...videos];
+      setVideos(updated);
+      try {
+        localStorage.setItem('aryan_admin_videos', JSON.stringify(updated));
+      } catch {}
+      if (onShowToast) onShowToast(`✓ New video project "${videoForm.title}" created.`);
+    }
+
+    setShowVideoModal(false);
+    setEditingVideo(null);
+    try {
+      window.dispatchEvent(new Event('aryan_portfolio_updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+  };
+
+  const promptDeleteVideo = (id, title) => {
+    setDeleteConfirm({
+      isOpen: true,
+      type: 'video',
+      id,
+      title: title || 'This video project'
+    });
   };
 
   // Load all dashboard data
@@ -483,6 +662,19 @@ export default function AdminDashboard({ onShowToast }) {
         } else {
           setCredentials(credentialsData.filter(c => !deletedCredentials.has(String(c.id).trim())));
         }
+      }
+
+      const deletedVideos = new Set(JSON.parse(localStorage.getItem('aryan_deleted_videos') || '[]'));
+      const savedVideos = localStorage.getItem('aryan_admin_videos');
+      if (savedVideos) {
+        try {
+          const parsed = JSON.parse(savedVideos).filter(v => !deletedVideos.has(String(v.id).trim()));
+          setVideos(parsed);
+        } catch {
+          setVideos(videoProjectsData.filter(v => !deletedVideos.has(String(v.id).trim())));
+        }
+      } else {
+        setVideos(videoProjectsData.filter(v => !deletedVideos.has(String(v.id).trim())));
       }
 
       if (msgRes && msgRes.messages && msgRes.messages.length > 0) {
@@ -661,6 +853,7 @@ export default function AdminDashboard({ onShowToast }) {
   const handleLogout = () => {
     sessionStorage.removeItem('aryan_admin_auth');
     sessionStorage.removeItem('aryan_admin_token');
+    sessionStorage.removeItem('aryan_admin_access_granted');
     setIsAuthenticated(false);
     if (onShowToast) onShowToast('Logged out of Admin Portal.');
     navigate('/');
@@ -1336,6 +1529,51 @@ export default function AdminDashboard({ onShowToast }) {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => {});
       } catch {}
+    } else if (type === 'video') {
+      const targetItem = videos.find(v => String(v.id).trim() === targetIdStr);
+
+      setVideos(prev => {
+        const next = prev.filter(v => String(v.id).trim() !== targetIdStr);
+        try {
+          localStorage.setItem('aryan_admin_videos', JSON.stringify(next));
+          const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_videos') || '[]');
+          if (!deletedList.includes(targetIdStr)) {
+            deletedList.push(targetIdStr);
+            localStorage.setItem('aryan_deleted_videos', JSON.stringify(deletedList));
+          }
+        } catch {}
+        return next;
+      });
+
+      // Add to Recycle Bin with 30-day retention
+      const binEntry = {
+        id: `bin_vid_${targetIdStr}_${now}`,
+        originalId: targetItem ? targetItem.id : id,
+        type: 'video',
+        title: targetItem ? targetItem.title : title,
+        subtitle: targetItem ? (targetItem.client || targetItem.duration) : '',
+        category: targetItem ? targetItem.category : 'commercials',
+        badge: targetItem ? (targetItem.tools || 'Video Edit') : 'Video Project',
+        image: targetItem ? (targetItem.thumbnail || '') : '',
+        data: targetItem || { id, title },
+        deletedAt: now,
+        expiresAt: now + thirtyDaysMs
+      };
+
+      setRecycleBin(prev => {
+        const next = [binEntry, ...prev.filter(b => String(b.originalId).trim() !== targetIdStr)];
+        try {
+          localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+
+      try {
+        window.dispatchEvent(new Event('aryan_portfolio_updated'));
+        window.dispatchEvent(new Event('storage'));
+      } catch {}
+
+      if (onShowToast) onShowToast(`🗑️ Video "${title}" moved to Recycle Bin (30-day retention).`);
     }
 
     setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
@@ -1378,6 +1616,17 @@ export default function AdminDashboard({ onShowToast }) {
         } catch {}
         return next;
       });
+    } else if (binItem.type === 'video') {
+      setVideos(prev => {
+        const next = [binItem.data, ...prev.filter(v => String(v.id).trim() !== targetOriginalId)];
+        try {
+          localStorage.setItem('aryan_admin_videos', JSON.stringify(next));
+          const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_videos') || '[]');
+          const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
+          localStorage.setItem('aryan_deleted_videos', JSON.stringify(updatedList));
+        } catch {}
+        return next;
+      });
     }
 
     setRecycleBin(prev => {
@@ -1397,6 +1646,16 @@ export default function AdminDashboard({ onShowToast }) {
   };
 
   const handlePermanentDeleteFromBin = (binItem) => {
+    const targetOriginalId = String(binItem.originalId).trim();
+    if (binItem.type === 'video') {
+      try {
+        const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_videos') || '[]');
+        if (!deletedList.includes(targetOriginalId)) {
+          deletedList.push(targetOriginalId);
+          localStorage.setItem('aryan_deleted_videos', JSON.stringify(deletedList));
+        }
+      } catch {}
+    }
     setRecycleBin(prev => {
       const next = prev.filter(b => b.id !== binItem.id);
       try {
@@ -1526,6 +1785,16 @@ export default function AdminDashboard({ onShowToast }) {
     return designCategory === 'all' || d.category === designCategory;
   });
 
+  const filteredVideos = videos.filter(v => {
+    const matchesCat = videoCategory === 'all' || v.category === videoCategory;
+    const q = videoSearch.toLowerCase();
+    const matchesSearch = !q ||
+      (v.title && v.title.toLowerCase().includes(q)) ||
+      (v.client && v.client.toLowerCase().includes(q)) ||
+      (v.tools && v.tools.toLowerCase().includes(q));
+    return matchesCat && matchesSearch;
+  });
+
   // Render passcode modal if not authenticated
   if (!isAuthenticated) {
     return (
@@ -1597,6 +1866,13 @@ export default function AdminDashboard({ onShowToast }) {
             >
               <Palette size={18} />
               <span>Graphic Designs ({designs.length})</span>
+            </button>
+            <button
+              className={`nav-tab-btn ${activeTab === 'videos' ? 'active' : ''}`}
+              onClick={() => setActiveTab('videos')}
+            >
+              <Film size={18} />
+              <span>Video Projects ({videos.length})</span>
             </button>
             <button
               className={`nav-tab-btn ${activeTab === 'credentials' ? 'active' : ''}`}
@@ -1679,6 +1955,17 @@ export default function AdminDashboard({ onShowToast }) {
                     <span className="stat-label">Live Client Websites</span>
                     <span className="stat-number">{websites.length}</span>
                     <span className="stat-sub">Across 5 specialized sectors</span>
+                  </div>
+                </div>
+
+                <div className="stat-card" onClick={() => setActiveTab('videos')}>
+                  <div className="stat-icon-wrapper cyan">
+                    <Film size={24} />
+                  </div>
+                  <div className="stat-info">
+                    <span className="stat-label">Video Projects</span>
+                    <span className="stat-number">{videos.length}</span>
+                    <span className="stat-sub">Commercials, Reels & Motion</span>
                   </div>
                 </div>
 
@@ -2260,6 +2547,88 @@ export default function AdminDashboard({ onShowToast }) {
                         value={heroForm.profileImage || ''}
                         onChange={(e) => setHeroForm({ ...heroForm, profileImage: e.target.value })}
                         placeholder="e.g. /assets/profile/aryan_portrait.jpg or https://.../photo.jpg"
+                      />
+                    </div>
+                  </form>
+
+                  {/* CARD 4: MOBILE APP ICON (PWA ICON) */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveCmsSection('branding', brandingForm);
+                    }}
+                    className="cms-form glass-card branding-card"
+                  >
+                    <div className="cms-form-header">
+                      <div>
+                        <h3>📱 Mobile App Icon (PWA Homescreen Icon)</h3>
+                        <p>Set the custom icon that appears on visitors' smartphone homescreens when they install your portfolio as an app.</p>
+                      </div>
+                      <button type="submit" disabled={cmsSaving} className="btn-save">
+                        <Save size={16} />
+                        <span>{cmsSaving ? 'Saving...' : 'Save App Icon'}</span>
+                      </button>
+                    </div>
+
+                    {/* App Icon Phone Mockup Preview */}
+                    <div className="branding-preview-box">
+                      <label className="preview-label">Smartphone Homescreen App Preview</label>
+                      <div className="pwa-app-icon-preview">
+                        <div className="pwa-phone-screen">
+                          <div className="pwa-phone-notch"></div>
+                          <div className="pwa-app-icon-item">
+                            <div className="pwa-icon-squircle">
+                              <img
+                                src={brandingForm.appIcon || '/icons/icon-192x192.png'}
+                                alt="PWA App Icon"
+                                className="pwa-icon-img"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = '/icons/icon-192x192.png';
+                                }}
+                              />
+                            </div>
+                            <span className="pwa-app-name">Aryan Thakor</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* App Icon Upload Option */}
+                    <div className="form-group">
+                      <label>Upload Mobile App Icon (PNG or WEBP recommended, 512x512)</label>
+                      <div className="upload-btn-wrap">
+                        <label className="btn btn-primary upload-file-btn">
+                          <Upload size={16} />
+                          <span>Upload App Icon</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/webp,image/jpeg"
+                            onChange={handleAppIconFileSelect}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                        {brandingForm.appIcon && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary text-danger"
+                            onClick={() => setBrandingForm({ ...brandingForm, appIcon: '' })}
+                          >
+                            <Trash2 size={16} />
+                            <span>Reset to Default Icon</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* App Icon URL Option */}
+                    <div className="form-group">
+                      <label>Or Paste App Icon Image URL</label>
+                      <input
+                        type="text"
+                        value={brandingForm.appIcon || ''}
+                        onChange={(e) => setBrandingForm({ ...brandingForm, appIcon: e.target.value })}
+                        placeholder="e.g. /icons/icon-512x512.png or https://.../icon.png"
                       />
                     </div>
                   </form>
@@ -3176,6 +3545,119 @@ export default function AdminDashboard({ onShowToast }) {
             </div>
           )}
 
+          {/* TAB: VIDEO PROJECTS MANAGER */}
+          {activeTab === 'videos' && (
+            <div className="tab-content videos-tab">
+              <div className="panel-toolbar">
+                <div className="toolbar-left">
+                  <div className="admin-search-box">
+                    <Search size={16} />
+                    <input
+                      type="text"
+                      placeholder="Search video title, client, or tools..."
+                      value={videoSearch}
+                      onChange={(e) => setVideoSearch(e.target.value)}
+                    />
+                    {videoSearch && (
+                      <button onClick={() => setVideoSearch('')} className="clear-btn">
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  <select
+                    className="admin-select"
+                    value={videoCategory}
+                    onChange={(e) => setVideoCategory(e.target.value)}
+                  >
+                    <option value="all">All Categories ({videos.length})</option>
+                    <option value="commercials">Brand Commercials</option>
+                    <option value="reels">Viral Reels & Shorts</option>
+                    <option value="youtube">YouTube Long-Form</option>
+                    <option value="motion">Motion Graphics & 3D</option>
+                  </select>
+                </div>
+
+                <div className="toolbar-right">
+                  <button onClick={openAddVideo} className="btn-primary-action">
+                    <Plus size={16} />
+                    <span>Add Video Project</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Videos Grid */}
+              <div className="admin-videos-grid">
+                {filteredVideos.length === 0 ? (
+                  <div className="empty-box full-grid">
+                    <Film size={36} />
+                    <h3>No video projects found</h3>
+                    <p>Click "Add Video Project" above to publish your commercial edits, reels, or motion graphics.</p>
+                  </div>
+                ) : (
+                  filteredVideos.map((video) => (
+                    <div key={video.id} className="admin-video-card glass-card">
+                      <div className="video-card-thumb">
+                        <img
+                          src={video.thumbnail || '/assets/profile/aryan-designer.jpg'}
+                          alt={video.title}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/assets/profile/aryan-designer.jpg';
+                          }}
+                        />
+                        <div className="video-thumb-overlay">
+                          <Play size={28} className="video-play-icon" />
+                        </div>
+                        {video.duration && (
+                          <span className="video-duration-tag">{video.duration}</span>
+                        )}
+                        <span className="video-cat-badge">{video.category}</span>
+                      </div>
+
+                      <div className="video-card-body">
+                        <h4 className="video-title">{video.title}</h4>
+                        {video.client && <p className="video-client">Client: <strong>{video.client}</strong></p>}
+                        {video.tools && <p className="video-tools">Tools: {video.tools}</p>}
+                        {video.views && <span className="video-views-tag">👁️ {video.views}</span>}
+                        {video.videoUrl && (
+                          <div className="video-url-preview">
+                            <a
+                              href={video.videoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="table-link"
+                            >
+                              <span>Watch Video</span>
+                              <ExternalLink size={12} />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="video-card-actions">
+                        <button
+                          onClick={() => openEditVideo(video)}
+                          className="btn-edit-sm"
+                          title="Edit video project"
+                        >
+                          <Edit size={14} /> <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => promptDeleteVideo(video.id, video.title)}
+                          className="btn-delete-sm"
+                          title="Move to Recycle Bin"
+                        >
+                          <Trash2 size={14} /> <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
           {/* TAB 6: CLIENT INQUIRIES */}
           {activeTab === 'messages' && (
             <div className="tab-content messages-tab">
@@ -3394,6 +3876,81 @@ export default function AdminDashboard({ onShowToast }) {
                       <span>Update Passcode</span>
                     </button>
                   </form>
+                </div>
+
+                {/* Secret Admin URL & Direct Access Shield Card */}
+                <div className="security-card glass-card">
+                  <div className="sec-header">
+                    <div className="sec-icon-title">
+                      <ShieldAlert size={24} className="cyan-icon" />
+                      <div>
+                        <h3>🔒 Secret Admin Access URL & Direct Link Shield</h3>
+                        <p>Protect your Admin URL. Unauthorized visitors typing <code>/admin</code> directly will be automatically redirected to the homepage.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="sec-body">
+                    <div className="active-protection-note" style={{ marginBottom: '18px' }}>
+                      <CheckCircle size={20} color="#10B981" />
+                      <div>
+                        <strong>Direct /admin Access Blocked for Public Visitors</strong>
+                        <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                          Only visits using your secret URL (containing <code>?key=...</code>) or previously authenticated sessions can view the admin login screen.
+                        </p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleSaveSecretKey} className="cms-form" style={{ marginBottom: '20px' }}>
+                      <div className="form-group">
+                        <label>Secret Admin Access Key</label>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <input
+                            type="text"
+                            value={inputSecretKey}
+                            onChange={(e) => setInputSecretKey(e.target.value)}
+                            placeholder="e.g. aryan2026"
+                            style={{ flex: 1 }}
+                          />
+                          <button type="submit" className="btn-secondary-action">
+                            <Save size={16} />
+                            <span>Save Key</span>
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+
+                    <div className="form-group">
+                      <label>Your Personal Secret Admin Link (Bookmark this URL):</label>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          readOnly
+                          value={`${window.location.origin}/admin?key=${adminSecretKey}`}
+                          style={{
+                            flex: 1,
+                            background: 'rgba(0, 0, 0, 0.25)',
+                            color: 'var(--accent-cyan)',
+                            fontWeight: 600,
+                            fontFamily: 'monospace',
+                            fontSize: '13px'
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleCopySecretUrl}
+                          className="btn-primary-action"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                        >
+                          {copiedLink ? <Check size={16} /> : <Copy size={16} />}
+                          <span>{copiedLink ? 'Copied!' : 'Copy Secret Link'}</span>
+                        </button>
+                      </div>
+                      <span style={{ display: 'block', marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                        💡 Tip: Add this link to your mobile or browser bookmarks. Whenever you open it, Admin access will unlock seamlessly.
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3648,8 +4205,8 @@ export default function AdminDashboard({ onShowToast }) {
                       <div key={item.id} className="bin-card">
                         <div className="bin-card-top">
                           <span className={`bin-type-badge ${item.type}`}>
-                            {item.type === 'website' ? <Globe size={13} /> : <Palette size={13} />}
-                            <span>{item.type === 'website' ? 'Web Project' : 'Graphic Design'}</span>
+                            {item.type === 'website' ? <Globe size={13} /> : item.type === 'video' ? <Film size={13} /> : item.type === 'credential' ? <Award size={13} /> : <Palette size={13} />}
+                            <span>{item.type === 'website' ? 'Web Project' : item.type === 'video' ? 'Video Project' : item.type === 'credential' ? 'Certificate' : 'Graphic Design'}</span>
                           </span>
                           <span className={`countdown-badge ${daysLeft <= 3 ? 'urgent' : ''}`} title="Remaining days before auto-purge">
                             <Clock size={12} />
@@ -4222,6 +4779,152 @@ export default function AdminDashboard({ onShowToast }) {
                 </button>
                 <button type="submit" className="btn-save">
                   <span>Create Category</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Add / Edit Video Project */}
+      {showVideoModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal">
+            <div className="modal-header">
+              <h3>{editingVideo ? 'Edit Video Project' : 'Add New Video Project'}</h3>
+              <button onClick={() => setShowVideoModal(false)} className="close-btn">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveVideo} className="admin-form">
+              <div className="form-group">
+                <label>Video Project Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Royal Heritage — Luxury Hotel Commercial"
+                  value={videoForm.title}
+                  onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Category *</label>
+                  <select
+                    value={videoForm.category}
+                    onChange={(e) => setVideoForm({ ...videoForm, category: e.target.value })}
+                  >
+                    <option value="commercials">Brand Commercials</option>
+                    <option value="reels">Viral Reels & Shorts</option>
+                    <option value="youtube">YouTube Long-Form</option>
+                    <option value="motion">Motion Graphics & 3D</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Client / Brand Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Heritage Resorts, Glow & Co, Fitness Studio"
+                    value={videoForm.client}
+                    onChange={(e) => setVideoForm({ ...videoForm, client: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Duration</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 0:45, 0:30, 8:15"
+                    value={videoForm.duration}
+                    onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Views / Performance Metric</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1.2M+ Views, 450K+ Views"
+                    value={videoForm.views}
+                    onChange={(e) => setVideoForm({ ...videoForm, views: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Editing & Motion Tools</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Premiere Pro, After Effects, DaVinci Resolve"
+                  value={videoForm.tools}
+                  onChange={(e) => setVideoForm({ ...videoForm, tools: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Video URL (YouTube Watch URL, Shorts link, or MP4 URL)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtube.com/shorts/..."
+                  value={videoForm.videoUrl}
+                  onChange={(e) => setVideoForm({ ...videoForm, videoUrl: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Thumbnail Image URL or Upload</label>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="e.g. https://images.unsplash.com/... or upload below"
+                    value={videoForm.thumbnail}
+                    onChange={(e) => setVideoForm({ ...videoForm, thumbnail: e.target.value })}
+                    style={{ flex: 1 }}
+                  />
+                  <label className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}>
+                    <Upload size={15} />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleVideoThumbnailSelect}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+
+                {videoForm.thumbnail && (
+                  <div style={{ marginTop: '8px', maxWidth: '240px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+                    <img
+                      src={videoForm.thumbnail}
+                      alt="Thumbnail Preview"
+                      style={{ width: '100%', height: '135px', objectFit: 'cover', display: 'block' }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Project Description / Summary</label>
+                <textarea
+                  rows="3"
+                  placeholder="Brief description of the editing, sound design, color grading, pacing, and results..."
+                  value={videoForm.desc}
+                  onChange={(e) => setVideoForm({ ...videoForm, desc: e.target.value })}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowVideoModal(false)} className="btn-cancel">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-save">
+                  <span>{editingVideo ? 'Update Video' : 'Add Video Project'}</span>
                 </button>
               </div>
             </form>
