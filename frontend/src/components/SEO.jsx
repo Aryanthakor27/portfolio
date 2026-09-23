@@ -30,6 +30,10 @@ const ROUTE_META = {
     title: "Certifications & Experience Letter | Aryan Thakor",
     description: "Verified professional certificates including Arena Animation Graphics Design credential and official Rowwat Technologies internship completion letter for Aryan Thakor."
   },
+  '/videos': {
+    title: "Video Editing & Motion Graphics Portfolio | Aryan Thakor",
+    description: "Explore cinematic video edits, viral short-form reels, commercial ads, sound design, and motion graphics produced by Aryan Thakor."
+  },
   '/contact': {
     title: "Contact Aryan Thakor | Hire Senior Web Developer & Designer",
     description: "Get in touch with Aryan Thakor for freelance web development, custom Shopify/HubSpot projects, full-time opportunities, or graphic design inquiries. Based in Ahmedabad, India."

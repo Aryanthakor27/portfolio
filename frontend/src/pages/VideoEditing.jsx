@@ -138,35 +138,35 @@ export default function VideoEditing() {
           </p>
 
           {/* Search bar */}
-          <div className="search-bar-wrap" style={{ maxWidth: '480px', margin: '24px auto 0' }}>
-            <div className="search-input-box">
-              <Search size={18} />
-              <input
-                type="text"
-                placeholder="Search videos, client, tools..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="search-clear-btn" aria-label="Clear Search">
-                  <X size={16} />
-                </button>
-              )}
-            </div>
+          <div className="web-search-bar" style={{ maxWidth: '520px', margin: '24px auto 0' }}>
+            <Search size={18} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search videos by title, client, tools..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="search-clear-btn" aria-label="Clear Search">
+                <X size={16} />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Category Tabs */}
-        <div className="category-tabs-container">
-          <div className="category-tabs">
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '28px 0 32px' }}>
+          <div className="web-category-tabs">
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                className={`cat-btn ${activeCategory === cat.id ? 'active' : ''}`}
+                className={`web-tab-btn ${activeCategory === cat.id ? 'active' : ''}`}
                 onClick={() => setActiveCategory(cat.id)}
               >
                 <span>{cat.label}</span>
-                <span className="cat-count">{cat.count}</span>
+                <span style={{ marginLeft: '6px', fontSize: '11px', opacity: 0.85, background: 'rgba(255, 255, 255, 0.12)', padding: '2px 7px', borderRadius: '12px' }}>
+                  {cat.count}
+                </span>
               </button>
             ))}
           </div>
