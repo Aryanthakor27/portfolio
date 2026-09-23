@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -15,11 +15,8 @@ import {
   RefreshCw,
   LogOut,
   ArrowLeft,
-  SlidersHorizontal,
   X,
   Send,
-  Building,
-  Sparkles,
   ShieldCheck,
   ShieldAlert,
   Smartphone,
@@ -27,12 +24,9 @@ import {
   FileText,
   Save,
   Check,
-  Phone,
-  Settings,
   Upload,
   Download,
   Share2,
-  Image as ImageIcon,
   Camera,
   Activity,
   Users,
@@ -44,7 +38,6 @@ import {
   Archive,
   Award,
   FileCheck,
-  GraduationCap,
   FolderPlus,
   Video,
   Play,
@@ -52,8 +45,7 @@ import {
   Copy,
   Eye,
   EyeOff,
-  MailCheck,
-  Lock
+  MailCheck
 } from 'lucide-react';
 import AdminPasscodeModal from '../components/AdminPasscodeModal';
 import ThemeToggle from '../components/ThemeToggle';
@@ -578,7 +570,7 @@ export default function AdminDashboard({ onShowToast }) {
       setVideos(updated);
       try {
         localStorage.setItem('aryan_admin_videos', JSON.stringify(updated));
-      } catch {}
+      } catch { }
       if (onShowToast) onShowToast(`✓ Video "${videoForm.title}" updated.`);
     } else {
       const newVid = {
@@ -589,7 +581,7 @@ export default function AdminDashboard({ onShowToast }) {
       setVideos(updated);
       try {
         localStorage.setItem('aryan_admin_videos', JSON.stringify(updated));
-      } catch {}
+      } catch { }
       if (onShowToast) onShowToast(`✓ New video project "${videoForm.title}" created.`);
     }
 
@@ -598,7 +590,7 @@ export default function AdminDashboard({ onShowToast }) {
     try {
       window.dispatchEvent(new Event('aryan_portfolio_updated'));
       window.dispatchEvent(new Event('storage'));
-    } catch {}
+    } catch { }
   };
 
   const promptDeleteVideo = (id, title) => {
@@ -703,7 +695,7 @@ export default function AdminDashboard({ onShowToast }) {
       } else {
         const savedMsgs = localStorage.getItem('aryan_contact_messages');
         if (savedMsgs) {
-          try { setMessages(JSON.parse(savedMsgs)); } catch {}
+          try { setMessages(JSON.parse(savedMsgs)); } catch { }
         }
       }
 
@@ -778,7 +770,7 @@ export default function AdminDashboard({ onShowToast }) {
         } else {
           setVisitorLogs([]);
         }
-      } catch {}
+      } catch { }
     };
 
     window.addEventListener('aryan_visitor_tracked', handleVisitorUpdate);
@@ -891,7 +883,7 @@ export default function AdminDashboard({ onShowToast }) {
           const local = JSON.parse(localStorage.getItem('aryan_portfolio_content') || '{}');
           local[section] = data;
           localStorage.setItem('aryan_portfolio_content', JSON.stringify(local));
-        } catch {}
+        } catch { }
       }
 
       try {
@@ -906,7 +898,7 @@ export default function AdminDashboard({ onShowToast }) {
         if (res.ok) {
           refreshContent();
         }
-      } catch {}
+      } catch { }
 
       if (onShowToast) onShowToast(`✓ ${section.toUpperCase()} updated successfully on live portfolio!`);
     } catch {
@@ -1079,7 +1071,7 @@ export default function AdminDashboard({ onShowToast }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ oldPasscode: oldPass.trim(), newPasscode: newPass.trim() })
         });
-      } catch {}
+      } catch { }
 
       // 3. Send success notification to email
       sendPasscodeSuccessEmail({ targetEmail: 'thakoraryan2002@gmail.com' });
@@ -1166,8 +1158,8 @@ export default function AdminDashboard({ onShowToast }) {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(websiteForm)
-      }).catch(() => {});
-    } catch {}
+      }).catch(() => { });
+    } catch { }
   };
 
   const promptDeleteWebsite = (id, name) => {
@@ -1235,8 +1227,8 @@ export default function AdminDashboard({ onShowToast }) {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(designForm)
-      }).catch(() => {});
-    } catch {}
+      }).catch(() => { });
+    } catch { }
   };
 
   const promptDeleteDesign = (id, title) => {
@@ -1372,7 +1364,7 @@ export default function AdminDashboard({ onShowToast }) {
     try {
       window.dispatchEvent(new Event('aryan_portfolio_updated'));
       window.dispatchEvent(new Event('storage'));
-    } catch {}
+    } catch { }
 
     setShowCategoryModal(false);
   };
@@ -1399,7 +1391,7 @@ export default function AdminDashboard({ onShowToast }) {
                 }
               }
             }
-          } catch {}
+          } catch { }
         }
         if (cloudVisits.length > 0) {
           setVisitorLogs(prev => {
@@ -1418,7 +1410,7 @@ export default function AdminDashboard({ onShowToast }) {
           });
         }
       }
-    } catch {}
+    } catch { }
   };
 
   const handleSaveCred = async (e) => {
@@ -1445,7 +1437,7 @@ export default function AdminDashboard({ onShowToast }) {
     try {
       window.dispatchEvent(new Event('aryan_portfolio_updated'));
       window.dispatchEvent(new Event('storage'));
-    } catch {}
+    } catch { }
 
     if (onShowToast) onShowToast(editingCred ? 'Certificate updated successfully!' : 'Certificate added successfully!');
 
@@ -1456,8 +1448,8 @@ export default function AdminDashboard({ onShowToast }) {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credForm)
-      }).catch(() => {});
-    } catch {}
+      }).catch(() => { });
+    } catch { }
   };
 
   const promptDeleteCred = (id, title) => {
@@ -1490,7 +1482,7 @@ export default function AdminDashboard({ onShowToast }) {
             deletedList.push(targetIdStr);
             localStorage.setItem('aryan_deleted_websites', JSON.stringify(deletedList));
           }
-        } catch {}
+        } catch { }
         return next;
       });
 
@@ -1512,14 +1504,14 @@ export default function AdminDashboard({ onShowToast }) {
         const next = [binEntry, ...prev.filter(b => String(b.originalId).trim() !== targetIdStr)];
         try {
           localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
-        } catch {}
+        } catch { }
         return next;
       });
 
       try {
         window.dispatchEvent(new Event('aryan_portfolio_updated'));
         window.dispatchEvent(new Event('storage'));
-      } catch {}
+      } catch { }
 
       if (onShowToast) onShowToast(`🗑️ "${title}" moved to Recycle Bin (30-day retention).`);
 
@@ -1528,8 +1520,8 @@ export default function AdminDashboard({ onShowToast }) {
         fetch(`/api/websites/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
-        }).catch(() => {});
-      } catch {}
+        }).catch(() => { });
+      } catch { }
     } else if (type === 'design') {
       const targetItem = designs.find(d => String(d.id).trim() === targetIdStr);
 
@@ -1542,7 +1534,7 @@ export default function AdminDashboard({ onShowToast }) {
             deletedList.push(targetIdStr);
             localStorage.setItem('aryan_deleted_designs', JSON.stringify(deletedList));
           }
-        } catch {}
+        } catch { }
         return next;
       });
 
@@ -1565,14 +1557,14 @@ export default function AdminDashboard({ onShowToast }) {
         const next = [binEntry, ...prev.filter(b => String(b.originalId).trim() !== targetIdStr)];
         try {
           localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
-        } catch {}
+        } catch { }
         return next;
       });
 
       try {
         window.dispatchEvent(new Event('aryan_portfolio_updated'));
         window.dispatchEvent(new Event('storage'));
-      } catch {}
+      } catch { }
 
       if (onShowToast) onShowToast(`🗑️ Design "${title}" moved to Recycle Bin (30-day retention).`);
 
@@ -1581,8 +1573,8 @@ export default function AdminDashboard({ onShowToast }) {
         fetch(`/api/designs/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
-        }).catch(() => {});
-      } catch {}
+        }).catch(() => { });
+      } catch { }
     } else if (type === 'credential') {
       const targetItem = credentials.find(c => String(c.id).trim() === targetIdStr);
 
@@ -1595,7 +1587,7 @@ export default function AdminDashboard({ onShowToast }) {
             deletedList.push(targetIdStr);
             localStorage.setItem('aryan_deleted_credentials', JSON.stringify(deletedList));
           }
-        } catch {}
+        } catch { }
         return next;
       });
 
@@ -1618,14 +1610,14 @@ export default function AdminDashboard({ onShowToast }) {
         const next = [binEntry, ...prev.filter(b => String(b.originalId).trim() !== targetIdStr)];
         try {
           localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
-        } catch {}
+        } catch { }
         return next;
       });
 
       try {
         window.dispatchEvent(new Event('aryan_portfolio_updated'));
         window.dispatchEvent(new Event('storage'));
-      } catch {}
+      } catch { }
 
       if (onShowToast) onShowToast(`🗑️ "${title}" moved to Recycle Bin (30-day retention).`);
 
@@ -1634,8 +1626,8 @@ export default function AdminDashboard({ onShowToast }) {
         fetch(`/api/credentials/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
-        }).catch(() => {});
-      } catch {}
+        }).catch(() => { });
+      } catch { }
     } else if (type === 'video') {
       const targetItem = videos.find(v => String(v.id).trim() === targetIdStr);
 
@@ -1648,7 +1640,7 @@ export default function AdminDashboard({ onShowToast }) {
             deletedList.push(targetIdStr);
             localStorage.setItem('aryan_deleted_videos', JSON.stringify(deletedList));
           }
-        } catch {}
+        } catch { }
         return next;
       });
 
@@ -1671,14 +1663,14 @@ export default function AdminDashboard({ onShowToast }) {
         const next = [binEntry, ...prev.filter(b => String(b.originalId).trim() !== targetIdStr)];
         try {
           localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
-        } catch {}
+        } catch { }
         return next;
       });
 
       try {
         window.dispatchEvent(new Event('aryan_portfolio_updated'));
         window.dispatchEvent(new Event('storage'));
-      } catch {}
+      } catch { }
 
       if (onShowToast) onShowToast(`🗑️ Video "${title}" moved to Recycle Bin (30-day retention).`);
     } else if (type === 'message') {
@@ -1693,7 +1685,7 @@ export default function AdminDashboard({ onShowToast }) {
         });
         try {
           localStorage.setItem('aryan_contact_messages', JSON.stringify(next));
-        } catch {}
+        } catch { }
         return next;
       });
 
@@ -1701,9 +1693,9 @@ export default function AdminDashboard({ onShowToast }) {
 
       try {
         if (targetId) {
-          fetch(`/api/contact/${targetId}`, { method: 'DELETE' }).catch(() => {});
+          fetch(`/api/contact/${targetId}`, { method: 'DELETE' }).catch(() => { });
         }
-      } catch {}
+      } catch { }
     }
 
     setDeleteConfirm({ isOpen: false, type: '', id: null, index: null, title: '' });
@@ -1721,7 +1713,7 @@ export default function AdminDashboard({ onShowToast }) {
           const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_websites') || '[]');
           const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
           localStorage.setItem('aryan_deleted_websites', JSON.stringify(updatedList));
-        } catch {}
+        } catch { }
         return next;
       });
     } else if (binItem.type === 'design') {
@@ -1732,7 +1724,7 @@ export default function AdminDashboard({ onShowToast }) {
           const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_designs') || '[]');
           const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
           localStorage.setItem('aryan_deleted_designs', JSON.stringify(updatedList));
-        } catch {}
+        } catch { }
         return next;
       });
     } else if (binItem.type === 'credential') {
@@ -1743,7 +1735,7 @@ export default function AdminDashboard({ onShowToast }) {
           const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_credentials') || '[]');
           const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
           localStorage.setItem('aryan_deleted_credentials', JSON.stringify(updatedList));
-        } catch {}
+        } catch { }
         return next;
       });
     } else if (binItem.type === 'video') {
@@ -1754,7 +1746,7 @@ export default function AdminDashboard({ onShowToast }) {
           const deletedList = JSON.parse(localStorage.getItem('aryan_deleted_videos') || '[]');
           const updatedList = deletedList.filter(id => String(id).trim() !== targetOriginalId);
           localStorage.setItem('aryan_deleted_videos', JSON.stringify(updatedList));
-        } catch {}
+        } catch { }
         return next;
       });
     }
@@ -1763,14 +1755,14 @@ export default function AdminDashboard({ onShowToast }) {
       const next = prev.filter(b => b.id !== binItem.id);
       try {
         localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
-      } catch {}
+      } catch { }
       return next;
     });
 
     try {
       window.dispatchEvent(new Event('aryan_portfolio_updated'));
       window.dispatchEvent(new Event('storage'));
-    } catch {}
+    } catch { }
 
     if (onShowToast) onShowToast(`✓ Restored "${binItem.title}" back to active portfolio!`);
   };
@@ -1784,13 +1776,13 @@ export default function AdminDashboard({ onShowToast }) {
           deletedList.push(targetOriginalId);
           localStorage.setItem('aryan_deleted_videos', JSON.stringify(deletedList));
         }
-      } catch {}
+      } catch { }
     }
     setRecycleBin(prev => {
       const next = prev.filter(b => b.id !== binItem.id);
       try {
         localStorage.setItem('aryan_recycle_bin', JSON.stringify(next));
-      } catch {}
+      } catch { }
       return next;
     });
     if (onShowToast) onShowToast(`Permanently deleted "${binItem.title}".`);
@@ -1800,7 +1792,7 @@ export default function AdminDashboard({ onShowToast }) {
     setRecycleBin([]);
     try {
       localStorage.setItem('aryan_recycle_bin', '[]');
-    } catch {}
+    } catch { }
     setEmptyBinModal(false);
     if (onShowToast) onShowToast('✓ Recycle Bin emptied. All deleted items wiped.');
   };
@@ -1816,8 +1808,8 @@ export default function AdminDashboard({ onShowToast }) {
     try {
       localStorage.setItem('aryan_visitor_logs_cleared_at', now.toString());
       localStorage.removeItem('aryan_visitor_logs');
-      fetch('/api/analytics/visitors', { method: 'DELETE' }).catch(() => {});
-    } catch {}
+      fetch('/api/analytics/visitors', { method: 'DELETE' }).catch(() => { });
+    } catch { }
     setVisitorLogs([]);
     setClearLogsModal(false);
     if (onShowToast) onShowToast('✓ Visitor traffic logs cleared successfully.');
@@ -1833,7 +1825,7 @@ export default function AdminDashboard({ onShowToast }) {
       } else {
         setVisitorLogs([]);
       }
-    } catch {}
+    } catch { }
     await fetchCloudVisitorLogs();
     setTickNow(Date.now());
     if (onShowToast) onShowToast('✓ Visitor telemetry refreshed from cloud.');
@@ -1842,7 +1834,6 @@ export default function AdminDashboard({ onShowToast }) {
   // Helper: detect device brand from OS / userAgent stored in log
   const getDeviceBrand = (log) => {
     const os = (log.os || '').toLowerCase();
-    const browser = (log.browser || '').toLowerCase();
     const device = (log.device || '').toLowerCase();
     if (os.includes('iphone') || os.includes('ipad') || os.includes('macos')) return '🍎 Apple';
     if (os.includes('android')) {
@@ -3158,9 +3149,9 @@ export default function AdminDashboard({ onShowToast }) {
                             type="text"
                             placeholder={
                               newSocialPlatform === 'Instagram' ? 'https://instagram.com/your_handle' :
-                              newSocialPlatform === 'LinkedIn' ? 'https://linkedin.com/in/your_profile' :
-                              newSocialPlatform === 'GitHub' ? 'https://github.com/your_username' :
-                              'https://...'
+                                newSocialPlatform === 'LinkedIn' ? 'https://linkedin.com/in/your_profile' :
+                                  newSocialPlatform === 'GitHub' ? 'https://github.com/your_username' :
+                                    'https://...'
                             }
                             value={newSocialUrl}
                             onChange={(e) => setNewSocialUrl(e.target.value)}
@@ -3873,1437 +3864,1453 @@ export default function AdminDashboard({ onShowToast }) {
             </div>
           )}
 
-          {/* TAB 6: SECURITY & GOOGLE AUTHENTICATOR (2FA) */}
-          {activeTab === 'security' && (
-            <div className="tab-content security-tab">
-              <div className="security-cards-grid">
-                {/* 2FA Status Card */}
-                <div className="security-card glass-card">
-                  <div className="sec-header">
-                    <div className="sec-icon-title">
-                      <Smartphone size={24} className="cyan-icon" />
-                      <div>
-                        <h3>Google Authenticator (TOTP 2FA)</h3>
-                        <p>Protect your portfolio admin portal with 2-Factor Authentication.</p>
-                      </div>
-                    </div>
-                    <span className={`status-pill ${twoFactorEnabled ? 'enabled' : 'disabled'}`}>
-                      {twoFactorEnabled ? 'Active & Protected' : 'Disabled'}
-                    </span>
+      {/* TAB 6: SECURITY & GOOGLE AUTHENTICATOR (2FA) */}
+      {activeTab === 'security' && (
+        <div className="tab-content security-tab">
+          <div className="security-cards-grid">
+            {/* 2FA Status Card */}
+            <div className="security-card glass-card">
+              <div className="sec-header">
+                <div className="sec-icon-title">
+                  <Smartphone size={24} className="cyan-icon" />
+                  <div>
+                    <h3>Google Authenticator (TOTP 2FA)</h3>
+                    <p>Protect your portfolio admin portal with 2-Factor Authentication.</p>
+                  </div>
+                </div>
+                <span className={`status-pill ${twoFactorEnabled ? 'enabled' : 'disabled'}`}>
+                  {twoFactorEnabled ? 'Active & Protected' : 'Disabled'}
+                </span>
+              </div>
+
+              {!twoFactorEnabled && !twoFASetup && (
+                <div className="sec-body">
+                  <p>
+                    Enable Google Authenticator to require a 6-digit dynamic security code generated on your phone whenever you log in.
+                  </p>
+                  <button
+                    onClick={handleStart2FASetup}
+                    disabled={twoFALoading}
+                    className="btn-primary-action"
+                  >
+                    <Smartphone size={16} />
+                    <span>{twoFALoading ? 'Generating QR...' : 'Setup Google Authenticator'}</span>
+                  </button>
+                </div>
+              )}
+
+              {twoFASetup && !twoFactorEnabled && (
+                <div className="twofa-setup-flow">
+                  <div className="qr-container">
+                    <img src={twoFASetup.qrCodeUrl} alt="Google Authenticator QR Code" />
                   </div>
 
-                  {!twoFactorEnabled && !twoFASetup && (
-                    <div className="sec-body">
-                      <p>
-                        Enable Google Authenticator to require a 6-digit dynamic security code generated on your phone whenever you log in.
-                      </p>
-                      <button
-                        onClick={handleStart2FASetup}
-                        disabled={twoFALoading}
-                        className="btn-primary-action"
-                      >
-                        <Smartphone size={16} />
-                        <span>{twoFALoading ? 'Generating QR...' : 'Setup Google Authenticator'}</span>
+                  <div className="setup-instructions">
+                    <h4>Step 1: Scan QR Code</h4>
+                    <p>Open <strong>Google Authenticator</strong> (or Authy) on your mobile phone, tap <strong>"+"</strong>, and scan the QR code above.</p>
+                    <p className="secret-text">
+                      Manual Key: <code>{twoFASetup.secret}</code>
+                    </p>
+
+                    <h4>Step 2: Enter 6-digit Code to Activate</h4>
+                    <form onSubmit={handleEnable2FA} className="verify-2fa-form">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="000000"
+                        value={verify2FACode}
+                        onChange={(e) => setVerify2FACode(e.target.value.replace(/\D/g, ''))}
+                        autoFocus
+                      />
+                      <button type="submit" disabled={twoFALoading || verify2FACode.length < 6} className="btn-primary">
+                        <span>{twoFALoading ? 'Verifying...' : 'Activate 2FA'}</span>
                       </button>
-                    </div>
-                  )}
-
-                  {twoFASetup && !twoFactorEnabled && (
-                    <div className="twofa-setup-flow">
-                      <div className="qr-container">
-                        <img src={twoFASetup.qrCodeUrl} alt="Google Authenticator QR Code" />
-                      </div>
-
-                      <div className="setup-instructions">
-                        <h4>Step 1: Scan QR Code</h4>
-                        <p>Open <strong>Google Authenticator</strong> (or Authy) on your mobile phone, tap <strong>"+"</strong>, and scan the QR code above.</p>
-                        <p className="secret-text">
-                          Manual Key: <code>{twoFASetup.secret}</code>
-                        </p>
-
-                        <h4>Step 2: Enter 6-digit Code to Activate</h4>
-                        <form onSubmit={handleEnable2FA} className="verify-2fa-form">
-                          <input
-                            type="text"
-                            maxLength={6}
-                            placeholder="000000"
-                            value={verify2FACode}
-                            onChange={(e) => setVerify2FACode(e.target.value.replace(/\D/g, ''))}
-                            autoFocus
-                          />
-                          <button type="submit" disabled={twoFALoading || verify2FACode.length < 6} className="btn-primary">
-                            <span>{twoFALoading ? 'Verifying...' : 'Activate 2FA'}</span>
-                          </button>
-                          <button type="button" onClick={() => setTwoFASetup(null)} className="btn-secondary">
-                            Cancel
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  )}
-
-                  {twoFactorEnabled && (
-                    <div className="sec-body">
-                      <div className="active-protection-note">
-                        <CheckCircle size={20} color="#10B981" />
-                        <div>
-                          <strong>Your portfolio admin account is secured with Google Authenticator.</strong>
-                          <p>Every login attempt requires your mobile authenticator code.</p>
-                        </div>
-                      </div>
-
-                      {emergencyKey && (
-                        <div className="emergency-key-box">
-                          <span>Emergency Recovery Key (Save this safely!):</span>
-                          <code>{emergencyKey}</code>
-                        </div>
-                      )}
-
-                      <div className="disable-2fa-box">
-                        <h4>Disable 2FA</h4>
-                        <p>Enter your admin passcode to deactivate Google Authenticator:</p>
-                        <form onSubmit={handleDisable2FA} className="inline-form">
-                          <input
-                            type="password"
-                            placeholder="Enter current passcode"
-                            value={disablePasscode}
-                            onChange={(e) => setDisablePasscode(e.target.value)}
-                          />
-                          <button type="submit" className="btn-danger-sm">
-                            Deactivate 2FA
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Change Passcode Card with Email OTP Verification */}
-                <div className="security-card glass-card">
-                  <div className="sec-header">
-                    <div className="sec-icon-title">
-                      <KeyRound size={24} className="purple-icon" />
-                      <div>
-                        <h3>Change Admin Passcode (Email Verified)</h3>
-                        <p>Update your master login passcode. Requires 6-digit OTP verification sent to <strong>thakoraryan2002@gmail.com</strong>.</p>
-                      </div>
-                    </div>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
-                      <MailCheck size={14} /> Email OTP Protected
-                    </span>
-                  </div>
-
-                  <div className="sec-body" style={{ marginTop: '16px' }}>
-                    {passcodeSuccess && (
-                      <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', padding: '12px 16px', borderRadius: '10px', color: '#10B981', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px' }}>
-                        <CheckCircle size={18} />
-                        <span>{passcodeSuccess}</span>
-                      </div>
-                    )}
-
-                    {passcodeError && (
-                      <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #EF4444', padding: '12px 16px', borderRadius: '10px', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px' }}>
-                        <AlertCircle size={18} />
-                        <span>{passcodeError}</span>
-                      </div>
-                    )}
-
-                    {passcodeStep === 'request' ? (
-                      <form onSubmit={handleRequestPasscodeOtp} className="cms-form">
-                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                            <ShieldCheck size={18} color="#10B981" />
-                            <strong style={{ fontSize: '14px', color: '#fff' }}>Step 1: Current Passcode & Security Code Request</strong>
-                          </div>
-                          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-                            To safeguard your portfolio, enter your current passcode. We will dispatch a 6-digit authorization code to your registered email: <strong style={{ color: '#c084fc' }}>thakoraryan2002@gmail.com</strong>.
-                          </p>
-                        </div>
-
-                        <div className="form-group">
-                          <label>Current Admin Passcode *</label>
-                          <input
-                            type="password"
-                            placeholder="Enter current passcode (default: aryan2026)"
-                            required
-                            value={oldPass}
-                            onChange={(e) => setOldPass(e.target.value)}
-                          />
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                          <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={isSendingOtp}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                          >
-                            {isSendingOtp ? <RefreshCw size={16} className="spin" /> : <Send size={16} />}
-                            <span>{isSendingOtp ? 'Sending Security Code...' : 'Send Verification Code to Email'}</span>
-                          </button>
-                        </div>
-                      </form>
-                    ) : (
-                      <form onSubmit={handleVerifyAndChangePasscode} className="cms-form">
-                        <div style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                            <MailCheck size={18} color="#c084fc" />
-                            <strong style={{ fontSize: '14px', color: '#c084fc' }}>Step 2: Enter Verification Code & New Passcode</strong>
-                          </div>
-                          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-                            A 6-digit verification code has been dispatched to <strong style={{ color: '#fff' }}>thakoraryan2002@gmail.com</strong>. The code expires in 10 minutes.
-                          </p>
-                        </div>
-
-                        <div className="form-group">
-                          <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>6-Digit Email Verification Code *</span>
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Check your Gmail Inbox/Spam</span>
-                          </label>
-                          <input
-                            type="text"
-                            maxLength={6}
-                            placeholder="e.g. 849201"
-                            required
-                            value={enteredOtp}
-                            onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ''))}
-                            style={{ fontSize: '20px', letterSpacing: '4px', fontWeight: 'bold', fontFamily: 'monospace', textAlign: 'center' }}
-                          />
-                        </div>
-
-                        <div className="form-row">
-                          <div className="form-group" style={{ position: 'relative' }}>
-                            <label>New Passcode * (Min 4 chars)</label>
-                            <input
-                              type={showNewPass ? "text" : "password"}
-                              placeholder="Enter new admin passcode"
-                              required
-                              value={newPass}
-                              onChange={(e) => setNewPass(e.target.value)}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowNewPass(!showNewPass)}
-                              style={{ position: 'absolute', right: '12px', top: '38px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
-                              title={showNewPass ? "Hide Passcode" : "Show Passcode"}
-                            >
-                              {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                            </button>
-                          </div>
-
-                          <div className="form-group">
-                            <label>Confirm New Passcode *</label>
-                            <input
-                              type={showNewPass ? "text" : "password"}
-                              placeholder="Re-enter new admin passcode"
-                              required
-                              value={confirmPass}
-                              onChange={(e) => setConfirmPass(e.target.value)}
-                            />
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '16px', alignItems: 'center' }}>
-                          <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={isUpdatingPass}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                          >
-                            {isUpdatingPass ? <RefreshCw size={16} className="spin" /> : <Save size={16} />}
-                            <span>{isUpdatingPass ? 'Verifying & Updating...' : 'Verify Code & Set New Passcode'}</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={handleRequestPasscodeOtp}
-                            disabled={otpCountdown > 0 || isSendingOtp}
-                            className="btn btn-secondary"
-                            style={{ fontSize: '13px' }}
-                          >
-                            {otpCountdown > 0 ? `Resend Code in ${otpCountdown}s` : 'Resend Code'}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={handleCancelPasscodeChange}
-                            className="btn btn-outline"
-                            style={{ fontSize: '13px', marginLeft: 'auto' }}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-                </div>
-
-                {/* Secret Admin URL & Direct Access Shield Card */}
-                <div className="security-card glass-card">
-                  <div className="sec-header">
-                    <div className="sec-icon-title">
-                      <ShieldAlert size={24} className="cyan-icon" />
-                      <div>
-                        <h3>🔒 Secret Admin Access URL & Direct Link Shield</h3>
-                        <p>Protect your Admin URL. Unauthorized visitors typing <code>/admin</code> directly will be automatically redirected to the homepage.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="sec-body">
-                    <div className="active-protection-note" style={{ marginBottom: '18px' }}>
-                      <CheckCircle size={20} color="#10B981" />
-                      <div>
-                        <strong>Direct /admin Access Blocked for Public Visitors</strong>
-                        <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                          Only visits using your secret URL (containing <code>?key=...</code>) or previously authenticated sessions can view the admin login screen.
-                        </p>
-                      </div>
-                    </div>
-
-                    <form onSubmit={handleSaveSecretKey} className="cms-form" style={{ marginBottom: '20px' }}>
-                      <div className="form-group">
-                        <label>Secret Admin Access Key</label>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <input
-                            type="text"
-                            value={inputSecretKey}
-                            onChange={(e) => setInputSecretKey(e.target.value)}
-                            placeholder="e.g. aryan2026"
-                            style={{ flex: 1 }}
-                          />
-                          <button type="submit" className="btn-secondary-action">
-                            <Save size={16} />
-                            <span>Save Key</span>
-                          </button>
-                        </div>
-                      </div>
+                      <button type="button" onClick={() => setTwoFASetup(null)} className="btn-secondary">
+                        Cancel
+                      </button>
                     </form>
+                  </div>
+                </div>
+              )}
+
+              {twoFactorEnabled && (
+                <div className="sec-body">
+                  <div className="active-protection-note">
+                    <CheckCircle size={20} color="#10B981" />
+                    <div>
+                      <strong>Your portfolio admin account is secured with Google Authenticator.</strong>
+                      <p>Every login attempt requires your mobile authenticator code.</p>
+                    </div>
+                  </div>
+
+                  {emergencyKey && (
+                    <div className="emergency-key-box">
+                      <span>Emergency Recovery Key (Save this safely!):</span>
+                      <code>{emergencyKey}</code>
+                    </div>
+                  )}
+
+                  <div className="disable-2fa-box">
+                    <h4>Disable 2FA</h4>
+                    <p>Enter your admin passcode to deactivate Google Authenticator:</p>
+                    <form onSubmit={handleDisable2FA} className="inline-form">
+                      <input
+                        type="password"
+                        placeholder="Enter current passcode"
+                        value={disablePasscode}
+                        onChange={(e) => setDisablePasscode(e.target.value)}
+                      />
+                      <button type="submit" className="btn-danger-sm">
+                        Deactivate 2FA
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Change Passcode Card with Email OTP Verification */}
+            <div className="security-card glass-card">
+              <div className="sec-header">
+                <div className="sec-icon-title">
+                  <KeyRound size={24} className="purple-icon" />
+                  <div>
+                    <h3>Change Admin Passcode (Email Verified)</h3>
+                    <p>Update your master login passcode. Requires 6-digit OTP verification sent to <strong>thakoraryan2002@gmail.com</strong>.</p>
+                  </div>
+                </div>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+                  <MailCheck size={14} /> Email OTP Protected
+                </span>
+              </div>
+
+              <div className="sec-body" style={{ marginTop: '16px' }}>
+                {passcodeSuccess && (
+                  <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', padding: '12px 16px', borderRadius: '10px', color: '#10B981', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px' }}>
+                    <CheckCircle size={18} />
+                    <span>{passcodeSuccess}</span>
+                  </div>
+                )}
+
+                {passcodeError && (
+                  <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #EF4444', padding: '12px 16px', borderRadius: '10px', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px' }}>
+                    <AlertCircle size={18} />
+                    <span>{passcodeError}</span>
+                  </div>
+                )}
+
+                {passcodeStep === 'request' ? (
+                  <form onSubmit={handleRequestPasscodeOtp} className="cms-form">
+                    <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                        <ShieldCheck size={18} color="#10B981" />
+                        <strong style={{ fontSize: '14px', color: '#fff' }}>Step 1: Current Passcode & Security Code Request</strong>
+                      </div>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                        To safeguard your portfolio, enter your current passcode. We will dispatch a 6-digit authorization code to your registered email: <strong style={{ color: '#c084fc' }}>thakoraryan2002@gmail.com</strong>.
+                      </p>
+                    </div>
 
                     <div className="form-group">
-                      <label>Your Personal Secret Admin Link (Bookmark this URL):</label>
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <label>Current Admin Passcode *</label>
+                      <input
+                        type="password"
+                        placeholder="Enter current passcode (default: aryan2026)"
+                        required
+                        value={oldPass}
+                        onChange={(e) => setOldPass(e.target.value)}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        disabled={isSendingOtp}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        {isSendingOtp ? <RefreshCw size={16} className="spin" /> : <Send size={16} />}
+                        <span>{isSendingOtp ? 'Sending Security Code...' : 'Send Verification Code to Email'}</span>
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyAndChangePasscode} className="cms-form">
+                    <div style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                        <MailCheck size={18} color="#c084fc" />
+                        <strong style={{ fontSize: '14px', color: '#c084fc' }}>Step 2: Enter Verification Code & New Passcode</strong>
+                      </div>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                        A 6-digit verification code has been dispatched to <strong style={{ color: '#fff' }}>thakoraryan2002@gmail.com</strong>. The code expires in 10 minutes.
+                      </p>
+                    </div>
+
+                    <div className="form-group">
+                      <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>6-Digit Email Verification Code *</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Check your Gmail Inbox/Spam</span>
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="e.g. 849201"
+                        required
+                        value={enteredOtp}
+                        onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ''))}
+                        style={{ fontSize: '20px', letterSpacing: '4px', fontWeight: 'bold', fontFamily: 'monospace', textAlign: 'center' }}
+                      />
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group" style={{ position: 'relative' }}>
+                        <label>New Passcode * (Min 4 chars)</label>
                         <input
-                          type="text"
-                          readOnly
-                          value={`${window.location.origin}/admin?key=${adminSecretKey}`}
-                          style={{
-                            flex: 1,
-                            background: 'rgba(0, 0, 0, 0.25)',
-                            color: 'var(--accent-cyan)',
-                            fontWeight: 600,
-                            fontFamily: 'monospace',
-                            fontSize: '13px'
-                          }}
+                          type={showNewPass ? "text" : "password"}
+                          placeholder="Enter new admin passcode"
+                          required
+                          value={newPass}
+                          onChange={(e) => setNewPass(e.target.value)}
                         />
                         <button
                           type="button"
-                          onClick={handleCopySecretUrl}
-                          className="btn-primary-action"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                          onClick={() => setShowNewPass(!showNewPass)}
+                          style={{ position: 'absolute', right: '12px', top: '38px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                          title={showNewPass ? "Hide Passcode" : "Show Passcode"}
                         >
-                          {copiedLink ? <Check size={16} /> : <Copy size={16} />}
-                          <span>{copiedLink ? 'Copied!' : 'Copy Secret Link'}</span>
+                          {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                       </div>
-                      <span style={{ display: 'block', marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                        💡 Tip: Add this link to your mobile or browser bookmarks. Whenever you open it, Admin access will unlock seamlessly.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* TAB: LIVE VISITOR TRAFFIC & TELEMETRY */}
-          {activeTab === 'analytics' && (() => {
-            const totalVisits = visitorLogs.length;
-            const uniqueIps = new Set(visitorLogs.map(v => v.ip)).size;
-            const mobileCount = visitorLogs.filter(v => v.device === 'Mobile').length;
-            const tabletCount = visitorLogs.filter(v => v.device === 'Tablet').length;
-            const desktopCount = visitorLogs.filter(v => v.device === 'Desktop').length;
-            const mobilePct = totalVisits > 0 ? Math.round(((mobileCount + tabletCount) / totalVisits) * 100) : 0;
-            const desktopPct = totalVisits > 0 ? Math.round((desktopCount / totalVisits) * 100) : 0;
-
-            const countryCounts = {};
-            visitorLogs.forEach(v => {
-              if (v.country && v.country !== 'Protected' && v.country !== 'Global') {
-                countryCounts[v.country] = (countryCounts[v.country] || 0) + 1;
-              }
-            });
-            let topCountry = 'Global / Direct';
-            let maxCount = 0;
-            Object.entries(countryCounts).forEach(([country, count]) => {
-              if (count > maxCount) {
-                maxCount = count;
-                topCountry = country;
-              }
-            });
-
-            return (
-              <div className="tab-content analytics-tab">
-                <div className="analytics-header-banner">
-                  <div className="analytics-header-text">
-                    <div className="live-indicator-row">
-                      <span className="live-pulse-dot"></span>
-                      <h2>Live Visitor Traffic & Geolocation Telemetry</h2>
-                    </div>
-                    <p>Real-time telemetry of visitors viewing your public portfolio. Tracks IP address, City, Country, Device type (Desktop vs Mobile), OS & active pages visited.</p>
-                  </div>
-                  <div className="analytics-actions">
-                    <button onClick={handleRefreshVisitorLogs} className="btn-secondary-action" title="Refresh Live Telemetry">
-                      <RefreshCw size={15} />
-                      <span>Refresh</span>
-                    </button>
-                    <button onClick={handleClearVisitorLogs} className="btn-clear-logs" title="Clear all visitor logs">
-                      <Trash2 size={15} />
-                      <span>Clear Logs</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 4 Summary Stat Cards */}
-                <div className="analytics-stats-grid">
-                  <div className="stat-card">
-                    <div className="stat-icon-wrapper cyan">
-                      <Activity size={24} />
-                    </div>
-                    <div className="stat-info">
-                      <span className="stat-label">Total Visits Tracked</span>
-                      <span className="stat-number">{totalVisits}</span>
-                      <span className="stat-sub">Across all public portfolio pages</span>
-                    </div>
-                  </div>
-
-                  <div className="stat-card">
-                    <div className="stat-icon-wrapper purple">
-                      <Users size={24} />
-                    </div>
-                    <div className="stat-info">
-                      <span className="stat-label">Unique Visitors (IPs)</span>
-                      <span className="stat-number">{uniqueIps}</span>
-                      <span className="stat-sub">Individual client networks</span>
-                    </div>
-                  </div>
-
-                  <div className="stat-card">
-                    <div className="stat-icon-wrapper cyan">
-                      <Monitor size={24} />
-                    </div>
-                    <div className="stat-info">
-                      <span className="stat-label">Device Breakdown</span>
-                      <span className="stat-number">{desktopPct}% Desktop</span>
-                      <span className="stat-sub">{mobilePct}% Mobile & Tablet ({mobileCount + tabletCount} mobile)</span>
-                    </div>
-                  </div>
-
-                  <div className="stat-card">
-                    <div className="stat-icon-wrapper amber">
-                      <MapPin size={24} />
-                    </div>
-                    <div className="stat-info">
-                      <span className="stat-label">Top Location</span>
-                      <span className="stat-number">{topCountry}</span>
-                      <span className="stat-sub">Leading geographic origin</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Visitor Logs Table */}
-                <div className="analytics-table-container">
-                  <div className="section-title-row">
-                    <h3>
-                      Visitor Sessions
-                      <span style={{ fontWeight: 400, fontSize: '14px', color: 'var(--text-muted)', marginLeft: 8 }}>
-                        ({visitorLogs.filter(l => isLiveVisitor(l.timestamp)).length} live · {visitorLogs.filter(l => !isLiveVisitor(l.timestamp)).length} past)
-                      </span>
-                    </h3>
-                    <span className="telemetry-badge">📡 Real-Time Beacon Active</span>
-                  </div>
-
-                  {visitorLogs.length === 0 ? (
-                    <div className="empty-box">
-                      <Activity size={36} />
-                      <p>No visitor traffic recorded yet.</p>
-                      <span className="empty-sub">Open your live portfolio in a private window or on your smartphone to see real-time IP, country, and device telemetry here!</span>
-                    </div>
-                  ) : (
-                    <div className="visitor-table-wrap">
-                      <table className="visitor-table">
-                        <thead>
-                          <tr>
-                            <th>Status</th>
-                            <th>Visitor IP</th>
-                            <th>Location</th>
-                            <th>Device Brand</th>
-                            <th>Device Type</th>
-                            <th>OS / Browser</th>
-                            <th>Page Visited</th>
-                            <th>Time</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {/* Sort: live visitors first, then by timestamp desc */}
-                          {[...visitorLogs].sort((a, b) => {
-                            const aLive = isLiveVisitor(a.timestamp) ? 1 : 0;
-                            const bLive = isLiveVisitor(b.timestamp) ? 1 : 0;
-                            if (aLive !== bLive) return bLive - aLive;
-                            return (b.timestamp || 0) - (a.timestamp || 0);
-                          }).map((log, idx) => {
-                            const live = isLiveVisitor(log.timestamp);
-                            return (
-                              <tr key={log.id || idx} className={live ? 'visitor-row-live' : ''}>
-                                <td>
-                                  {live ? (
-                                    <span className="live-status-badge">
-                                      <span className="live-dot-sm"></span>
-                                      LIVE
-                                    </span>
-                                  ) : (
-                                    <span className="past-status-badge">PAST</span>
-                                  )}
-                                </td>
-                                <td>
-                                  <div className="visitor-ip-cell">
-                                    <span className="ip-text">{log.ip}</span>
-                                    {log.pageViews > 1 && (
-                                      <span className="page-views-badge">{log.pageViews} views</span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td>
-                                  <div className="location-cell">
-                                    <span className="flag-emoji">{log.flag || '🌐'}</span>
-                                    <div>
-                                      <strong>{log.city || 'Direct Visitor'}</strong>
-                                      <span className="country-sub">{log.region ? `${log.region}, ` : ''}{log.country || 'Global'}</span>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td>
-                                  <span className="brand-text">{getDeviceBrand(log)}</span>
-                                </td>
-                                <td>
-                                  <span className={`device-pill ${log.device?.toLowerCase()}`}>
-                                    {log.device === 'Mobile' ? <Smartphone size={13} /> : log.device === 'Tablet' ? <Tablet size={13} /> : <Monitor size={13} />}
-                                    <span>{log.device || 'Desktop'}</span>
-                                  </span>
-                                </td>
-                                <td>
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                    <span className="os-text">{log.os || 'Unknown OS'}</span>
-                                    <span className="browser-text" style={{ fontSize: '11px', opacity: 0.75 }}>{log.browser || 'Web Browser'}</span>
-                                  </div>
-                                </td>
-                                <td>
-                                  <span className="page-pill">{log.page || '/'}</span>
-                                </td>
-                                <td>
-                                  <span className={`time-text ${live ? 'time-live' : ''}`}>
-                                    {getTimeAgo(log.timestamp)}
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-
-          })()}
-
-          {/* TAB: RECYCLE BIN (30-DAY RETENTION) */}
-          {activeTab === 'recyclebin' && (
-            <div className="tab-content recycle-bin-tab">
-              <div className="recycle-bin-header">
-                <div className="bin-header-text">
-                  <div className="bin-title-row">
-                    <Trash2 size={24} className="amber-icon" />
-                    <h2>Portfolio Recycle Bin (રીસાઇકલ બિન)</h2>
-                  </div>
-                  <p>Deleted website projects and graphic designs are safely held here for 30 days before permanent deletion. You can restore them anytime back to your live portfolio.</p>
-                </div>
-                <div className="bin-actions">
-                  <button
-                    onClick={() => setEmptyBinModal(true)}
-                    disabled={recycleBin.length === 0}
-                    className="btn-empty-bin"
-                    title="Permanently remove all items from bin"
-                  >
-                    <Trash2 size={16} />
-                    <span>Empty Recycle Bin ({recycleBin.length})</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 30-Day Auto Retention Banner */}
-              <div className="bin-retention-banner">
-                <Clock size={20} className="amber-icon" />
-                <div className="retention-info">
-                  <strong>30-Day Auto Purge Policy:</strong>
-                  <span> Each deleted item displays a countdown badge. Once 30 days pass, expired items are automatically erased. You can restore any item with a single click.</span>
-                </div>
-              </div>
-
-              {/* Deleted Items List */}
-              {recycleBin.length === 0 ? (
-                <div className="empty-box">
-                  <Archive size={42} />
-                  <h3>Recycle Bin is Empty</h3>
-                  <p>When you delete a website project or graphic design from Admin, it safely moves here instead of being lost forever.</p>
-                </div>
-              ) : (
-                <div className="bin-items-grid">
-                  {recycleBin.map((item) => {
-                    const daysLeft = Math.max(0, Math.ceil(((item.expiresAt || (item.deletedAt + 30 * 24 * 60 * 60 * 1000)) - Date.now()) / (1000 * 60 * 60 * 24)));
-                    return (
-                      <div key={item.id} className="bin-card">
-                        <div className="bin-card-top">
-                          <span className={`bin-type-badge ${item.type}`}>
-                            {item.type === 'website' ? <Globe size={13} /> : item.type === 'video' ? <Film size={13} /> : item.type === 'credential' ? <Award size={13} /> : <Palette size={13} />}
-                            <span>{item.type === 'website' ? 'Web Project' : item.type === 'video' ? 'Video Project' : item.type === 'credential' ? 'Certificate' : 'Graphic Design'}</span>
-                          </span>
-                          <span className={`countdown-badge ${daysLeft <= 3 ? 'urgent' : ''}`} title="Remaining days before auto-purge">
-                            <Clock size={12} />
-                            <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Expiring today'}</span>
-                          </span>
-                        </div>
-
-                        <div className="bin-card-body">
-                          {item.image && (
-                            <div className="bin-thumbnail">
-                              <img
-                                src={item.image}
-                                alt={item.title}
-                                onError={(e) => { e.target.style.display = 'none'; }}
-                              />
-                            </div>
-                          )}
-                          <div className="bin-details">
-                            <h4 className="bin-item-title">{item.title}</h4>
-                            <p className="bin-item-subtitle">{item.subtitle || item.category || 'Portfolio Entry'}</p>
-                            <span className="bin-date-stamp">
-                              Deleted on: {new Date(item.deletedAt || Date.now()).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="bin-card-footer">
-                          <button
-                            onClick={() => handleRestoreFromBin(item)}
-                            className="btn-restore-item"
-                            title="Restore item back to live portfolio"
-                          >
-                            <RotateCcw size={15} />
-                            <span>Restore to Portfolio</span>
-                          </button>
-                          <button
-                            onClick={() => handlePermanentDeleteFromBin(item)}
-                            className="btn-perm-delete"
-                            title="Delete permanently right now"
-                          >
-                            <Trash2 size={15} />
-                            <span>Delete Permanently</span>
-                          </button>
-                        </div>
+                      <div className="form-group">
+                        <label>Confirm New Passcode *</label>
+                        <input
+                          type={showNewPass ? "text" : "password"}
+                          placeholder="Re-enter new admin passcode"
+                          required
+                          value={confirmPass}
+                          onChange={(e) => setConfirmPass(e.target.value)}
+                        />
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </main>
-      </div>
+                    </div>
 
-      {/* MODAL: Add / Edit Website */}
-      {showWebsiteModal && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal">
-            <div className="modal-header">
-              <h3>{editingWebsite ? 'Edit Website Project' : 'Add New Client Website'}</h3>
-              <button onClick={() => setShowWebsiteModal(false)} className="close-btn">
-                <X size={20} />
-              </button>
-            </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '16px', alignItems: 'center' }}>
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        disabled={isUpdatingPass}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        {isUpdatingPass ? <RefreshCw size={16} className="spin" /> : <Save size={16} />}
+                        <span>{isUpdatingPass ? 'Verifying & Updating...' : 'Verify Code & Set New Passcode'}</span>
+                      </button>
 
-            <form onSubmit={handleSaveWebsite} className="admin-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Website Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Harvey Prince"
-                    value={websiteForm.name}
-                    onChange={(e) => setWebsiteForm({ ...websiteForm, name: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Live URL *</label>
-                  <input
-                    type="url"
-                    required
-                    placeholder="e.g. https://www.harveyprince.com/"
-                    value={websiteForm.url}
-                    onChange={(e) => setWebsiteForm({ ...websiteForm, url: e.target.value })}
-                  />
-                </div>
+                      <button
+                        type="button"
+                        onClick={handleRequestPasscodeOtp}
+                        disabled={otpCountdown > 0 || isSendingOtp}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '13px' }}
+                      >
+                        {otpCountdown > 0 ? `Resend Code in ${otpCountdown}s` : 'Resend Code'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCancelPasscodeChange}
+                        className="btn btn-outline"
+                        style={{ fontSize: '13px', marginLeft: 'auto' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Domain</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. harveyprince.com"
-                    value={websiteForm.domain}
-                    onChange={(e) => setWebsiteForm({ ...websiteForm, domain: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Category *</label>
-                  <select
-                    value={websiteForm.category}
-                    onChange={(e) => setWebsiteForm({ ...websiteForm, category: e.target.value })}
-                  >
-                    {customWebCategories.map(c => (
-                      <option key={c.id} value={c.id}>{c.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Badge / Tag</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Luxury E-Com or Custom Build"
-                    value={websiteForm.badge}
-                    onChange={(e) => setWebsiteForm({ ...websiteForm, badge: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Technology Stack</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. React / Tailwind, Shopify, Next.js"
-                    value={websiteForm.tech}
-                    onChange={(e) => setWebsiteForm({ ...websiteForm, tech: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Description</label>
-                <textarea
-                  rows="3"
-                  placeholder="Short description of the client's business and tech delivered..."
-                  value={websiteForm.desc}
-                  onChange={(e) => setWebsiteForm({ ...websiteForm, desc: e.target.value })}
-                ></textarea>
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowWebsiteModal(false)} className="btn-cancel">
-                  Cancel
-                </button>
-                <button type="submit" className="btn-save">
-                  <span>{editingWebsite ? 'Update Project' : 'Add Project to Portfolio'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: Add / Edit Design */}
-      {showDesignModal && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal">
-            <div className="modal-header">
-              <h3>{editingDesign ? 'Edit Graphic Design' : 'Add New Graphic Design Work'}</h3>
-              <button onClick={() => setShowDesignModal(false)} className="close-btn">
-                <X size={20} />
-              </button>
             </div>
 
-            <form onSubmit={handleSaveDesign} className="admin-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Design Title *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Nova Brandmark"
-                    value={designForm.title}
-                    onChange={(e) => setDesignForm({ ...designForm, title: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Category *</label>
-                  <select
-                    value={designForm.category}
-                    onChange={(e) => setDesignForm({ ...designForm, category: e.target.value })}
-                  >
-                    {customDesignCategories.map(c => (
-                      <option key={c.id} value={c.id}>{c.label}</option>
-                    ))}
-                  </select>
+            {/* Secret Admin URL & Direct Access Shield Card */}
+            <div className="security-card glass-card">
+              <div className="sec-header">
+                <div className="sec-icon-title">
+                  <ShieldAlert size={24} className="cyan-icon" />
+                  <div>
+                    <h3>🔒 Secret Admin Access URL & Direct Link Shield</h3>
+                    <p>Protect your Admin URL. Unauthorized visitors typing <code>/admin</code> directly will be automatically redirected to the homepage.</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Tag / Specialty</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Branding, Vector Art, Video Editing"
-                    value={designForm.tag}
-                    onChange={(e) => setDesignForm({ ...designForm, tag: e.target.value })}
-                  />
+              <div className="sec-body">
+                <div className="active-protection-note" style={{ marginBottom: '18px' }}>
+                  <CheckCircle size={20} color="#10B981" />
+                  <div>
+                    <strong>Direct /admin Access Blocked for Public Visitors</strong>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                      Only visits using your secret URL (containing <code>?key=...</code>) or previously authenticated sessions can view the admin login screen.
+                    </p>
+                  </div>
                 </div>
+
+                <form onSubmit={handleSaveSecretKey} className="cms-form" style={{ marginBottom: '20px' }}>
+                  <div className="form-group">
+                    <label>Secret Admin Access Key</label>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <input
+                        type="text"
+                        value={inputSecretKey}
+                        onChange={(e) => setInputSecretKey(e.target.value)}
+                        placeholder="e.g. aryan2026"
+                        style={{ flex: 1 }}
+                      />
+                      <button type="submit" className="btn-secondary-action">
+                        <Save size={16} />
+                        <span>Save Key</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
                 <div className="form-group">
-                  <label>Thumbnail / Image URL *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. /assets/logos/my-logo.png"
-                    value={designForm.image}
-                    onChange={(e) => setDesignForm({ ...designForm, image: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Video size={15} style={{ color: '#06B6D4' }} />
-                  <span>Video URL / Embed (Optional - for Video Editing & Motion Projects)</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. https://www.youtube.com/watch?v=... or MP4/Vimeo link"
-                  value={designForm.videoUrl || ''}
-                  onChange={(e) => setDesignForm({ ...designForm, videoUrl: e.target.value })}
-                />
-              </div>
-
-              {designForm.image && (
-                <div className="image-preview-box">
-                  <span>Image Preview:</span>
-                  <div className="preview-frame">
-                    <img
-                      src={designForm.image}
-                      alt="Preview"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/assets/profile/aryan-designer.jpg';
+                  <label>Your Personal Secret Admin Link (Bookmark this URL):</label>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      readOnly
+                      value={`${window.location.origin}/admin?key=${adminSecretKey}`}
+                      style={{
+                        flex: 1,
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        color: 'var(--accent-cyan)',
+                        fontWeight: 600,
+                        fontFamily: 'monospace',
+                        fontSize: '13px'
                       }}
                     />
+                    <button
+                      type="button"
+                      onClick={handleCopySecretUrl}
+                      className="btn-primary-action"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                    >
+                      {copiedLink ? <Check size={16} /> : <Copy size={16} />}
+                      <span>{copiedLink ? 'Copied!' : 'Copy Secret Link'}</span>
+                    </button>
                   </div>
+                  <span style={{ display: 'block', marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                    💡 Tip: Add this link to your mobile or browser bookmarks. Whenever you open it, Admin access will unlock seamlessly.
+                  </span>
                 </div>
-              )}
-
-              <div className="form-group">
-                <label>Caption / Case Note</label>
-                <textarea
-                  rows="3"
-                  placeholder="Design brief, typography, concept details..."
-                  value={designForm.caption}
-                  onChange={(e) => setDesignForm({ ...designForm, caption: e.target.value })}
-                ></textarea>
               </div>
-
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowDesignModal(false)} className="btn-cancel">
-                  Cancel
-                </button>
-                <button type="submit" className="btn-save">
-                  <span>{editingDesign ? 'Update Design' : 'Add Design to Portfolio'}</span>
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
 
-      {/* MODAL: Add / Edit Certificate & Experience Letter */}
-      {showCredModal && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal" style={{ maxWidth: '640px' }}>
-            <div className="modal-header">
-              <h3>{editingCred ? 'Edit Certificate / Credential' : 'Add Certificate or Experience Letter'}</h3>
-              <button
-                type="button"
-                onClick={() => setShowCredModal(false)}
-                className="close-btn"
-              >
-                <X size={20} />
-              </button>
+      {/* TAB: LIVE VISITOR TRAFFIC & TELEMETRY */}
+      {activeTab === 'analytics' && (() => {
+        const totalVisits = visitorLogs.length;
+        const uniqueIps = new Set(visitorLogs.map(v => v.ip)).size;
+        const mobileCount = visitorLogs.filter(v => v.device === 'Mobile').length;
+        const tabletCount = visitorLogs.filter(v => v.device === 'Tablet').length;
+        const desktopCount = visitorLogs.filter(v => v.device === 'Desktop').length;
+        const mobilePct = totalVisits > 0 ? Math.round(((mobileCount + tabletCount) / totalVisits) * 100) : 0;
+        const desktopPct = totalVisits > 0 ? Math.round((desktopCount / totalVisits) * 100) : 0;
+
+        const countryCounts = {};
+        visitorLogs.forEach(v => {
+          if (v.country && v.country !== 'Protected' && v.country !== 'Global') {
+            countryCounts[v.country] = (countryCounts[v.country] || 0) + 1;
+          }
+        });
+        let topCountry = 'Global / Direct';
+        let maxCount = 0;
+        Object.entries(countryCounts).forEach(([country, count]) => {
+          if (count > maxCount) {
+            maxCount = count;
+            topCountry = country;
+          }
+        });
+
+        return (
+          <div className="tab-content analytics-tab">
+            <div className="analytics-header-banner">
+              <div className="analytics-header-text">
+                <div className="live-indicator-row">
+                  <span className="live-pulse-dot"></span>
+                  <h2>Live Visitor Traffic & Geolocation Telemetry</h2>
+                </div>
+                <p>Real-time telemetry of visitors viewing your public portfolio. Tracks IP address, City, Country, Device type (Desktop vs Mobile), OS & active pages visited.</p>
+              </div>
+              <div className="analytics-actions">
+                <button onClick={handleRefreshVisitorLogs} className="btn-secondary-action" title="Refresh Live Telemetry">
+                  <RefreshCw size={15} />
+                  <span>Refresh</span>
+                </button>
+                <button onClick={handleClearVisitorLogs} className="btn-clear-logs" title="Clear all visitor logs">
+                  <Trash2 size={15} />
+                  <span>Clear Logs</span>
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleSaveCred} className="admin-form">
-              {/* Dedicated File Upload Picker Dropzone */}
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                  <Upload size={15} style={{ color: '#06B6D4' }} />
-                  <span>Upload Certificate / Letter (PDF or Image)</span>
-                </label>
-                <div style={{
-                  border: '2px dashed rgba(6, 182, 212, 0.4)',
-                  borderRadius: '12px',
-                  padding: '16px 20px',
-                  textAlign: 'center',
-                  background: 'rgba(6, 182, 212, 0.04)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}>
-                  <input
-                    type="file"
-                    id="cred-file-input"
-                    accept=".pdf,image/*"
-                    style={{ display: 'none' }}
-                    onChange={handleCredFileSelect}
-                  />
-                  <label htmlFor="cred-file-input" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                    <Upload size={24} style={{ color: '#06B6D4' }} />
-                    <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      Click to Browse Document from Device
-                    </span>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      Supports official PDF certificates & JPG/PNG images up to 15MB
-                    </span>
-                  </label>
+            {/* 4 Summary Stat Cards */}
+            <div className="analytics-stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon-wrapper cyan">
+                  <Activity size={24} />
+                </div>
+                <div className="stat-info">
+                  <span className="stat-label">Total Visits Tracked</span>
+                  <span className="stat-number">{totalVisits}</span>
+                  <span className="stat-sub">Across all public portfolio pages</span>
                 </div>
               </div>
 
-              {/* Live Preview of Selected/Existing Certificate */}
-              {(credForm.fileUrl || credForm.previewImage) && (
-                <div className="image-preview-box" style={{ marginBottom: '16px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--accent-cyan)', marginBottom: '8px' }}>
-                    <Award size={15} /> Attached Document Preview:
+              <div className="stat-card">
+                <div className="stat-icon-wrapper purple">
+                  <Users size={24} />
+                </div>
+                <div className="stat-info">
+                  <span className="stat-label">Unique Visitors (IPs)</span>
+                  <span className="stat-number">{uniqueIps}</span>
+                  <span className="stat-sub">Individual client networks</span>
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-icon-wrapper cyan">
+                  <Monitor size={24} />
+                </div>
+                <div className="stat-info">
+                  <span className="stat-label">Device Breakdown</span>
+                  <span className="stat-number">{desktopPct}% Desktop</span>
+                  <span className="stat-sub">{mobilePct}% Mobile & Tablet ({mobileCount + tabletCount} mobile)</span>
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-icon-wrapper amber">
+                  <MapPin size={24} />
+                </div>
+                <div className="stat-info">
+                  <span className="stat-label">Top Location</span>
+                  <span className="stat-number">{topCountry}</span>
+                  <span className="stat-sub">Leading geographic origin</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Visitor Logs Table */}
+            <div className="analytics-table-container">
+              <div className="section-title-row">
+                <h3>
+                  Visitor Sessions
+                  <span style={{ fontWeight: 400, fontSize: '14px', color: 'var(--text-muted)', marginLeft: 8 }}>
+                    ({visitorLogs.filter(l => isLiveVisitor(l.timestamp)).length} live · {visitorLogs.filter(l => !isLiveVisitor(l.timestamp)).length} past)
                   </span>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid var(--border-subtle)'
-                  }}>
-                    {credForm.fileType === 'pdf' ? (
-                      <div style={{
-                        width: '44px',
-                        height: '44px',
-                        borderRadius: '8px',
-                        background: 'rgba(230, 57, 70, 0.15)',
-                        border: '1px solid rgba(230, 57, 70, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#E63946',
-                        flexShrink: 0
-                      }}>
-                        <FileCheck size={22} />
-                      </div>
-                    ) : (
-                      <img
-                        src={credForm.previewImage || credForm.fileUrl}
-                        alt="Preview"
-                        style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                      />
-                    )}
-                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {credForm.title || 'Attached Certificate'}
-                      </div>
-                      <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                        Format: {credForm.fileType.toUpperCase()} • {credForm.institution || 'Aryan Thakor'}
-                      </div>
-                    </div>
-                    {credForm.fileUrl && (
-                      <a
-                        href={credForm.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          borderRadius: '6px',
-                          background: 'rgba(6, 182, 212, 0.15)',
-                          color: '#06B6D4',
-                          border: '1px solid rgba(6, 182, 212, 0.3)',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          textDecoration: 'none'
-                        }}
-                      >
-                        <ExternalLink size={12} /> Test View
-                      </a>
-                    )}
-                  </div>
+                </h3>
+                <span className="telemetry-badge">📡 Real-Time Beacon Active</span>
+              </div>
+
+              {visitorLogs.length === 0 ? (
+                <div className="empty-box">
+                  <Activity size={36} />
+                  <p>No visitor traffic recorded yet.</p>
+                  <span className="empty-sub">Open your live portfolio in a private window or on your smartphone to see real-time IP, country, and device telemetry here!</span>
+                </div>
+              ) : (
+                <div className="visitor-table-wrap">
+                  <table className="visitor-table">
+                    <thead>
+                      <tr>
+                        <th>Status</th>
+                        <th>Visitor IP</th>
+                        <th>Location</th>
+                        <th>Device Brand</th>
+                        <th>Device Type</th>
+                        <th>OS / Browser</th>
+                        <th>Page Visited</th>
+                        <th>Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Sort: live visitors first, then by timestamp desc */}
+                      {[...visitorLogs].sort((a, b) => {
+                        const aLive = isLiveVisitor(a.timestamp) ? 1 : 0;
+                        const bLive = isLiveVisitor(b.timestamp) ? 1 : 0;
+                        if (aLive !== bLive) return bLive - aLive;
+                        return (b.timestamp || 0) - (a.timestamp || 0);
+                      }).map((log, idx) => {
+                        const live = isLiveVisitor(log.timestamp);
+                        return (
+                          <tr key={log.id || idx} className={live ? 'visitor-row-live' : ''}>
+                            <td>
+                              {live ? (
+                                <span className="live-status-badge">
+                                  <span className="live-dot-sm"></span>
+                                  LIVE
+                                </span>
+                              ) : (
+                                <span className="past-status-badge">PAST</span>
+                              )}
+                            </td>
+                            <td>
+                              <div className="visitor-ip-cell">
+                                <span className="ip-text">{log.ip}</span>
+                                {log.pageViews > 1 && (
+                                  <span className="page-views-badge">{log.pageViews} views</span>
+                                )}
+                              </div>
+                            </td>
+                            <td>
+                              <div className="location-cell">
+                                <span className="flag-emoji">{log.flag || '🌐'}</span>
+                                <div>
+                                  <strong>{log.city || 'Direct Visitor'}</strong>
+                                  <span className="country-sub">{log.region ? `${log.region}, ` : ''}{log.country || 'Global'}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <span className="brand-text">{getDeviceBrand(log)}</span>
+                            </td>
+                            <td>
+                              <span className={`device-pill ${log.device?.toLowerCase()}`}>
+                                {log.device === 'Mobile' ? <Smartphone size={13} /> : log.device === 'Tablet' ? <Tablet size={13} /> : <Monitor size={13} />}
+                                <span>{log.device || 'Desktop'}</span>
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <span className="os-text">{log.os || 'Unknown OS'}</span>
+                                <span className="browser-text" style={{ fontSize: '11px', opacity: 0.75 }}>{log.browser || 'Web Browser'}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className="page-pill">{log.page || '/'}</span>
+                            </td>
+                            <td>
+                              <span className={`time-text ${live ? 'time-live' : ''}`}>
+                                {getTimeAgo(log.timestamp)}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
+            </div>
+          </div>
+        );
 
+      })()}
+
+      {/* TAB: RECYCLE BIN (30-DAY RETENTION) */}
+      {activeTab === 'recyclebin' && (
+        <div className="tab-content recycle-bin-tab">
+          <div className="recycle-bin-header">
+            <div className="bin-header-text">
+              <div className="bin-title-row">
+                <Trash2 size={24} className="amber-icon" />
+                <h2>Portfolio Recycle Bin (રીસાઇકલ બિન)</h2>
+              </div>
+              <p>Deleted website projects and graphic designs are safely held here for 30 days before permanent deletion. You can restore them anytime back to your live portfolio.</p>
+            </div>
+            <div className="bin-actions">
+              <button
+                onClick={() => setEmptyBinModal(true)}
+                disabled={recycleBin.length === 0}
+                className="btn-empty-bin"
+                title="Permanently remove all items from bin"
+              >
+                <Trash2 size={16} />
+                <span>Empty Recycle Bin ({recycleBin.length})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 30-Day Auto Retention Banner */}
+          <div className="bin-retention-banner">
+            <Clock size={20} className="amber-icon" />
+            <div className="retention-info">
+              <strong>30-Day Auto Purge Policy:</strong>
+              <span> Each deleted item displays a countdown badge. Once 30 days pass, expired items are automatically erased. You can restore any item with a single click.</span>
+            </div>
+          </div>
+
+          {/* Deleted Items List */}
+          {recycleBin.length === 0 ? (
+            <div className="empty-box">
+              <Archive size={42} />
+              <h3>Recycle Bin is Empty</h3>
+              <p>When you delete a website project or graphic design from Admin, it safely moves here instead of being lost forever.</p>
+            </div>
+          ) : (
+            <div className="bin-items-grid">
+              {recycleBin.map((item) => {
+                const daysLeft = Math.max(0, Math.ceil(((item.expiresAt || (item.deletedAt + 30 * 24 * 60 * 60 * 1000)) - Date.now()) / (1000 * 60 * 60 * 24)));
+                return (
+                  <div key={item.id} className="bin-card">
+                    <div className="bin-card-top">
+                      <span className={`bin-type-badge ${item.type}`}>
+                        {item.type === 'website' ? <Globe size={13} /> : item.type === 'video' ? <Film size={13} /> : item.type === 'credential' ? <Award size={13} /> : <Palette size={13} />}
+                        <span>{item.type === 'website' ? 'Web Project' : item.type === 'video' ? 'Video Project' : item.type === 'credential' ? 'Certificate' : 'Graphic Design'}</span>
+                      </span>
+                      <span className={`countdown-badge ${daysLeft <= 3 ? 'urgent' : ''}`} title="Remaining days before auto-purge">
+                        <Clock size={12} />
+                        <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Expiring today'}</span>
+                      </span>
+                    </div>
+
+                    <div className="bin-card-body">
+                      {item.image && (
+                        <div className="bin-thumbnail">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+                      <div className="bin-details">
+                        <h4 className="bin-item-title">{item.title}</h4>
+                        <p className="bin-item-subtitle">{item.subtitle || item.category || 'Portfolio Entry'}</p>
+                        <span className="bin-date-stamp">
+                          Deleted on: {new Date(item.deletedAt || Date.now()).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bin-card-footer">
+                      <button
+                        onClick={() => handleRestoreFromBin(item)}
+                        className="btn-restore-item"
+                        title="Restore item back to live portfolio"
+                      >
+                        <RotateCcw size={15} />
+                        <span>Restore to Portfolio</span>
+                      </button>
+                      <button
+                        onClick={() => handlePermanentDeleteFromBin(item)}
+                        className="btn-perm-delete"
+                        title="Delete permanently right now"
+                      >
+                        <Trash2 size={15} />
+                        <span>Delete Permanently</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </main>
+      </div >
+
+    {/* MODAL: Add / Edit Website */ }
+  {
+    showWebsiteModal && (
+      <div className="admin-modal-overlay">
+        <div className="admin-modal">
+          <div className="modal-header">
+            <h3>{editingWebsite ? 'Edit Website Project' : 'Add New Client Website'}</h3>
+            <button onClick={() => setShowWebsiteModal(false)} className="close-btn">
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSaveWebsite} className="admin-form">
+            <div className="form-row">
               <div className="form-group">
-                <label>Credential Title *</label>
+                <label>Website Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Certificate of Merit in Graphic Designing"
-                  value={credForm.title}
-                  onChange={(e) => setCredForm({ ...credForm, title: e.target.value })}
+                  placeholder="e.g. Harvey Prince"
+                  value={websiteForm.name}
+                  onChange={(e) => setWebsiteForm({ ...websiteForm, name: e.target.value })}
                 />
               </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Issuing Institution / Company *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. ARENA ANIMATION, ROWWAT / DIGIVA"
-                    value={credForm.institution}
-                    onChange={(e) => setCredForm({ ...credForm, institution: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Credential Type</label>
-                  <select
-                    value={credForm.type}
-                    onChange={(e) => {
-                      const newType = e.target.value;
-                      const defaultBadge = newType === 'certificate' ? 'Certified' : newType === 'letter' ? 'Verified Letter' : 'Degree';
-                      setCredForm({ ...credForm, type: newType, badge: defaultBadge });
-                    }}
-                  >
-                    <option value="certificate">Professional Certificate</option>
-                    <option value="letter">Experience / Internship Letter</option>
-                    <option value="degree">Academic Degree / Diploma</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Badge Label</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Certified, Verified Letter"
-                    value={credForm.badge}
-                    onChange={(e) => setCredForm({ ...credForm, badge: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Issue Date / Duration</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 31-Dec-2025 or 2024 - 2025"
-                    value={credForm.date}
-                    onChange={(e) => setCredForm({ ...credForm, date: e.target.value })}
-                  />
-                </div>
-              </div>
-
               <div className="form-group">
-                <label>Department / Subtitle</label>
+                <label>Live URL *</label>
                 <input
-                  type="text"
-                  placeholder="e.g. Dept. of Media & Entertainment • Arena Animation Satellite"
-                  value={credForm.subtitle}
-                  onChange={(e) => setCredForm({ ...credForm, subtitle: e.target.value })}
+                  type="url"
+                  required
+                  placeholder="e.g. https://www.harveyprince.com/"
+                  value={websiteForm.url}
+                  onChange={(e) => setWebsiteForm({ ...websiteForm, url: e.target.value })}
                 />
               </div>
-
-              <div className="form-group">
-                <label>Description / Verification Notes</label>
-                <textarea
-                  rows="3"
-                  placeholder="Course hours, skills covered, grade, or role responsibilities..."
-                  value={credForm.desc}
-                  onChange={(e) => setCredForm({ ...credForm, desc: e.target.value })}
-                ></textarea>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Document URL / Direct Link</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. /assets/documents/Arena_Animation_Certificate.pdf"
-                    value={credForm.fileUrl}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const isPdf = val.toLowerCase().endsWith('.pdf');
-                      setCredForm({
-                        ...credForm,
-                        fileUrl: val,
-                        fileType: isPdf ? 'pdf' : (credForm.fileType || 'image'),
-                        previewImage: !isPdf && !credForm.previewImage ? val : credForm.previewImage
-                      });
-                    }}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>File Format</label>
-                  <select
-                    value={credForm.fileType}
-                    onChange={(e) => setCredForm({ ...credForm, fileType: e.target.value })}
-                  >
-                    <option value="pdf">PDF Document (Opens in new tab)</option>
-                    <option value="image">Image Letter (Opens lightbox viewer)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowCredModal(false)} className="btn-cancel">
-                  Cancel
-                </button>
-                <button type="submit" className="btn-save">
-                  <span>{editingCred ? 'Update Certificate' : 'Add to Portfolio'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: Create New Custom Category */}
-      {showCategoryModal && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal" style={{ maxWidth: '480px' }}>
-            <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FolderPlus size={20} style={{ color: '#06B6D4' }} />
-                <h3 style={{ margin: 0 }}>Create New Category</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCategoryModal(false)}
-                className="close-btn"
-              >
-                <X size={20} />
-              </button>
             </div>
 
-            <form onSubmit={handleSaveCategory} className="admin-form">
+            <div className="form-row">
               <div className="form-group">
-                <label>Category Target</label>
+                <label>Domain</label>
+                <input
+                  type="text"
+                  placeholder="e.g. harveyprince.com"
+                  value={websiteForm.domain}
+                  onChange={(e) => setWebsiteForm({ ...websiteForm, domain: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Category *</label>
                 <select
-                  value={categoryForm.type}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, type: e.target.value })}
+                  value={websiteForm.category}
+                  onChange={(e) => setWebsiteForm({ ...websiteForm, category: e.target.value })}
                 >
-                  <option value="web">Web Projects Category</option>
-                  <option value="design">Graphic Design / Video Editing Category</option>
+                  {customWebCategories.map(c => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Badge / Tag</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Luxury E-Com or Custom Build"
+                  value={websiteForm.badge}
+                  onChange={(e) => setWebsiteForm({ ...websiteForm, badge: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Technology Stack</label>
+                <input
+                  type="text"
+                  placeholder="e.g. React / Tailwind, Shopify, Next.js"
+                  value={websiteForm.tech}
+                  onChange={(e) => setWebsiteForm({ ...websiteForm, tech: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                rows="3"
+                placeholder="Short description of the client's business and tech delivered..."
+                value={websiteForm.desc}
+                onChange={(e) => setWebsiteForm({ ...websiteForm, desc: e.target.value })}
+              ></textarea>
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" onClick={() => setShowWebsiteModal(false)} className="btn-cancel">
+                Cancel
+              </button>
+              <button type="submit" className="btn-save">
+                <span>{editingWebsite ? 'Update Project' : 'Add Project to Portfolio'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  {/* MODAL: Add / Edit Design */ }
+  {
+    showDesignModal && (
+      <div className="admin-modal-overlay">
+        <div className="admin-modal">
+          <div className="modal-header">
+            <h3>{editingDesign ? 'Edit Graphic Design' : 'Add New Graphic Design Work'}</h3>
+            <button onClick={() => setShowDesignModal(false)} className="close-btn">
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSaveDesign} className="admin-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label>Design Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Nova Brandmark"
+                  value={designForm.title}
+                  onChange={(e) => setDesignForm({ ...designForm, title: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Category *</label>
+                <select
+                  value={designForm.category}
+                  onChange={(e) => setDesignForm({ ...designForm, category: e.target.value })}
+                >
+                  {customDesignCategories.map(c => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Tag / Specialty</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Branding, Vector Art, Video Editing"
+                  value={designForm.tag}
+                  onChange={(e) => setDesignForm({ ...designForm, tag: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Thumbnail / Image URL *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. /assets/logos/my-logo.png"
+                  value={designForm.image}
+                  onChange={(e) => setDesignForm({ ...designForm, image: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Video size={15} style={{ color: '#06B6D4' }} />
+                <span>Video URL / Embed (Optional - for Video Editing & Motion Projects)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. https://www.youtube.com/watch?v=... or MP4/Vimeo link"
+                value={designForm.videoUrl || ''}
+                onChange={(e) => setDesignForm({ ...designForm, videoUrl: e.target.value })}
+              />
+            </div>
+
+            {designForm.image && (
+              <div className="image-preview-box">
+                <span>Image Preview:</span>
+                <div className="preview-frame">
+                  <img
+                    src={designForm.image}
+                    alt="Preview"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/assets/profile/aryan-designer.jpg';
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Caption / Case Note</label>
+              <textarea
+                rows="3"
+                placeholder="Design brief, typography, concept details..."
+                value={designForm.caption}
+                onChange={(e) => setDesignForm({ ...designForm, caption: e.target.value })}
+              ></textarea>
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" onClick={() => setShowDesignModal(false)} className="btn-cancel">
+                Cancel
+              </button>
+              <button type="submit" className="btn-save">
+                <span>{editingDesign ? 'Update Design' : 'Add Design to Portfolio'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  {/* MODAL: Add / Edit Certificate & Experience Letter */ }
+  {
+    showCredModal && (
+      <div className="admin-modal-overlay">
+        <div className="admin-modal" style={{ maxWidth: '640px' }}>
+          <div className="modal-header">
+            <h3>{editingCred ? 'Edit Certificate / Credential' : 'Add Certificate or Experience Letter'}</h3>
+            <button
+              type="button"
+              onClick={() => setShowCredModal(false)}
+              className="close-btn"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSaveCred} className="admin-form">
+            {/* Dedicated File Upload Picker Dropzone */}
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                <Upload size={15} style={{ color: '#06B6D4' }} />
+                <span>Upload Certificate / Letter (PDF or Image)</span>
+              </label>
+              <div style={{
+                border: '2px dashed rgba(6, 182, 212, 0.4)',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                textAlign: 'center',
+                background: 'rgba(6, 182, 212, 0.04)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}>
+                <input
+                  type="file"
+                  id="cred-file-input"
+                  accept=".pdf,image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleCredFileSelect}
+                />
+                <label htmlFor="cred-file-input" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                  <Upload size={24} style={{ color: '#06B6D4' }} />
+                  <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Click to Browse Document from Device
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    Supports official PDF certificates & JPG/PNG images up to 15MB
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Live Preview of Selected/Existing Certificate */}
+            {(credForm.fileUrl || credForm.previewImage) && (
+              <div className="image-preview-box" style={{ marginBottom: '16px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--accent-cyan)', marginBottom: '8px' }}>
+                  <Award size={15} /> Attached Document Preview:
+                </span>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid var(--border-subtle)'
+                }}>
+                  {credForm.fileType === 'pdf' ? (
+                    <div style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '8px',
+                      background: 'rgba(230, 57, 70, 0.15)',
+                      border: '1px solid rgba(230, 57, 70, 0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#E63946',
+                      flexShrink: 0
+                    }}>
+                      <FileCheck size={22} />
+                    </div>
+                  ) : (
+                    <img
+                      src={credForm.previewImage || credForm.fileUrl}
+                      alt="Preview"
+                      style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  )}
+                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {credForm.title || 'Attached Certificate'}
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                      Format: {credForm.fileType.toUpperCase()} • {credForm.institution || 'Aryan Thakor'}
+                    </div>
+                  </div>
+                  {credForm.fileUrl && (
+                    <a
+                      href={credForm.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        borderRadius: '6px',
+                        background: 'rgba(6, 182, 212, 0.15)',
+                        color: '#06B6D4',
+                        border: '1px solid rgba(6, 182, 212, 0.3)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        textDecoration: 'none'
+                      }}
+                    >
+                      <ExternalLink size={12} /> Test View
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Credential Title *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Certificate of Merit in Graphic Designing"
+                value={credForm.title}
+                onChange={(e) => setCredForm({ ...credForm, title: e.target.value })}
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Issuing Institution / Company *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. ARENA ANIMATION, ROWWAT / DIGIVA"
+                  value={credForm.institution}
+                  onChange={(e) => setCredForm({ ...credForm, institution: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Credential Type</label>
+                <select
+                  value={credForm.type}
+                  onChange={(e) => {
+                    const newType = e.target.value;
+                    const defaultBadge = newType === 'certificate' ? 'Certified' : newType === 'letter' ? 'Verified Letter' : 'Degree';
+                    setCredForm({ ...credForm, type: newType, badge: defaultBadge });
+                  }}
+                >
+                  <option value="certificate">Professional Certificate</option>
+                  <option value="letter">Experience / Internship Letter</option>
+                  <option value="degree">Academic Degree / Diploma</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Badge Label</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Certified, Verified Letter"
+                  value={credForm.badge}
+                  onChange={(e) => setCredForm({ ...credForm, badge: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Issue Date / Duration</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 31-Dec-2025 or 2024 - 2025"
+                  value={credForm.date}
+                  onChange={(e) => setCredForm({ ...credForm, date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Department / Subtitle</label>
+              <input
+                type="text"
+                placeholder="e.g. Dept. of Media & Entertainment • Arena Animation Satellite"
+                value={credForm.subtitle}
+                onChange={(e) => setCredForm({ ...credForm, subtitle: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Description / Verification Notes</label>
+              <textarea
+                rows="3"
+                placeholder="Course hours, skills covered, grade, or role responsibilities..."
+                value={credForm.desc}
+                onChange={(e) => setCredForm({ ...credForm, desc: e.target.value })}
+              ></textarea>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Document URL / Direct Link</label>
+                <input
+                  type="text"
+                  placeholder="e.g. /assets/documents/Arena_Animation_Certificate.pdf"
+                  value={credForm.fileUrl}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const isPdf = val.toLowerCase().endsWith('.pdf');
+                    setCredForm({
+                      ...credForm,
+                      fileUrl: val,
+                      fileType: isPdf ? 'pdf' : (credForm.fileType || 'image'),
+                      previewImage: !isPdf && !credForm.previewImage ? val : credForm.previewImage
+                    });
+                  }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>File Format</label>
+                <select
+                  value={credForm.fileType}
+                  onChange={(e) => setCredForm({ ...credForm, fileType: e.target.value })}
+                >
+                  <option value="pdf">PDF Document (Opens in new tab)</option>
+                  <option value="image">Image Letter (Opens lightbox viewer)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" onClick={() => setShowCredModal(false)} className="btn-cancel">
+                Cancel
+              </button>
+              <button type="submit" className="btn-save">
+                <span>{editingCred ? 'Update Certificate' : 'Add to Portfolio'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  {/* MODAL: Create New Custom Category */ }
+  {
+    showCategoryModal && (
+      <div className="admin-modal-overlay">
+        <div className="admin-modal" style={{ maxWidth: '480px' }}>
+          <div className="modal-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FolderPlus size={20} style={{ color: '#06B6D4' }} />
+              <h3 style={{ margin: 0 }}>Create New Category</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCategoryModal(false)}
+              className="close-btn"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSaveCategory} className="admin-form">
+            <div className="form-group">
+              <label>Category Target</label>
+              <select
+                value={categoryForm.type}
+                onChange={(e) => setCategoryForm({ ...categoryForm, type: e.target.value })}
+              >
+                <option value="web">Web Projects Category</option>
+                <option value="design">Graphic Design / Video Editing Category</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Category Name *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Video Editing, Motion Graphics, AI Tools"
+                value={categoryForm.name}
+                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Category Slug / ID (Optional - auto generated)</label>
+              <input
+                type="text"
+                placeholder="e.g. video-editing"
+                value={categoryForm.id}
+                onChange={(e) => setCategoryForm({ ...categoryForm, id: e.target.value })}
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" onClick={() => setShowCategoryModal(false)} className="btn-cancel">
+                Cancel
+              </button>
+              <button type="submit" className="btn-save">
+                <span>Create Category</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  {/* MODAL: Add / Edit Video Project */ }
+  {
+    showVideoModal && (
+      <div className="admin-modal-overlay">
+        <div className="admin-modal">
+          <div className="modal-header">
+            <h3>{editingVideo ? 'Edit Video Project' : 'Add New Video Project'}</h3>
+            <button onClick={() => setShowVideoModal(false)} className="close-btn">
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSaveVideo} className="admin-form">
+            <div className="form-group">
+              <label>Video Project Title *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Royal Heritage — Luxury Hotel Commercial"
+                value={videoForm.title}
+                onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Category *</label>
+                <select
+                  value={videoForm.category}
+                  onChange={(e) => setVideoForm({ ...videoForm, category: e.target.value })}
+                >
+                  <option value="commercials">Brand Commercials</option>
+                  <option value="reels">Viral Reels & Shorts</option>
+                  <option value="youtube">YouTube Long-Form</option>
+                  <option value="motion">Motion Graphics & 3D</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label>Category Name *</label>
+                <label>Client / Brand Name</label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. Video Editing, Motion Graphics, AI Tools"
-                  value={categoryForm.name}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                  placeholder="e.g. Heritage Resorts, Glow & Co, Fitness Studio"
+                  value={videoForm.client}
+                  onChange={(e) => setVideoForm({ ...videoForm, client: e.target.value })}
                 />
               </div>
-
-              <div className="form-group">
-                <label>Category Slug / ID (Optional - auto generated)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. video-editing"
-                  value={categoryForm.id}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, id: e.target.value })}
-                />
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowCategoryModal(false)} className="btn-cancel">
-                  Cancel
-                </button>
-                <button type="submit" className="btn-save">
-                  <span>Create Category</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: Add / Edit Video Project */}
-      {showVideoModal && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal">
-            <div className="modal-header">
-              <h3>{editingVideo ? 'Edit Video Project' : 'Add New Video Project'}</h3>
-              <button onClick={() => setShowVideoModal(false)} className="close-btn">
-                <X size={20} />
-              </button>
             </div>
 
-            <form onSubmit={handleSaveVideo} className="admin-form">
+            <div className="form-row">
               <div className="form-group">
-                <label>Video Project Title *</label>
+                <label>Duration</label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. Royal Heritage — Luxury Hotel Commercial"
-                  value={videoForm.title}
-                  onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
+                  placeholder="e.g. 0:45, 0:30, 8:15"
+                  value={videoForm.duration}
+                  onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })}
                 />
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Category *</label>
-                  <select
-                    value={videoForm.category}
-                    onChange={(e) => setVideoForm({ ...videoForm, category: e.target.value })}
-                  >
-                    <option value="commercials">Brand Commercials</option>
-                    <option value="reels">Viral Reels & Shorts</option>
-                    <option value="youtube">YouTube Long-Form</option>
-                    <option value="motion">Motion Graphics & 3D</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Client / Brand Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Heritage Resorts, Glow & Co, Fitness Studio"
-                    value={videoForm.client}
-                    onChange={(e) => setVideoForm({ ...videoForm, client: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Duration</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 0:45, 0:30, 8:15"
-                    value={videoForm.duration}
-                    onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Views / Performance Metric</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 1.2M+ Views, 450K+ Views"
-                    value={videoForm.views}
-                    onChange={(e) => setVideoForm({ ...videoForm, views: e.target.value })}
-                  />
-                </div>
-              </div>
-
               <div className="form-group">
-                <label>Editing & Motion Tools</label>
+                <label>Views / Performance Metric</label>
                 <input
                   type="text"
-                  placeholder="e.g. Premiere Pro, After Effects, DaVinci Resolve"
-                  value={videoForm.tools}
-                  onChange={(e) => setVideoForm({ ...videoForm, tools: e.target.value })}
+                  placeholder="e.g. 1.2M+ Views, 450K+ Views"
+                  value={videoForm.views}
+                  onChange={(e) => setVideoForm({ ...videoForm, views: e.target.value })}
                 />
               </div>
-
-              <div className="form-group">
-                <label>Video URL (YouTube Watch URL, Shorts link, or MP4 URL)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtube.com/shorts/..."
-                  value={videoForm.videoUrl}
-                  onChange={(e) => setVideoForm({ ...videoForm, videoUrl: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Thumbnail Image URL or Upload</label>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
-                  <input
-                    type="text"
-                    placeholder="e.g. https://images.unsplash.com/... or upload below"
-                    value={videoForm.thumbnail}
-                    onChange={(e) => setVideoForm({ ...videoForm, thumbnail: e.target.value })}
-                    style={{ flex: 1 }}
-                  />
-                  <label className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}>
-                    <Upload size={15} />
-                    <span>Upload Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleVideoThumbnailSelect}
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-                </div>
-
-                {videoForm.thumbnail && (
-                  <div style={{ marginTop: '8px', maxWidth: '240px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
-                    <img
-                      src={videoForm.thumbnail}
-                      alt="Thumbnail Preview"
-                      style={{ width: '100%', height: '135px', objectFit: 'cover', display: 'block' }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label>Project Description / Summary</label>
-                <textarea
-                  rows="3"
-                  placeholder="Brief description of the editing, sound design, color grading, pacing, and results..."
-                  value={videoForm.desc}
-                  onChange={(e) => setVideoForm({ ...videoForm, desc: e.target.value })}
-                />
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowVideoModal(false)} className="btn-cancel">
-                  Cancel
-                </button>
-                <button type="submit" className="btn-save">
-                  <span>{editingVideo ? 'Update Video' : 'Add Video Project'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: Custom In-App Delete Confirmation */}
-      {deleteConfirm.isOpen && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal delete-confirm-modal">
-            <div className="delete-modal-icon-wrap">
-              <AlertCircle size={34} />
             </div>
 
-            <h3 className="delete-modal-title">
-              {deleteConfirm.type === 'message' ? 'Delete Client Inquiry?' : 'Move to Recycle Bin?'}
-            </h3>
+            <div className="form-group">
+              <label>Editing & Motion Tools</label>
+              <input
+                type="text"
+                placeholder="e.g. Premiere Pro, After Effects, DaVinci Resolve"
+                value={videoForm.tools}
+                onChange={(e) => setVideoForm({ ...videoForm, tools: e.target.value })}
+              />
+            </div>
 
-            <p className="delete-modal-desc">
-              {deleteConfirm.type === 'message' ? (
-                <>Are you sure you want to delete the message from <strong>"{deleteConfirm.title}"</strong>? This inquiry will be permanently removed from your inbox.</>
-              ) : (
-                <>Are you sure you want to delete <strong>"{deleteConfirm.title}"</strong>? It will be safely moved to your <strong>Recycle Bin</strong> for 30 days, where you can restore it anytime.</>
+            <div className="form-group">
+              <label>Video URL (YouTube Watch URL, Shorts link, or MP4 URL)</label>
+              <input
+                type="text"
+                placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtube.com/shorts/..."
+                value={videoForm.videoUrl}
+                onChange={(e) => setVideoForm({ ...videoForm, videoUrl: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Thumbnail Image URL or Upload</label>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
+                <input
+                  type="text"
+                  placeholder="e.g. https://images.unsplash.com/... or upload below"
+                  value={videoForm.thumbnail}
+                  onChange={(e) => setVideoForm({ ...videoForm, thumbnail: e.target.value })}
+                  style={{ flex: 1 }}
+                />
+                <label className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}>
+                  <Upload size={15} />
+                  <span>Upload Image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleVideoThumbnailSelect}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              </div>
+
+              {videoForm.thumbnail && (
+                <div style={{ marginTop: '8px', maxWidth: '240px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+                  <img
+                    src={videoForm.thumbnail}
+                    alt="Thumbnail Preview"
+                    style={{ width: '100%', height: '135px', objectFit: 'cover', display: 'block' }}
+                  />
+                </div>
               )}
-            </p>
+            </div>
 
-            <div className="delete-modal-actions">
-              <button
-                type="button"
-                onClick={() => setDeleteConfirm({ isOpen: false, type: '', id: null, index: null, title: '' })}
-                className="btn-cancel"
-              >
+            <div className="form-group">
+              <label>Project Description / Summary</label>
+              <textarea
+                rows="3"
+                placeholder="Brief description of the editing, sound design, color grading, pacing, and results..."
+                value={videoForm.desc}
+                onChange={(e) => setVideoForm({ ...videoForm, desc: e.target.value })}
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" onClick={() => setShowVideoModal(false)} className="btn-cancel">
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={executeDeleteConfirmed}
-                className="btn-delete-confirm"
-              >
-                <Trash2 size={16} />
-                <span>{deleteConfirm.type === 'message' ? 'Delete Inquiry' : 'Move to Recycle Bin'}</span>
+              <button type="submit" className="btn-save">
+                <span>{editingVideo ? 'Update Video' : 'Add Video Project'}</span>
               </button>
             </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  {/* MODAL: Custom In-App Delete Confirmation */ }
+  {
+    deleteConfirm.isOpen && (
+      <div className="admin-modal-overlay">
+        <div className="admin-modal delete-confirm-modal">
+          <div className="delete-modal-icon-wrap">
+            <AlertCircle size={34} />
+          </div>
+
+          <h3 className="delete-modal-title">
+            {deleteConfirm.type === 'message' ? 'Delete Client Inquiry?' : 'Move to Recycle Bin?'}
+          </h3>
+
+          <p className="delete-modal-desc">
+            {deleteConfirm.type === 'message' ? (
+              <>Are you sure you want to delete the message from <strong>"{deleteConfirm.title}"</strong>? This inquiry will be permanently removed from your inbox.</>
+            ) : (
+              <>Are you sure you want to delete <strong>"{deleteConfirm.title}"</strong>? It will be safely moved to your <strong>Recycle Bin</strong> for 30 days, where you can restore it anytime.</>
+            )}
+          </p>
+
+          <div className="delete-modal-actions">
+            <button
+              type="button"
+              onClick={() => setDeleteConfirm({ isOpen: false, type: '', id: null, index: null, title: '' })}
+              className="btn-cancel"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={executeDeleteConfirmed}
+              className="btn-delete-confirm"
+            >
+              <Trash2 size={16} />
+              <span>{deleteConfirm.type === 'message' ? 'Delete Inquiry' : 'Move to Recycle Bin'}</span>
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )
+  }
 
-      {/* MODAL: Empty Recycle Bin Confirmation */}
-      {emptyBinModal && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal delete-confirm-modal">
-            <div className="delete-modal-icon-wrap" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
-              <Trash2 size={34} />
-            </div>
+  {/* MODAL: Empty Recycle Bin Confirmation */ }
+  {
+    emptyBinModal && (
+      <div className="admin-modal-overlay">
+        <div className="admin-modal delete-confirm-modal">
+          <div className="delete-modal-icon-wrap" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+            <Trash2 size={34} />
+          </div>
 
-            <h3 className="delete-modal-title">
-              Empty Recycle Bin? (રીસાઇકલ બિન ખાલી કરો)
-            </h3>
+          <h3 className="delete-modal-title">
+            Empty Recycle Bin? (રીસાઇકલ બિન ખાલી કરો)
+          </h3>
 
-            <p className="delete-modal-desc">
-              Are you sure you want to permanently delete all <strong>{recycleBin.length} item(s)</strong> from your Recycle Bin? This action is irreversible and all selected items will be completely erased.
-            </p>
+          <p className="delete-modal-desc">
+            Are you sure you want to permanently delete all <strong>{recycleBin.length} item(s)</strong> from your Recycle Bin? This action is irreversible and all selected items will be completely erased.
+          </p>
 
-            <div className="delete-modal-actions">
-              <button
-                type="button"
-                onClick={() => setEmptyBinModal(false)}
-                className="btn-cancel"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleEmptyRecycleBin}
-                className="btn-delete-confirm"
-              >
-                <Trash2 size={16} />
-                <span>Yes, Empty Everything</span>
-              </button>
-            </div>
+          <div className="delete-modal-actions">
+            <button
+              type="button"
+              onClick={() => setEmptyBinModal(false)}
+              className="btn-cancel"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleEmptyRecycleBin}
+              className="btn-delete-confirm"
+            >
+              <Trash2 size={16} />
+              <span>Yes, Empty Everything</span>
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )
+  }
 
-      {/* Clear Visitor Logs Confirmation Modal */}
-      {clearLogsModal && (
-        <div className="admin-modal-overlay" onClick={() => setClearLogsModal(false)}>
-          <div className="admin-modal delete-confirm-modal" onClick={e => e.stopPropagation()}>
-            <div className="delete-modal-icon-wrap" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>
-              <Activity size={34} />
-            </div>
+  {/* Clear Visitor Logs Confirmation Modal */ }
+  {
+    clearLogsModal && (
+      <div className="admin-modal-overlay" onClick={() => setClearLogsModal(false)}>
+        <div className="admin-modal delete-confirm-modal" onClick={e => e.stopPropagation()}>
+          <div className="delete-modal-icon-wrap" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>
+            <Activity size={34} />
+          </div>
 
-            <h3 className="delete-modal-title">Clear All Visitor Logs?</h3>
+          <h3 className="delete-modal-title">Clear All Visitor Logs?</h3>
 
-            <p className="delete-modal-desc">
-              This will permanently remove all <strong>{visitorLogs.length} visitor record(s)</strong> from your analytics. You won't be able to recover this data. New visitors will still be tracked after clearing.
-            </p>
+          <p className="delete-modal-desc">
+            This will permanently remove all <strong>{visitorLogs.length} visitor record(s)</strong> from your analytics. You won't be able to recover this data. New visitors will still be tracked after clearing.
+          </p>
 
-            <div className="delete-modal-actions">
-              <button
-                type="button"
-                onClick={() => setClearLogsModal(false)}
-                className="btn-cancel"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmClearVisitorLogs}
-                className="btn-delete-confirm"
-              >
-                <Trash2 size={16} />
-                <span>Yes, Clear All Logs</span>
-              </button>
-            </div>
+          <div className="delete-modal-actions">
+            <button
+              type="button"
+              onClick={() => setClearLogsModal(false)}
+              className="btn-cancel"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmClearVisitorLogs}
+              className="btn-delete-confirm"
+            >
+              <Trash2 size={16} />
+              <span>Yes, Clear All Logs</span>
+            </button>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    )
+  }
+    </div >
   );
 }
