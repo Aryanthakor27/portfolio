@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LightboxModal from './components/LightboxModal';
@@ -17,6 +17,23 @@ import Credentials from './pages/Credentials';
 import VideoEditing from './pages/VideoEditing';
 import Contact from './pages/Contact';
 import AdminDashboard from './pages/AdminDashboard';
+
+// Route Guard: Blocks direct access to /admin without secret key
+function AdminRouteGuard({ children }) {
+  const location = useLocation();
+  const storedSecret = (localStorage.getItem('aryan_admin_secret_key') || 'aryan2026').trim();
+  const params = new URLSearchParams(location.search);
+  const providedKey = (params.get('key') || '').trim();
+  const isAlreadyAuthed = sessionStorage.getItem('aryan_admin_auth') === 'true';
+
+  // Allow access ONLY if secret key is present in the URL or user is already logged in
+  if ((providedKey && providedKey === storedSecret) || isAlreadyAuthed) {
+    return children;
+  }
+
+  // Any direct visit to /admin without the secret key is instantly redirected to homepage
+  return <Navigate to="/" replace />;
+}
 
 export default function App() {
   const [previewItem, setPreviewItem] = useState(null);
@@ -59,7 +76,14 @@ export default function App() {
           <Route path="/video-editing" element={<VideoEditing />} />
           <Route path="/credentials" element={<Credentials onPreviewLetter={setPreviewItem} />} />
           <Route path="/contact" element={<Contact onShowToast={showToast} />} />
-          <Route path="/admin" element={<AdminDashboard onShowToast={showToast} />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminRouteGuard>
+                <AdminDashboard onShowToast={showToast} />
+              </AdminRouteGuard>
+            }
+          />
         </Routes>
       </main>
 

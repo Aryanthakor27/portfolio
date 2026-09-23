@@ -141,13 +141,9 @@ export default function AdminDashboard({ onShowToast }) {
     const storedSecret = (localStorage.getItem('aryan_admin_secret_key') || 'aryan2026').trim();
     const params = new URLSearchParams(window.location.search);
     const providedKey = (params.get('key') || '').trim();
-    const hasSessionAccess = sessionStorage.getItem('aryan_admin_access_granted') === 'true';
     const isAlreadyAuthed = sessionStorage.getItem('aryan_admin_auth') === 'true';
 
-    if (providedKey && providedKey === storedSecret) {
-      sessionStorage.setItem('aryan_admin_access_granted', 'true');
-    } else if (!hasSessionAccess && !isAlreadyAuthed) {
-      // Direct access to /admin without secret key blocked
+    if (providedKey !== storedSecret && !isAlreadyAuthed) {
       navigate('/', { replace: true });
     }
   }, [navigate]);
@@ -1795,8 +1791,14 @@ export default function AdminDashboard({ onShowToast }) {
     return matchesCat && matchesSearch;
   });
 
-  // Render passcode modal if not authenticated
+  // Render passcode modal ONLY if secret key in URL matches
+  const storedSecret = (localStorage.getItem('aryan_admin_secret_key') || 'aryan2026').trim();
+  const currentKey = (new URLSearchParams(window.location.search).get('key') || '').trim();
+
   if (!isAuthenticated) {
+    if (currentKey !== storedSecret) {
+      return null;
+    }
     return (
       <AdminPasscodeModal
         isOpen={true}
