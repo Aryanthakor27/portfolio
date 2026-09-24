@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Play, Search, SearchX, X, Film, Sparkles, ExternalLink, Clock, Eye, Layers } from 'lucide-react';
+import { Play, Search, SearchX, X, Sparkles, ExternalLink, Clock, Eye, Layers } from 'lucide-react';
 import { videoProjectsData } from '../data/videoProjectsData';
 
 export default function VideoEditing() {
@@ -138,12 +138,7 @@ export default function VideoEditing() {
       <div className="container">
         {/* Header Banner */}
         <div className="page-header text-center">
-          <div className="badge-wrapper">
-            <span className="badge">
-              <Film size={14} className="cyan-icon" />
-              <span>Video Editing & Motion Portfolio</span>
-            </span>
-          </div>
+          <span className="section-badge">Video Editing & Motion Portfolio</span>
           <h1 className="section-title">
             Cinematic Edits, Viral Reels <br />
             <span className="highlight">& Motion Graphics</span>
