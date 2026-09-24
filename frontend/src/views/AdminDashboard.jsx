@@ -275,10 +275,35 @@ export default function AdminDashboard({ onShowToast }) {
     previewImage: ''
   });
 
-  // Custom Category Creation State
+  // Default Category Definitions
+  const DEFAULT_WEB_CATS = [
+    { id: 'ecommerce', label: 'E-Commerce & Beauty' },
+    { id: 'hospitality', label: 'Hotels & Resorts' },
+    { id: 'corporate', label: 'Corporate & Tech' },
+    { id: 'industrial', label: 'Industrial & Logistics' },
+    { id: 'health', label: 'Healthcare & Lifestyle' }
+  ];
+
+  const DEFAULT_DESIGN_CATS = [
+    { id: 'logos', label: 'Logos & Branding' },
+    { id: 'posts', label: 'Social Media Posts' },
+    { id: 'manipulation', label: 'Product Manipulation' },
+    { id: 'retouching', label: 'Photo Restoration & Retouch' }
+  ];
+
+  const DEFAULT_VIDEO_CATS = [
+    { id: 'commercials', label: 'Commercials & Ads' },
+    { id: 'reels', label: 'Reels & Shorts' },
+    { id: 'youtube', label: 'YouTube Edits' },
+    { id: 'motion', label: 'Motion Graphics' },
+    { id: 'promos', label: 'Brand Promos' }
+  ];
+
+  // Category Management State
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryType, setCategoryType] = useState('web'); // 'web' | 'design' | 'video'
+  const [editingCategory, setEditingCategory] = useState(null); // null or { id, label }
   const [categoryForm, setCategoryForm] = useState({
-    type: 'web',
     name: '',
     id: ''
   });
@@ -286,65 +311,32 @@ export default function AdminDashboard({ onShowToast }) {
   const [customWebCategories, setCustomWebCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('aryan_custom_web_categories');
-      return saved ? JSON.parse(saved) : [
-        { id: 'ecommerce', label: 'E-Commerce & Beauty' },
-        { id: 'hospitality', label: 'Hotels & Resorts' },
-        { id: 'corporate', label: 'Corporate & Tech' },
-        { id: 'industrial', label: 'Industrial & Logistics' },
-        { id: 'health', label: 'Healthcare & Lifestyle' }
-      ];
+      return saved ? JSON.parse(saved) : DEFAULT_WEB_CATS;
     } catch {
-      return [
-        { id: 'ecommerce', label: 'E-Commerce & Beauty' },
-        { id: 'hospitality', label: 'Hotels & Resorts' },
-        { id: 'corporate', label: 'Corporate & Tech' },
-        { id: 'industrial', label: 'Industrial & Logistics' },
-        { id: 'health', label: 'Healthcare & Lifestyle' }
-      ];
+      return DEFAULT_WEB_CATS;
     }
   });
 
   const [customDesignCategories, setCustomDesignCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('aryan_custom_design_categories');
-      return saved ? JSON.parse(saved) : [
-        { id: 'logos', label: 'Logos & Branding' },
-        { id: 'posts', label: 'Social Media Posts' },
-        { id: 'manipulation', label: 'Product Manipulation' },
-        { id: 'retouching', label: 'Photo Restoration & Retouch' },
-        { id: 'video-editing', label: 'Video Editing & Motion' },
-        { id: 'reels', label: 'Shorts & Reels' }
-      ];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const filtered = parsed.filter(c => c.id !== 'video-editing' && c.id !== 'reels');
+        if (filtered.length > 0) return filtered;
+      }
+      return DEFAULT_DESIGN_CATS;
     } catch {
-      return [
-        { id: 'logos', label: 'Logos & Branding' },
-        { id: 'posts', label: 'Social Media Posts' },
-        { id: 'manipulation', label: 'Product Manipulation' },
-        { id: 'retouching', label: 'Photo Restoration & Retouch' },
-        { id: 'video-editing', label: 'Video Editing & Motion' },
-        { id: 'reels', label: 'Shorts & Reels' }
-      ];
+      return DEFAULT_DESIGN_CATS;
     }
   });
 
   const [customVideoCategories, setCustomVideoCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('aryan_custom_video_categories');
-      return saved ? JSON.parse(saved) : [
-        { id: 'commercials', label: 'Commercials & Ads' },
-        { id: 'reels', label: 'Reels & Shorts' },
-        { id: 'youtube', label: 'YouTube Edits' },
-        { id: 'motion', label: 'Motion Graphics' },
-        { id: 'promos', label: 'Brand Promos' }
-      ];
+      return saved ? JSON.parse(saved) : DEFAULT_VIDEO_CATS;
     } catch {
-      return [
-        { id: 'commercials', label: 'Commercials & Ads' },
-        { id: 'reels', label: 'Reels & Shorts' },
-        { id: 'youtube', label: 'YouTube Edits' },
-        { id: 'motion', label: 'Motion Graphics' },
-        { id: 'promos', label: 'Brand Promos' }
-      ];
+      return DEFAULT_VIDEO_CATS;
     }
   });
 
@@ -1336,60 +1328,186 @@ export default function AdminDashboard({ onShowToast }) {
     reader.readAsDataURL(file);
   };
 
-  // --- Category Actions ---
-  const openAddCategory = (type = 'web') => {
-    setCategoryForm({
-      type,
-      name: '',
-      id: ''
-    });
+  // --- Category Actions (Add, Edit, Delete, Reset) ---
+  const openCategoryManager = (type = 'web') => {
+    setCategoryType(type);
+    setEditingCategory(null);
+    setCategoryForm({ name: '', id: '' });
     setShowCategoryModal(true);
+  };
+  const openAddCategory = openCategoryManager;
+
+  const handleStartEditCategory = (cat) => {
+    setEditingCategory(cat);
+    setCategoryForm({
+      name: cat.label || '',
+      id: cat.id || ''
+    });
+  };
+
+  const handleCancelEditCategory = () => {
+    setEditingCategory(null);
+    setCategoryForm({ name: '', id: '' });
   };
 
   const handleSaveCategory = (e) => {
     e.preventDefault();
-    if (!categoryForm.name.trim()) {
+    const rawName = categoryForm.name.trim();
+    if (!rawName) {
       if (onShowToast) onShowToast('Category name is required.');
       return;
     }
 
     const generatedId = categoryForm.id.trim()
       ? categoryForm.id.trim().toLowerCase().replace(/\s+/g, '-')
-      : categoryForm.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+      : rawName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 
-    const newCat = {
-      id: generatedId,
-      label: categoryForm.name.trim()
-    };
+    if (!generatedId) {
+      if (onShowToast) onShowToast('Invalid category slug/ID.');
+      return;
+    }
 
-    if (categoryForm.type === 'web') {
-      setCustomWebCategories(prev => {
-        const filtered = prev.filter(c => c.id !== generatedId);
-        const updated = [...filtered, newCat];
-        localStorage.setItem('aryan_custom_web_categories', JSON.stringify(updated));
-        return updated;
-      });
-      setWebsiteCategory(generatedId);
-      if (onShowToast) onShowToast(`✓ Created "${newCat.label}" web category!`);
-    } else if (categoryForm.type === 'video') {
-      setCustomVideoCategories(prev => {
-        const filtered = prev.filter(c => c.id !== generatedId);
-        const updated = [...filtered, newCat];
-        localStorage.setItem('aryan_custom_video_categories', JSON.stringify(updated));
-        return updated;
-      });
-      setVideoCategory(generatedId);
-      setVideoForm(prev => ({ ...prev, category: generatedId }));
-      if (onShowToast) onShowToast(`✓ Created "${newCat.label}" video category!`);
+    if (editingCategory) {
+      const oldId = editingCategory.id;
+      const updatedCat = { id: generatedId, label: rawName };
+
+      if (categoryType === 'web') {
+        if (oldId !== generatedId) {
+          setWebsites(prev => {
+            const next = prev.map(w => w.category === oldId ? { ...w, category: generatedId } : w);
+            try { localStorage.setItem('aryan_admin_websites', JSON.stringify(next)); } catch { }
+            return next;
+          });
+        }
+        setCustomWebCategories(prev => {
+          const next = prev.map(c => c.id === oldId ? updatedCat : c);
+          try { localStorage.setItem('aryan_custom_web_categories', JSON.stringify(next)); } catch { }
+          return next;
+        });
+        if (websiteCategory === oldId) setWebsiteCategory(generatedId);
+      } else if (categoryType === 'design') {
+        if (oldId !== generatedId) {
+          setDesigns(prev => {
+            const next = prev.map(d => d.category === oldId ? { ...d, category: generatedId } : d);
+            try { localStorage.setItem('aryan_admin_designs', JSON.stringify(next)); } catch { }
+            return next;
+          });
+        }
+        setCustomDesignCategories(prev => {
+          const next = prev.map(c => c.id === oldId ? updatedCat : c);
+          try { localStorage.setItem('aryan_custom_design_categories', JSON.stringify(next)); } catch { }
+          return next;
+        });
+        if (designCategory === oldId) setDesignCategory(generatedId);
+      } else {
+        if (oldId !== generatedId) {
+          setVideos(prev => {
+            const next = prev.map(v => v.category === oldId ? { ...v, category: generatedId } : v);
+            try { localStorage.setItem('aryan_admin_videos', JSON.stringify(next)); } catch { }
+            return next;
+          });
+        }
+        setCustomVideoCategories(prev => {
+          const next = prev.map(c => c.id === oldId ? updatedCat : c);
+          try { localStorage.setItem('aryan_custom_video_categories', JSON.stringify(next)); } catch { }
+          return next;
+        });
+        if (videoCategory === oldId) setVideoCategory(generatedId);
+      }
+
+      if (onShowToast) onShowToast(`✓ Category "${rawName}" updated successfully!`);
+      setEditingCategory(null);
+      setCategoryForm({ name: '', id: '' });
     } else {
-      setCustomDesignCategories(prev => {
-        const filtered = prev.filter(c => c.id !== generatedId);
-        const updated = [...filtered, newCat];
-        localStorage.setItem('aryan_custom_design_categories', JSON.stringify(updated));
-        return updated;
+      const newCat = { id: generatedId, label: rawName };
+
+      if (categoryType === 'web') {
+        if (customWebCategories.some(c => c.id === generatedId)) {
+          if (onShowToast) onShowToast(`Category with ID "${generatedId}" already exists.`);
+          return;
+        }
+        setCustomWebCategories(prev => {
+          const next = [...prev, newCat];
+          try { localStorage.setItem('aryan_custom_web_categories', JSON.stringify(next)); } catch { }
+          return next;
+        });
+        setWebsiteCategory(generatedId);
+      } else if (categoryType === 'design') {
+        if (customDesignCategories.some(c => c.id === generatedId)) {
+          if (onShowToast) onShowToast(`Category with ID "${generatedId}" already exists.`);
+          return;
+        }
+        setCustomDesignCategories(prev => {
+          const next = [...prev, newCat];
+          try { localStorage.setItem('aryan_custom_design_categories', JSON.stringify(next)); } catch { }
+          return next;
+        });
+        setDesignCategory(generatedId);
+      } else {
+        if (customVideoCategories.some(c => c.id === generatedId)) {
+          if (onShowToast) onShowToast(`Category with ID "${generatedId}" already exists.`);
+          return;
+        }
+        setCustomVideoCategories(prev => {
+          const next = [...prev, newCat];
+          try { localStorage.setItem('aryan_custom_video_categories', JSON.stringify(next)); } catch { }
+          return next;
+        });
+        setVideoCategory(generatedId);
+      }
+
+      if (onShowToast) onShowToast(`✓ Created "${rawName}" category!`);
+      setCategoryForm({ name: '', id: '' });
+    }
+
+    try {
+      window.dispatchEvent(new Event('aryan_portfolio_updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch { }
+  };
+
+  const handleDeleteCategory = (catToDelete) => {
+    let count = 0;
+    if (categoryType === 'web') {
+      count = websites.filter(w => w.category === catToDelete.id).length;
+    } else if (categoryType === 'design') {
+      count = designs.filter(d => d.category === catToDelete.id).length;
+    } else {
+      count = videos.filter(v => v.category === catToDelete.id).length;
+    }
+
+    const confirmMsg = count > 0
+      ? `Are you sure you want to delete category "${catToDelete.label}"?\n\n⚠️ ${count} project(s) are currently assigned to this category.`
+      : `Are you sure you want to delete category "${catToDelete.label}"?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    if (categoryType === 'web') {
+      setCustomWebCategories(prev => {
+        const next = prev.filter(c => c.id !== catToDelete.id);
+        try { localStorage.setItem('aryan_custom_web_categories', JSON.stringify(next)); } catch { }
+        return next;
       });
-      setDesignCategory(generatedId);
-      if (onShowToast) onShowToast(`✓ Created "${newCat.label}" design category!`);
+      if (websiteCategory === catToDelete.id) setWebsiteCategory('all');
+    } else if (categoryType === 'design') {
+      setCustomDesignCategories(prev => {
+        const next = prev.filter(c => c.id !== catToDelete.id);
+        try { localStorage.setItem('aryan_custom_design_categories', JSON.stringify(next)); } catch { }
+        return next;
+      });
+      if (designCategory === catToDelete.id) setDesignCategory('all');
+    } else {
+      setCustomVideoCategories(prev => {
+        const next = prev.filter(c => c.id !== catToDelete.id);
+        try { localStorage.setItem('aryan_custom_video_categories', JSON.stringify(next)); } catch { }
+        return next;
+      });
+      if (videoCategory === catToDelete.id) setVideoCategory('all');
+    }
+
+    if (editingCategory?.id === catToDelete.id) {
+      setEditingCategory(null);
+      setCategoryForm({ name: '', id: '' });
     }
 
     try {
@@ -1397,7 +1515,38 @@ export default function AdminDashboard({ onShowToast }) {
       window.dispatchEvent(new Event('storage'));
     } catch { }
 
-    setShowCategoryModal(false);
+    if (onShowToast) onShowToast(`✓ Category "${catToDelete.label}" deleted.`);
+  };
+
+  const handleRestoreDefaultCategories = (type) => {
+    const typeLabel = type === 'web' ? 'Websites' : type === 'design' ? 'Graphic Designs' : 'Video Editing';
+    if (!window.confirm(`Restore default categories for ${typeLabel}? Any custom modifications will be reset.`)) return;
+
+    if (type === 'web') {
+      setCustomWebCategories(DEFAULT_WEB_CATS);
+      try { localStorage.setItem('aryan_custom_web_categories', JSON.stringify(DEFAULT_WEB_CATS)); } catch { }
+      setWebsiteCategory('all');
+    } else if (type === 'design') {
+      setCustomDesignCategories(DEFAULT_DESIGN_CATS);
+      try { localStorage.setItem('aryan_custom_design_categories', JSON.stringify(DEFAULT_DESIGN_CATS)); } catch { }
+      setDesignCategory('all');
+    } else {
+      setCustomVideoCategories(DEFAULT_VIDEO_CATS);
+      try { localStorage.setItem('aryan_custom_video_categories', JSON.stringify(DEFAULT_VIDEO_CATS)); } catch { }
+      setVideoCategory('all');
+    }
+
+    if (editingCategory) {
+      setEditingCategory(null);
+      setCategoryForm({ name: '', id: '' });
+    }
+
+    try {
+      window.dispatchEvent(new Event('aryan_portfolio_updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch { }
+
+    if (onShowToast) onShowToast(`✓ Restored default ${typeLabel} categories!`);
   };
 
   // --- Cross-Device Cloud Visitor Telemetry Polling ---
@@ -3458,13 +3607,13 @@ export default function AdminDashboard({ onShowToast }) {
                 <div className="toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
                     type="button"
-                    onClick={() => openAddCategory('web')}
+                    onClick={() => openCategoryManager('web')}
                     className="btn-secondary-action"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                    title="Create a new category for web projects"
+                    title="Manage categories for web projects (Add, Edit, Delete)"
                   >
                     <FolderPlus size={16} />
-                    <span>+ New Category</span>
+                    <span>Manage Categories</span>
                   </button>
                   <button onClick={openAddWebsite} className="btn-primary-action">
                     <Plus size={16} />
@@ -3565,13 +3714,13 @@ export default function AdminDashboard({ onShowToast }) {
                 <div className="toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
                     type="button"
-                    onClick={() => openAddCategory('design')}
+                    onClick={() => openCategoryManager('design')}
                     className="btn-secondary-action"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                    title="Create a new category for designs or video editing"
+                    title="Manage categories for graphic designs (Add, Edit, Delete)"
                   >
                     <FolderPlus size={16} />
-                    <span>+ New Category</span>
+                    <span>Manage Categories</span>
                   </button>
                   <button onClick={openAddDesign} className="btn-primary-action">
                     <Plus size={16} />
@@ -3734,13 +3883,13 @@ export default function AdminDashboard({ onShowToast }) {
                 <div className="toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <button
                     type="button"
-                    onClick={() => openAddCategory('video')}
+                    onClick={() => openCategoryManager('video')}
                     className="btn-secondary-action"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                    title="Create a new category for video projects"
+                    title="Manage categories for video projects (Add, Edit, Delete)"
                   >
                     <FolderPlus size={16} />
-                    <span>+ New Category</span>
+                    <span>Manage Categories</span>
                   </button>
                   <button onClick={openAddVideo} className="btn-primary-action">
                     <Plus size={16} />
@@ -4601,7 +4750,28 @@ export default function AdminDashboard({ onShowToast }) {
                 />
               </div>
               <div className="form-group">
-                <label>Category *</label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>Category *</label>
+                  <button
+                    type="button"
+                    onClick={() => openCategoryManager('web')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#06B6D4',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: 0,
+                      fontWeight: 600
+                    }}
+                  >
+                    <Plus size={12} />
+                    <span>Manage Categories</span>
+                  </button>
+                </div>
                 <select
                   value={websiteForm.category}
                   onChange={(e) => setWebsiteForm({ ...websiteForm, category: e.target.value })}
@@ -4683,7 +4853,28 @@ export default function AdminDashboard({ onShowToast }) {
                 />
               </div>
               <div className="form-group">
-                <label>Category *</label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>Category *</label>
+                  <button
+                    type="button"
+                    onClick={() => openCategoryManager('design')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#06B6D4',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: 0,
+                      fontWeight: 600
+                    }}
+                  >
+                    <Plus size={12} />
+                    <span>Manage Categories</span>
+                  </button>
+                </div>
                 <select
                   value={designForm.category}
                   onChange={(e) => setDesignForm({ ...designForm, category: e.target.value })}
@@ -5021,68 +5212,330 @@ export default function AdminDashboard({ onShowToast }) {
     )
   }
 
-  {/* MODAL: Create New Custom Category */ }
+  {/* MODAL: Manage Categories (Add, Edit, Delete, Restore) */}
   {
     showCategoryModal && (
       <div className="admin-modal-overlay">
-        <div className="admin-modal" style={{ maxWidth: '480px' }}>
+        <div className="admin-modal" style={{ maxWidth: '680px' }}>
           <div className="modal-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FolderPlus size={20} style={{ color: '#06B6D4' }} />
-              <h3 style={{ margin: 0 }}>Create New Category</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <FolderPlus size={22} style={{ color: '#06B6D4' }} />
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Manage Categories</h3>
+                <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>
+                  Add, edit, or delete categories for websites, designs, and videos
+                </p>
+              </div>
             </div>
             <button
               type="button"
-              onClick={() => setShowCategoryModal(false)}
+              onClick={() => {
+                setShowCategoryModal(false);
+                setEditingCategory(null);
+                setCategoryForm({ name: '', id: '' });
+              }}
               className="close-btn"
+              title="Close modal"
             >
               <X size={20} />
             </button>
           </div>
 
-          <form onSubmit={handleSaveCategory} className="admin-form">
-            <div className="form-group">
-              <label>Category Target</label>
-              <select
-                value={categoryForm.type}
-                onChange={(e) => setCategoryForm({ ...categoryForm, type: e.target.value })}
+          {/* Domain Tabs: Web | Design | Video */}
+          <div className="cat-mgr-tabs">
+            {[
+              { id: 'web', label: '🌐 Websites', count: customWebCategories.length },
+              { id: 'design', label: '🎨 Graphic Designs', count: customDesignCategories.length },
+              { id: 'video', label: '🎬 Video Projects', count: customVideoCategories.length }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setCategoryType(tab.id);
+                  setEditingCategory(null);
+                  setCategoryForm({ name: '', id: '' });
+                }}
+                className={`cat-mgr-tab-btn ${categoryType === tab.id ? 'active' : ''}`}
               >
-                <option value="web">Web Projects Category</option>
-                <option value="design">Graphic Design Category</option>
-                <option value="video">Video Projects Category</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Category Name *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Video Editing, Motion Graphics, AI Tools"
-                value={categoryForm.name}
-                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Category Slug / ID (Optional - auto generated)</label>
-              <input
-                type="text"
-                placeholder="e.g. video-editing"
-                value={categoryForm.id}
-                onChange={(e) => setCategoryForm({ ...categoryForm, id: e.target.value })}
-              />
-            </div>
-
-            <div className="modal-actions">
-              <button type="button" onClick={() => setShowCategoryModal(false)} className="btn-cancel">
-                Cancel
+                <span>{tab.label}</span>
+                <span className="cat-mgr-tab-count">
+                  {tab.count}
+                </span>
               </button>
-              <button type="submit" className="btn-save">
-                <span>Create Category</span>
+            ))}
+          </div>
+
+          <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {/* Add / Edit Form Card */}
+            <div className={`cat-mgr-form-box ${editingCategory ? 'editing' : ''}`}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '12px'
+              }}>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  color: editingCategory ? '#F59E0B' : '#06B6D4',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  {editingCategory ? (
+                    <>
+                      <Edit size={15} />
+                      <span>Edit Category: &ldquo;{editingCategory.label}&rdquo;</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={15} />
+                      <span>Add New Category to {categoryType === 'web' ? 'Websites' : categoryType === 'design' ? 'Graphic Designs' : 'Video Projects'}</span>
+                    </>
+                  )}
+                </span>
+                {editingCategory && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEditCategory}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#94A3B8',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      padding: '2px 8px',
+                      borderRadius: '6px'
+                    }}
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
+
+              <form onSubmit={handleSaveCategory} className="admin-form" style={{ gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ fontSize: '12px' }}>Category Name / Label *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={
+                        categoryType === 'web'
+                          ? 'e.g. Real Estate & SaaS'
+                          : categoryType === 'design'
+                            ? 'e.g. 3D Posters & AI Art'
+                            : 'e.g. Documentaries & Podcasts'
+                      }
+                      value={categoryForm.name}
+                      onChange={(e) => {
+                        const name = e.target.value;
+                        setCategoryForm(prev => ({
+                          ...prev,
+                          name,
+                          id: editingCategory ? prev.id : name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ fontSize: '12px' }}>Category ID / Slug *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. real-estate"
+                      value={categoryForm.id}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, id: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>
+                  {editingCategory && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditCategory}
+                      className="btn-cancel"
+                      style={{ padding: '8px 14px', fontSize: '13px' }}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="btn-save"
+                    style={{
+                      padding: '8px 18px',
+                      fontSize: '13px',
+                      background: editingCategory
+                        ? 'linear-gradient(135deg, #F59E0B, #D97706)'
+                        : 'linear-gradient(135deg, #06B6D4, #3B82F6)'
+                    }}
+                  >
+                    <span>{editingCategory ? '✓ Update Category' : '+ Add Category'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* List of Existing Categories */}
+            <div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '10px'
+              }}>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: 'inherit' }}>
+                  Current {categoryType === 'web' ? 'Web' : categoryType === 'design' ? 'Design' : 'Video'} Categories (
+                  {(categoryType === 'web' ? customWebCategories : categoryType === 'design' ? customDesignCategories : customVideoCategories).length}
+                  )
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleRestoreDefaultCategories(categoryType)}
+                  className="btn-reset-data"
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title="Reset to default categories"
+                >
+                  <RotateCcw size={12} />
+                  <span>Restore Defaults</span>
+                </button>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                maxHeight: '260px',
+                overflowY: 'auto',
+                paddingRight: '4px'
+              }}>
+                {(categoryType === 'web' ? customWebCategories : categoryType === 'design' ? customDesignCategories : customVideoCategories).map((cat, idx) => {
+                  const itemCount = categoryType === 'web'
+                    ? websites.filter(w => w.category === cat.id).length
+                    : categoryType === 'design'
+                      ? designs.filter(d => d.category === cat.id).length
+                      : videos.filter(v => v.category === cat.id).length;
+
+                  const isBeingEdited = editingCategory?.id === cat.id;
+
+                  return (
+                    <div
+                      key={cat.id || idx}
+                      className={`cat-mgr-item ${isBeingEdited ? 'editing' : ''}`}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                        <span style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '6px',
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          color: '#94A3B8',
+                          flexShrink: 0
+                        }}>
+                          {idx + 1}
+                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                          <span style={{
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            color: 'inherit',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {cat.label}
+                          </span>
+                          <span style={{
+                            fontSize: '11px',
+                            fontFamily: 'monospace',
+                            color: '#64748B'
+                          }}>
+                            id: {cat.id}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: '9999px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          background: itemCount > 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(148, 163, 184, 0.1)',
+                          color: itemCount > 0 ? '#10B981' : '#94A3B8'
+                        }}>
+                          {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditCategory(cat)}
+                          className="action-btn edit-btn"
+                          title={`Edit ${cat.label}`}
+                          style={{
+                            padding: '6px',
+                            borderRadius: '6px',
+                            background: isBeingEdited ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                            color: isBeingEdited ? '#F59E0B' : '#94A3B8',
+                            border: 'none',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Edit size={14} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCategory(cat)}
+                          className="action-btn delete-btn"
+                          title={`Delete ${cat.label}`}
+                          style={{
+                            padding: '6px',
+                            borderRadius: '6px',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            color: '#EF4444',
+                            border: 'none',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCategoryModal(false);
+                  setEditingCategory(null);
+                  setCategoryForm({ name: '', id: '' });
+                }}
+                className="btn-cancel"
+                style={{ padding: '8px 20px', fontSize: '13px' }}
+              >
+                Close
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     )
@@ -5118,7 +5571,7 @@ export default function AdminDashboard({ onShowToast }) {
                   <label style={{ margin: 0 }}>Category *</label>
                   <button
                     type="button"
-                    onClick={() => openAddCategory('video')}
+                    onClick={() => openCategoryManager('video')}
                     style={{
                       background: 'none',
                       border: 'none',
@@ -5133,7 +5586,7 @@ export default function AdminDashboard({ onShowToast }) {
                     }}
                   >
                     <Plus size={12} />
-                    <span>+ Add Category</span>
+                    <span>Manage Categories</span>
                   </button>
                 </div>
                 <select
