@@ -141,19 +141,21 @@ const ContentContext = createContext();
 export function ContentProvider({ children }) {
   const [content, setContent] = useState(() => {
     try {
-      const saved = localStorage.getItem('aryan_portfolio_content');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          ...DEFAULT_CONTENT,
-          ...parsed,
-          hero: { ...DEFAULT_CONTENT.hero, ...(parsed.hero || {}) },
-          branding: { ...DEFAULT_CONTENT.branding, ...(parsed.branding || {}) },
-          about: { ...DEFAULT_CONTENT.about, ...(parsed.about || {}) },
-          contact: { ...DEFAULT_CONTENT.contact, ...(parsed.contact || {}) },
-          seo: { ...DEFAULT_CONTENT.seo, ...(parsed.seo || {}) },
-          services: parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_CONTENT.services
-        };
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('aryan_portfolio_content');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            ...DEFAULT_CONTENT,
+            ...parsed,
+            hero: { ...DEFAULT_CONTENT.hero, ...(parsed.hero || {}) },
+            branding: { ...DEFAULT_CONTENT.branding, ...(parsed.branding || {}) },
+            about: { ...DEFAULT_CONTENT.about, ...(parsed.about || {}) },
+            contact: { ...DEFAULT_CONTENT.contact, ...(parsed.contact || {}) },
+            seo: { ...DEFAULT_CONTENT.seo, ...(parsed.seo || {}) },
+            services: parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_CONTENT.services
+          };
+        }
       }
     } catch {}
     return DEFAULT_CONTENT;

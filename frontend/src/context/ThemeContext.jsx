@@ -4,16 +4,21 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('aryan_portfolio_theme') || 'dark';
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('aryan_portfolio_theme') || 'dark';
+    }
+    return 'dark';
   });
 
   useEffect(() => {
-    localStorage.setItem('aryan_portfolio_theme', theme);
-    document.documentElement.classList.remove('dark', 'light');
-    document.documentElement.classList.add(theme);
-    document.documentElement.setAttribute('data-theme', theme);
-    document.body.classList.remove('dark-theme', 'light-theme');
-    document.body.classList.add(`${theme}-theme`);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('aryan_portfolio_theme', theme);
+      document.documentElement.classList.remove('dark', 'light');
+      document.documentElement.classList.add(theme);
+      document.documentElement.setAttribute('data-theme', theme);
+      document.body.classList.remove('dark-theme', 'light-theme');
+      document.body.classList.add(`${theme}-theme`);
+    }
   }, [theme]);
 
   const toggleTheme = () => {

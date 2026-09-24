@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation } from '../compat/router';
 import { ArrowUpRight, Download, Lock, Menu, X, Smartphone } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { downloadResume } from '../utils/downloadResume';

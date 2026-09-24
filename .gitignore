@@ -13,6 +13,10 @@ extracted_designs/
 # Build outputs
 dist/
 frontend/dist/
+frontend/out/
+out/
+.next/
+frontend/.next/
 
 # Environment and secrets
 .env

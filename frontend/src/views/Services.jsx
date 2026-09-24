@@ -1,6 +1,6 @@
 import React from 'react';
 import { Globe, Layers, Figma, Palette, TrendingUp, Wand2, Code, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '../compat/router';
 import { useContent } from '../context/ContentContext';
 
 const ICON_MAP = {

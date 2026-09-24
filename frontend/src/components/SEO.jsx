@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '../compat/router';
 import { useContent } from '../context/ContentContext';
 
 const SITE_URL = 'https://aryan-portfolio-s8il.onrender.com';

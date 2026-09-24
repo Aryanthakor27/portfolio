@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../compat/router';
 import { Sparkles, Globe, FileText, Phone, Code, ShoppingBag, Layout, Figma, Palette, TrendingUp, Award, ArrowRight } from 'lucide-react';
 import WebsiteCard from '../components/WebsiteCard';
 import DesignCard from '../components/DesignCard';
