@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from '../compat/router';
-import { ArrowUpRight, Download, Lock, Menu, X, Smartphone } from 'lucide-react';
+import { ArrowUpRight, Download, Menu, X, Smartphone } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { downloadResume } from '../utils/downloadResume';
 import { useContent } from '../context/ContentContext';
@@ -126,17 +126,6 @@ export default function Navbar() {
         <div className="nav-actions">
           <ThemeToggle />
 
-          {/* Admin Lock Button - Only visible if authorized on this device */}
-          {typeof window !== 'undefined' && (sessionStorage.getItem('aryan_admin_auth') === 'true' || localStorage.getItem('aryan_admin_secret_key')) && (
-            <Link
-              to={`/admin?key=${localStorage.getItem('aryan_admin_secret_key') || 'aryan2026'}`}
-              className="btn-admin-nav desktop-only"
-              title="Admin Portal (Secure)"
-            >
-              <Lock size={14} />
-            </Link>
-          )}
-
           <button
             onClick={triggerInstall}
             className="btn-install-app-nav desktop-only"
@@ -243,16 +232,6 @@ export default function Navbar() {
                 <span>Let's Talk</span>
                 <ArrowUpRight size={15} />
               </Link>
-              {typeof window !== 'undefined' && (sessionStorage.getItem('aryan_admin_auth') === 'true' || localStorage.getItem('aryan_admin_secret_key')) && (
-                <Link
-                  to={`/admin?key=${localStorage.getItem('aryan_admin_secret_key') || 'aryan2026'}`}
-                  className="mobile-admin-link"
-                  onClick={closeMenu}
-                >
-                  <Lock size={13} />
-                  <span>Admin CMS Portal</span>
-                </Link>
-              )}
             </div>
           </div>
         </div>

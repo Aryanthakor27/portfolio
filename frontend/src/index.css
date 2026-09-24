@@ -990,11 +990,13 @@ body.theme-light .mobile-admin-link {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 8px;
   background: rgba(17, 24, 39, 0.7);
-  padding: 6px 8px;
-  border-radius: var(--radius-full);
+  padding: 8px 12px;
+  border-radius: 20px;
   border: 1px solid var(--border-subtle);
+  max-width: 100%;
 }
 
 .web-tab-btn, .filter-btn {

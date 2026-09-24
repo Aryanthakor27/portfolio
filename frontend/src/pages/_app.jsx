@@ -12,12 +12,71 @@ import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import { trackVisitor } from '../utils/visitorTracker';
 import '../index.css';
 
+// Page Views for Direct/Refresh Fallback Routing
+import Home from '../views/Home';
+import About from '../views/About';
+import Services from '../views/Services';
+import WebProjects from '../views/WebProjects';
+import GraphicDesigns from '../views/GraphicDesigns';
+import VideoEditing from '../views/VideoEditing';
+import Credentials from '../views/Credentials';
+import Contact from '../views/Contact';
+import AdminDashboard from '../views/AdminDashboard';
+
+const ROUTE_VIEW_MAP = {
+  '/': Home,
+  '/about': About,
+  '/services': Services,
+  '/web-projects': WebProjects,
+  '/projects': WebProjects,
+  '/designs': GraphicDesigns,
+  '/videos': VideoEditing,
+  '/video-editing': VideoEditing,
+  '/credentials': Credentials,
+  '/contact': Contact,
+  '/admin': AdminDashboard
+};
+
 export default function MyApp({ Component, pageProps }) {
   const [previewItem, setPreviewItem] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
-  const currentPath = router?.asPath?.split('?')[0] || router?.pathname || '/';
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const routerPath = router?.asPath?.split('?')[0] || router?.pathname || '/';
+  const browserPath = (typeof window !== 'undefined' ? window.location.pathname.split('?')[0] : routerPath);
+  
+  // Clean trailing slash for matching
+  const currentPath = (browserPath.length > 1 ? browserPath.replace(/\/$/, '') : browserPath) || '/';
   const isAdminRoute = currentPath.startsWith('/admin');
+
+  // Route Fallback Resolver: If the server served /index.html on refresh for /designs,
+  // we dynamically resolve to the actual corresponding view component
+  let RenderComponent = Component;
+  if (mounted && ROUTE_VIEW_MAP[currentPath]) {
+    RenderComponent = ROUTE_VIEW_MAP[currentPath];
+  }
+
+  // Admin Security Guard: Direct /admin access requires key or session auth
+  const [adminAuthorized, setAdminAuthorized] = useState(false);
+  useEffect(() => {
+    if (isAdminRoute && typeof window !== 'undefined') {
+      const storedSecret = (localStorage.getItem('aryan_admin_secret_key') || 'aryan2026').trim();
+      const params = new URLSearchParams(window.location.search);
+      const providedKey = (params.get('key') || '').trim();
+      const isAlreadyAuthed = sessionStorage.getItem('aryan_admin_auth') === 'true';
+
+      if ((providedKey && providedKey === storedSecret) || isAlreadyAuthed) {
+        setAdminAuthorized(true);
+      } else {
+        router.replace('/');
+      }
+    }
+  }, [isAdminRoute, router]);
 
   useEffect(() => {
     if (!isAdminRoute) {
@@ -64,7 +123,13 @@ export default function MyApp({ Component, pageProps }) {
           {!isAdminRoute && <Navbar onShowToast={showToast} />}
 
           <main className={`main-content ${isAdminRoute ? 'admin-main-content' : ''}`}>
-            <Component {...sharedProps} />
+            {isAdminRoute && !adminAuthorized ? (
+              <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ color: '#94a3b8', fontSize: '14px' }}>Verifying Security Clearance...</div>
+              </div>
+            ) : (
+              <RenderComponent {...sharedProps} />
+            )}
           </main>
 
           {!isAdminRoute && <Footer />}

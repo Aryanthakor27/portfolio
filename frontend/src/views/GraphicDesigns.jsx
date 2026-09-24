@@ -17,35 +17,38 @@ export default function GraphicDesigns({ onPreviewDesign }) {
   const [designs, setDesigns] = useState(getStoredDesigns);
   const [activeCategory, setActiveCategory] = useState('all');
 
+  const DEFAULT_DESIGN_CATS = [
+    { id: 'logos', label: 'Logos & Branding' },
+    { id: 'posts', label: 'Social Media Posts' },
+    { id: 'manipulation', label: 'Product Manipulation' },
+    { id: 'retouching', label: 'Photo Restoration & Retouch' }
+  ];
+
   const [customCats, setCustomCats] = useState(() => {
     try {
-      const saved = localStorage.getItem('aryan_custom_design_categories');
-      return saved ? JSON.parse(saved) : [
-        { id: 'logos', label: 'Logos & Branding' },
-        { id: 'posts', label: 'Social Media Posts' },
-        { id: 'manipulation', label: 'Product Manipulation' },
-        { id: 'retouching', label: 'Photo Restoration & Retouch' },
-        { id: 'video-editing', label: 'Video Editing & Motion' },
-        { id: 'reels', label: 'Shorts & Reels' }
-      ];
-    } catch {
-      return [
-        { id: 'logos', label: 'Logos & Branding' },
-        { id: 'posts', label: 'Social Media Posts' },
-        { id: 'manipulation', label: 'Product Manipulation' },
-        { id: 'retouching', label: 'Photo Restoration & Retouch' },
-        { id: 'video-editing', label: 'Video Editing & Motion' },
-        { id: 'reels', label: 'Shorts & Reels' }
-      ];
-    }
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('aryan_custom_design_categories');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const filtered = parsed.filter(c => c.id !== 'video-editing' && c.id !== 'reels');
+          if (filtered.length > 0) return filtered;
+        }
+      }
+    } catch {}
+    return DEFAULT_DESIGN_CATS;
   });
 
   useEffect(() => {
     const handleUpdate = () => {
       setDesigns(getStoredDesigns());
       try {
-        const saved = localStorage.getItem('aryan_custom_design_categories');
-        if (saved) setCustomCats(JSON.parse(saved));
+        if (typeof window !== 'undefined') {
+          const saved = localStorage.getItem('aryan_custom_design_categories');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            setCustomCats(parsed.filter(c => c.id !== 'video-editing' && c.id !== 'reels'));
+          }
+        }
       } catch {}
     };
     window.addEventListener('aryan_portfolio_updated', handleUpdate);
