@@ -3731,14 +3731,16 @@ export default function AdminDashboard({ onShowToast }) {
                   </select>
                 </div>
 
-                <div className="toolbar-right">
+                <div className="toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <button
+                    type="button"
                     onClick={() => openAddCategory('video')}
                     className="btn-secondary-action"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     title="Create a new category for video projects"
                   >
-                    <Plus size={16} />
-                    <span>Add Category</span>
+                    <FolderPlus size={16} />
+                    <span>+ New Category</span>
                   </button>
                   <button onClick={openAddVideo} className="btn-primary-action">
                     <Plus size={16} />

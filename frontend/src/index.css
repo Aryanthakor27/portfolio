@@ -7814,5 +7814,21 @@ html.light .pwa-btn-dismiss-modal {
   color: #0f172a;
 }
 
+/* Admin Panel Toolbars */
+.toolbar-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .toolbar-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+
 
 
