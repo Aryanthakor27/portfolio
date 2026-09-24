@@ -327,6 +327,27 @@ export default function AdminDashboard({ onShowToast }) {
     }
   });
 
+  const [customVideoCategories, setCustomVideoCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aryan_custom_video_categories');
+      return saved ? JSON.parse(saved) : [
+        { id: 'commercials', label: 'Commercials & Ads' },
+        { id: 'reels', label: 'Reels & Shorts' },
+        { id: 'youtube', label: 'YouTube Edits' },
+        { id: 'motion', label: 'Motion Graphics' },
+        { id: 'promos', label: 'Brand Promos' }
+      ];
+    } catch {
+      return [
+        { id: 'commercials', label: 'Commercials & Ads' },
+        { id: 'reels', label: 'Reels & Shorts' },
+        { id: 'youtube', label: 'YouTube Edits' },
+        { id: 'motion', label: 'Motion Graphics' },
+        { id: 'promos', label: 'Brand Promos' }
+      ];
+    }
+  });
+
   // 2FA Setup State
   const [twoFASetup, setTwoFASetup] = useState(null); // { secret, qrCodeUrl, otpauth }
   const [verify2FACode, setVerify2FACode] = useState('');
@@ -1350,6 +1371,16 @@ export default function AdminDashboard({ onShowToast }) {
       });
       setWebsiteCategory(generatedId);
       if (onShowToast) onShowToast(`✓ Created "${newCat.label}" web category!`);
+    } else if (categoryForm.type === 'video') {
+      setCustomVideoCategories(prev => {
+        const filtered = prev.filter(c => c.id !== generatedId);
+        const updated = [...filtered, newCat];
+        localStorage.setItem('aryan_custom_video_categories', JSON.stringify(updated));
+        return updated;
+      });
+      setVideoCategory(generatedId);
+      setVideoForm(prev => ({ ...prev, category: generatedId }));
+      if (onShowToast) onShowToast(`✓ Created "${newCat.label}" video category!`);
     } else {
       setCustomDesignCategories(prev => {
         const filtered = prev.filter(c => c.id !== generatedId);
@@ -1358,7 +1389,7 @@ export default function AdminDashboard({ onShowToast }) {
         return updated;
       });
       setDesignCategory(generatedId);
-      if (onShowToast) onShowToast(`✓ Created "${newCat.label}" design/video category!`);
+      if (onShowToast) onShowToast(`✓ Created "${newCat.label}" design category!`);
     }
 
     try {
@@ -3694,14 +3725,21 @@ export default function AdminDashboard({ onShowToast }) {
                     onChange={(e) => setVideoCategory(e.target.value)}
                   >
                     <option value="all">All Categories ({videos.length})</option>
-                    <option value="commercials">Brand Commercials</option>
-                    <option value="reels">Viral Reels & Shorts</option>
-                    <option value="youtube">YouTube Long-Form</option>
-                    <option value="motion">Motion Graphics & 3D</option>
+                    {customVideoCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.label}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="toolbar-right">
+                  <button
+                    onClick={() => openAddCategory('video')}
+                    className="btn-secondary-action"
+                    title="Create a new category for video projects"
+                  >
+                    <Plus size={16} />
+                    <span>Add Category</span>
+                  </button>
                   <button onClick={openAddVideo} className="btn-primary-action">
                     <Plus size={16} />
                     <span>Add Video Project</span>
@@ -3735,7 +3773,9 @@ export default function AdminDashboard({ onShowToast }) {
                         {video.duration && (
                           <span className="video-duration-tag">{video.duration}</span>
                         )}
-                        <span className="video-cat-badge">{video.category}</span>
+                        <span className="video-cat-badge">
+                          {customVideoCategories.find(c => c.id === video.category)?.label || video.category}
+                        </span>
                       </div>
 
                       <div className="video-card-body">
@@ -5006,7 +5046,8 @@ export default function AdminDashboard({ onShowToast }) {
                 onChange={(e) => setCategoryForm({ ...categoryForm, type: e.target.value })}
               >
                 <option value="web">Web Projects Category</option>
-                <option value="design">Graphic Design / Video Editing Category</option>
+                <option value="design">Graphic Design Category</option>
+                <option value="video">Video Projects Category</option>
               </select>
             </div>
 
@@ -5071,15 +5112,35 @@ export default function AdminDashboard({ onShowToast }) {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Category *</label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>Category *</label>
+                  <button
+                    type="button"
+                    onClick={() => openAddCategory('video')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#06B6D4',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: 0,
+                      fontWeight: 600
+                    }}
+                  >
+                    <Plus size={12} />
+                    <span>+ Add Category</span>
+                  </button>
+                </div>
                 <select
                   value={videoForm.category}
                   onChange={(e) => setVideoForm({ ...videoForm, category: e.target.value })}
                 >
-                  <option value="commercials">Brand Commercials</option>
-                  <option value="reels">Viral Reels & Shorts</option>
-                  <option value="youtube">YouTube Long-Form</option>
-                  <option value="motion">Motion Graphics & 3D</option>
+                  {customVideoCategories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.label}</option>
+                  ))}
                 </select>
               </div>
 

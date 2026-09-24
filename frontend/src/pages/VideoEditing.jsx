@@ -70,12 +70,27 @@ export default function VideoEditing() {
   }, []);
 
   const categories = useMemo(() => {
+    const knownIds = new Set(customCats.map(c => (c.id || '').toLowerCase()));
+    const extraCategories = [];
+    videos.forEach(v => {
+      const cat = (v.category || '').trim();
+      if (cat && !knownIds.has(cat.toLowerCase())) {
+        knownIds.add(cat.toLowerCase());
+        extraCategories.push({
+          id: cat.toLowerCase(),
+          label: cat.charAt(0).toUpperCase() + cat.slice(1)
+        });
+      }
+    });
+
+    const allCatsList = [...customCats, ...extraCategories];
+
     return [
       { id: 'all', label: 'All Projects', count: videos.length },
-      ...customCats.map(cat => ({
+      ...allCatsList.map(cat => ({
         id: cat.id,
         label: cat.label,
-        count: videos.filter(v => (v.category || '').toLowerCase() === cat.id.toLowerCase()).length
+        count: videos.filter(v => (v.category || '').toLowerCase() === (cat.id || '').toLowerCase()).length
       }))
     ];
   }, [videos, customCats]);
