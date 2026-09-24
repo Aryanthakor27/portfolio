@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import LightboxModal from './components/LightboxModal';
 import Toast from './components/Toast';
 import SEO from './components/SEO';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { trackVisitor } from './utils/visitorTracker';
 
 // Pages
@@ -92,6 +93,9 @@ export default function App() {
 
       {/* Lightbox Modal */}
       <LightboxModal item={previewItem} onClose={() => setPreviewItem(null)} />
+
+      {/* PWA Mobile App Installation Prompt */}
+      {!isAdminRoute && <PWAInstallPrompt />}
 
       {/* Global Toast Alert */}
       <Toast message={toastMessage} />

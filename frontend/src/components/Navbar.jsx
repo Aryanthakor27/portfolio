@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
-import { ArrowUpRight, Download, Lock, Menu, X } from 'lucide-react';
+import { ArrowUpRight, Download, Lock, Menu, X, Smartphone } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { downloadResume } from '../utils/downloadResume';
 import { useContent } from '../context/ContentContext';
@@ -59,6 +59,11 @@ export default function Navbar() {
   const handleCvDownload = (e) => {
     if (e) e.preventDefault();
     downloadResume('Aryan_Thakor_Resume.pdf');
+    if (mobileMenuOpen) closeMenu();
+  };
+
+  const triggerInstall = () => {
+    window.dispatchEvent(new CustomEvent('aryan_trigger_pwa_install'));
     if (mobileMenuOpen) closeMenu();
   };
 
@@ -131,6 +136,15 @@ export default function Navbar() {
               <Lock size={14} />
             </Link>
           )}
+
+          <button
+            onClick={triggerInstall}
+            className="btn-install-app-nav desktop-only"
+            title="Install Aryan Thakor App on phone/PC"
+          >
+            <Smartphone size={14} />
+            <span>Install App</span>
+          </button>
 
           <a
             href="/api/resume/download"
@@ -209,6 +223,13 @@ export default function Navbar() {
             </nav>
 
             <div className="mobile-drawer-actions">
+              <button
+                className="btn btn-outline-install w-full"
+                onClick={triggerInstall}
+              >
+                <Smartphone size={16} />
+                <span>Install Aryan Thakor App</span>
+              </button>
               <a
                 href="/api/resume/download"
                 download="Aryan_Thakor_Resume.pdf"

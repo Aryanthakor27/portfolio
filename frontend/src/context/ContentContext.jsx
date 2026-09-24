@@ -185,6 +185,37 @@ export function ContentProvider({ children }) {
         appleLink.href = appIcon;
         document.getElementsByTagName('head')[0].appendChild(appleLink);
       }
+
+      // Update dynamic manifest blob so Chrome installs using the custom app icon
+      try {
+        const customManifest = {
+          short_name: "Aryan Thakor",
+          name: "Aryan Thakor | Portfolio",
+          description: "Aryan Thakor - Senior Web Developer, CMS Specialist & Graphic Designer",
+          id: "/",
+          start_url: "/?source=pwa",
+          scope: "/",
+          display: "standalone",
+          display_override: ["window-controls-overlay", "standalone", "minimal-ui"],
+          orientation: "portrait-primary",
+          background_color: "#080C14",
+          theme_color: "#080C14",
+          categories: ["portfolio", "business", "productivity"],
+          icons: [
+            { src: appIcon, sizes: "192x192", type: "image/png", purpose: "any" },
+            { src: appIcon, sizes: "512x512", type: "image/png", purpose: "any" },
+            { src: appIcon, sizes: "512x512", type: "image/png", purpose: "maskable" }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(customManifest)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(blob);
+        let manifestLink = document.querySelector("link[rel='manifest']");
+        if (manifestLink) {
+          manifestLink.href = manifestURL;
+        }
+      } catch (e) {
+        console.debug('Dynamic manifest injection skipped:', e);
+      }
     }
   }, [content?.branding?.favicon, content?.branding?.appIcon]);
 
