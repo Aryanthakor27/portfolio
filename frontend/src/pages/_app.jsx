@@ -91,6 +91,7 @@ export default function MyApp({ Component, pageProps }) {
         navigator.serviceWorker
           .register('/sw.js')
           .then((reg) => {
+            reg.update();
             console.log('✓ Next.js Portfolio PWA Service Worker active:', reg.scope);
           })
           .catch((err) => {

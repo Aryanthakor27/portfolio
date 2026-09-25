@@ -1,12 +1,12 @@
 // Service Worker for Aryan Thakor Portfolio PWA
-const CACHE_NAME = 'aryan-portfolio-v2';
+const CACHE_NAME = 'aryan-portfolio-v3';
 const PRECACHE_URLS = [
   '/',
-  '/manifest.json',
-  '/favicon.png',
-  '/favicon.ico',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/manifest.json?v=aryan',
+  '/favicon.png?v=aryan',
+  '/favicon.ico?v=aryan',
+  '/icons/icon-192x192.png?v=aryan',
+  '/icons/icon-512x512.png?v=aryan'
 ];
 
 self.addEventListener('install', (event) => {
