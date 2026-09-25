@@ -25,8 +25,8 @@ const DEFAULT_CONTENT = {
   branding: {
     logoImage: "",
     logoText: "ARYAN",
-    favicon: "/favicon.png",
-    appIcon: "/icons/icon-512x512.png"
+    favicon: "/favicon.png?v=webix",
+    appIcon: "/icons/icon-512x512.png?v=webix"
   },
   about: {
     badge: "Career Profile",
@@ -180,28 +180,56 @@ export function ContentProvider({ children }) {
 
   const [loading, setLoading] = useState(true);
 
-  // Dynamic Browser Tab Favicon & PWA App Icon Updater
+  // Dynamic Browser Tab Favicon & PWA App Icon Updater (Forces Chrome/Edge Cache Invalidation)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const fav = content?.branding?.favicon || '/favicon.png';
-    if (fav) {
-      let found = false;
-      document.querySelectorAll("link[rel*='icon']").forEach(link => {
-        if (!link.rel.includes('apple-touch-icon')) {
-          link.href = fav;
-          found = true;
-        }
-      });
-      if (!found) {
-        const link = document.createElement('link');
-        link.rel = 'icon';
-        link.href = fav;
-        document.head.appendChild(link);
-      }
+    let fav = content?.branding?.favicon;
+    if (!fav || fav === '/favicon.png' || fav.includes('aryan_portrait.jpg')) {
+      fav = '/favicon.png?v=webix';
     }
 
-    const appIcon = content?.branding?.appIcon || '/icons/icon-512x512.png';
+    try {
+      let effectiveFav = fav;
+      if (effectiveFav.startsWith('data:')) {
+        try {
+          const parts = effectiveFav.split(',');
+          const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
+          const bstr = atob(parts[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+          }
+          const blob = new Blob([u8arr], { type: mime });
+          effectiveFav = URL.createObjectURL(blob);
+        } catch (e) {
+          console.warn('Favicon blob warning:', e);
+        }
+      }
+
+      document.querySelectorAll("link[rel*='icon']:not([rel*='apple-touch-icon'])").forEach(el => {
+        el.parentNode && el.parentNode.removeChild(el);
+      });
+
+      const iconLink = document.createElement('link');
+      iconLink.rel = 'icon';
+      iconLink.type = effectiveFav.includes('.ico') ? 'image/x-icon' : 'image/png';
+      iconLink.href = effectiveFav;
+      document.head.appendChild(iconLink);
+
+      const shortcutLink = document.createElement('link');
+      shortcutLink.rel = 'shortcut icon';
+      shortcutLink.href = effectiveFav;
+      document.head.appendChild(shortcutLink);
+    } catch (e) {
+      console.error('Favicon DOM update error:', e);
+    }
+
+    let appIcon = content?.branding?.appIcon;
+    if (!appIcon || appIcon === '/icons/icon-512x512.png' || appIcon.includes('aryan_portrait.jpg')) {
+      appIcon = '/icons/icon-512x512.png?v=webix';
+    }
     if (appIcon) {
       const appleIcons = document.querySelectorAll("link[rel='apple-touch-icon']");
       if (appleIcons.length > 0) {

@@ -543,7 +543,7 @@ export default function AdminDashboard({ onShowToast }) {
       }
 
       if (!finalFaviconUrl) {
-        finalFaviconUrl = '/favicon.png';
+        finalFaviconUrl = '/favicon.png?v=webix';
       }
 
       const updatedBranding = {
@@ -560,20 +560,37 @@ export default function AdminDashboard({ onShowToast }) {
         localStorage.setItem('aryan_custom_branding', JSON.stringify(updatedBranding));
       } catch {}
 
-      // Update current browser tab icon immediately
-      const links = document.querySelectorAll("link[rel*='icon']");
-      let updatedTab = false;
-      links.forEach(l => {
-        if (!l.rel.includes('apple-touch-icon')) {
-          l.href = finalFaviconUrl;
-          updatedTab = true;
+      // Update current browser tab icon immediately (bypassing Chrome cache with Blob/new link)
+      try {
+        let effectiveFav = finalFaviconUrl;
+        if (effectiveFav.startsWith('data:')) {
+          try {
+            const parts = effectiveFav.split(',');
+            const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
+            const bstr = atob(parts[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
+            }
+            const blob = new Blob([u8arr], { type: mime });
+            effectiveFav = URL.createObjectURL(blob);
+          } catch {}
         }
-      });
-      if (!updatedTab) {
-        const newLink = document.createElement('link');
-        newLink.rel = 'icon';
-        newLink.href = finalFaviconUrl;
-        document.head.appendChild(newLink);
+        document.querySelectorAll("link[rel*='icon']:not([rel*='apple-touch-icon'])").forEach(el => {
+          el.parentNode && el.parentNode.removeChild(el);
+        });
+        const iconLink = document.createElement('link');
+        iconLink.rel = 'icon';
+        iconLink.type = effectiveFav.includes('.ico') ? 'image/x-icon' : 'image/png';
+        iconLink.href = effectiveFav;
+        document.head.appendChild(iconLink);
+        const shortcutLink = document.createElement('link');
+        shortcutLink.rel = 'shortcut icon';
+        shortcutLink.href = effectiveFav;
+        document.head.appendChild(shortcutLink);
+      } catch (domErr) {
+        console.warn('Tab icon DOM update error:', domErr);
       }
 
       if (onShowToast) onShowToast('✓ Browser Tab Favicon saved permanently! Tab icon updated.');
@@ -614,7 +631,7 @@ export default function AdminDashboard({ onShowToast }) {
       }
 
       if (!finalAppIconUrl) {
-        finalAppIconUrl = '/icons/icon-512x512.png';
+        finalAppIconUrl = '/icons/icon-512x512.png?v=webix';
       }
 
       const updatedBranding = {
@@ -632,8 +649,35 @@ export default function AdminDashboard({ onShowToast }) {
       } catch {}
 
       // Update apple-touch-icon immediately
-      const appleIcons = document.querySelectorAll("link[rel='apple-touch-icon']");
-      appleIcons.forEach(l => { l.href = finalAppIconUrl; });
+      try {
+        let effectiveIcon = finalAppIconUrl;
+        if (effectiveIcon.startsWith('data:')) {
+          try {
+            const parts = effectiveIcon.split(',');
+            const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
+            const bstr = atob(parts[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
+            }
+            const blob = new Blob([u8arr], { type: mime });
+            effectiveIcon = URL.createObjectURL(blob);
+          } catch {}
+        }
+        document.querySelectorAll("link[rel='apple-touch-icon']").forEach(el => {
+          el.parentNode && el.parentNode.removeChild(el);
+        });
+        [192, 512].forEach(sz => {
+          const appleLink = document.createElement('link');
+          appleLink.rel = 'apple-touch-icon';
+          appleLink.sizes = `${sz}x${sz}`;
+          appleLink.href = effectiveIcon;
+          document.head.appendChild(appleLink);
+        });
+      } catch (domErr) {
+        console.warn('App icon DOM update error:', domErr);
+      }
 
       if (onShowToast) onShowToast('✓ Mobile App Icon saved permanently! PWA homescreen icon updated.');
     } catch (err) {

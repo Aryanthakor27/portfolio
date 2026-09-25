@@ -31,8 +31,8 @@ export const DEFAULT_SITE_CONTENT = {
   branding: {
     logoImage: "",
     logoText: "ARYAN",
-    favicon: "/favicon.png",
-    appIcon: "/icons/icon-512x512.png"
+    favicon: "/favicon.png?v=webix",
+    appIcon: "/icons/icon-512x512.png?v=webix"
   },
   about: {
     badge: "Career Profile",
