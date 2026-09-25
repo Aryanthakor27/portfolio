@@ -685,6 +685,28 @@ app.post("/api/admin/branding/upload-icon", async (req, res) => {
 
       resultingUrl = `/icons/icon-512x512.png?v=${timestamp}`;
       await updateSection("branding", { appIcon: resultingUrl });
+
+      // Sync manifest.json files with updated icon timestamp
+      const manifestTargets = [
+        path.resolve(__dirname, "../frontend/public/manifest.json"),
+        path.resolve(__dirname, "../frontend/dist/manifest.json"),
+        path.resolve(__dirname, "../dist/manifest.json")
+      ];
+      for (const mPath of manifestTargets) {
+        try {
+          if (fs.existsSync(mPath)) {
+            const mData = JSON.parse(fs.readFileSync(mPath, "utf8"));
+            mData.icons = [
+              { src: `/icons/icon-192x192.png?v=${timestamp}`, sizes: "192x192", type: "image/png", purpose: "any" },
+              { src: `/icons/icon-512x512.png?v=${timestamp}`, sizes: "512x512", type: "image/png", purpose: "any" },
+              { src: `/icons/icon-512x512.png?v=${timestamp}`, sizes: "512x512", type: "image/png", purpose: "maskable" }
+            ];
+            fs.writeFileSync(mPath, JSON.stringify(mData, null, 2), "utf8");
+          }
+        } catch (e) {
+          console.debug(`Skip manifest update ${mPath}:`, e.message);
+        }
+      }
     } else if (type === "logo") {
       const targets = [
         path.resolve(__dirname, "../frontend/public/assets/logos/brand-logo.png"),

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getApiUrl } from '../utils/apiConfig';
 
 const DEFAULT_CONTENT = {
   hero: {
@@ -25,8 +26,8 @@ const DEFAULT_CONTENT = {
   branding: {
     logoImage: "",
     logoText: "ARYAN",
-    favicon: "/favicon.png?v=webix",
-    appIcon: "/icons/icon-512x512.png?v=webix"
+    favicon: "/favicon.png?v=aryan",
+    appIcon: "/icons/icon-512x512.png?v=aryan"
   },
   about: {
     badge: "Career Profile",
@@ -184,10 +185,7 @@ export function ContentProvider({ children }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    let fav = content?.branding?.favicon;
-    if (!fav || fav === '/favicon.png' || fav.includes('aryan_portrait.jpg')) {
-      fav = '/favicon.png?v=webix';
-    }
+    let fav = content?.branding?.favicon || '/favicon.png?v=aryan';
 
     try {
       let effectiveFav = fav;
@@ -226,20 +224,38 @@ export function ContentProvider({ children }) {
       console.error('Favicon DOM update error:', e);
     }
 
-    let appIcon = content?.branding?.appIcon;
-    if (!appIcon || appIcon === '/icons/icon-512x512.png' || appIcon.includes('aryan_portrait.jpg')) {
-      appIcon = '/icons/icon-512x512.png?v=webix';
-    }
-    if (appIcon) {
-      const appleIcons = document.querySelectorAll("link[rel='apple-touch-icon']");
-      if (appleIcons.length > 0) {
-        appleIcons.forEach(el => { el.href = appIcon; });
-      } else {
-        const appleLink = document.createElement('link');
-        appleLink.rel = 'apple-touch-icon';
-        appleLink.href = appIcon;
-        document.head.appendChild(appleLink);
+    let appIcon = content?.branding?.appIcon || "/icons/icon-512x512.png?v=aryan";
+    try {
+      let effectiveAppIcon = appIcon;
+      if (effectiveAppIcon.startsWith("data:")) {
+        try {
+          const parts = effectiveAppIcon.split(",");
+          const mime = parts[0].match(/:(.*?);/)?.[1] || "image/png";
+          const bstr = atob(parts[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+          }
+          const blob = new Blob([u8arr], { type: mime });
+          effectiveAppIcon = URL.createObjectURL(blob);
+        } catch (e) {
+          console.warn("App icon blob warning:", e);
+        }
       }
+      document.querySelectorAll("link[rel='apple-touch-icon']").forEach(el => {
+        el.parentNode && el.parentNode.removeChild(el);
+      });
+      [192, 512].forEach(sz => {
+        const appleLink = document.createElement("link");
+        appleLink.rel = "apple-touch-icon";
+        appleLink.sizes = `${sz}x${sz}`;
+        appleLink.href = effectiveAppIcon;
+        document.head.appendChild(appleLink);
+      });
+    } catch (e) {
+      console.error("Apple touch icon DOM update error:", e);
+    }
 
       // Update dynamic manifest blob so Chrome installs using the custom app icon
       try {
@@ -271,12 +287,11 @@ export function ContentProvider({ children }) {
       } catch (e) {
         console.debug('Dynamic manifest injection skipped:', e);
       }
-    }
   }, [content?.branding?.favicon, content?.branding?.appIcon]);
 
   const fetchContent = async () => {
     try {
-      const res = await fetch('/api/content');
+      const res = await fetch(getApiUrl('/api/content'));
       if (res.ok) {
         const data = await res.json();
         setContent(prev => {
@@ -347,7 +362,7 @@ export function ContentProvider({ children }) {
     });
 
     try {
-      const res = await fetch(`/api/content/${section}`, {
+      const res = await fetch(getApiUrl(`/api/content/${section}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

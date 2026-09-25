@@ -16,16 +16,16 @@ export default function Document() {
         <meta name="google-site-verification" content="zPCc_YvE4AP42JDT4FoDsNZmlL_QPDHeD_5UqkehpcU" />
         <meta name="theme-color" content="#080C14" />
 
-        {/* Browser Favicons (Webix Brand Icon with Cache Busting) */}
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=webix" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico?v=webix" />
-        <link rel="shortcut icon" href="/favicon.ico?v=webix" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png?v=webix" />
+        {/* Browser Favicons & App Icons */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=aryan" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico?v=aryan" />
+        <link rel="shortcut icon" href="/favicon.ico?v=aryan" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png?v=aryan" />
 
-        {/* Progressive Web App (PWA) & Mobile Installation Tags */}
-        <link rel="manifest" href="/manifest.json?v=webix" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png?v=webix" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png?v=webix" />
+        {/* Progressive Web App (PWA) & Mobile Installation Tags (Cyber Character App Icon) */}
+        <link rel="manifest" href="/manifest.json?v=aryan" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png?v=aryan" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png?v=aryan" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

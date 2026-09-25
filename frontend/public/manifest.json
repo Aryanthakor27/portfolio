@@ -13,19 +13,19 @@
   "categories": ["portfolio", "business", "productivity"],
   "icons": [
     {
-      "src": "/icons/icon-192x192.png?v=webix",
+      "src": "/icons/icon-192x192.png?v=aryan",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png?v=webix",
+      "src": "/icons/icon-512x512.png?v=aryan",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png?v=webix",
+      "src": "/icons/icon-512x512.png?v=aryan",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

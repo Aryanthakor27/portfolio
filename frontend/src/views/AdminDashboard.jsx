@@ -52,6 +52,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import { useContent } from '../context/ContentContext';
 import { downloadResume } from '../utils/downloadResume';
 import { optimizeImageFile } from '../utils/imageUtils';
+import { getApiUrl } from '../utils/apiConfig';
 import SocialIcon from '../components/SocialIcon';
 import { sendPasscodeOtpEmail, sendPasscodeSuccessEmail } from '../services/emailService';
 import { websitesData } from '../data/websitesData';
@@ -210,6 +211,15 @@ export default function AdminDashboard({ onShowToast }) {
   const [seoForm, setSeoForm] = useState(cmsContent?.seo || {});
   const [servicesList, setServicesList] = useState(cmsContent?.services || []);
   const [cmsSaving, setCmsSaving] = useState(false);
+
+  useEffect(() => {
+    if (cmsContent?.branding) {
+      setBrandingForm(prev => ({
+        ...prev,
+        ...cmsContent.branding
+      }));
+    }
+  }, [cmsContent?.branding]);
 
   // Social Media CMS State
   const [newSocialPlatform, setNewSocialPlatform] = useState('Instagram');
@@ -384,7 +394,7 @@ export default function AdminDashboard({ onShowToast }) {
 
   const loadResumeInfo = async () => {
     try {
-      const res = await fetch('/api/resume/info');
+      const res = await fetch(getApiUrl('/api/resume/info'));
       if (res.ok) {
         const data = await res.json();
         setResumeInfo(data);
@@ -421,7 +431,7 @@ export default function AdminDashboard({ onShowToast }) {
         try {
           const base64Data = reader.result;
           const token = sessionStorage.getItem('aryan_admin_token') || '';
-          const res = await fetch('/api/admin/resume/upload', {
+          const res = await fetch(getApiUrl('/api/admin/resume/upload'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -523,7 +533,7 @@ export default function AdminDashboard({ onShowToast }) {
       // If user uploaded a new image file (base64 data URL), send it to backend upload endpoint
       if (finalFaviconUrl && finalFaviconUrl.startsWith('data:image/')) {
         try {
-          const res = await fetch('/api/admin/branding/upload-icon', {
+          const res = await fetch(getApiUrl('/api/admin/branding/upload-icon'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -543,7 +553,7 @@ export default function AdminDashboard({ onShowToast }) {
       }
 
       if (!finalFaviconUrl) {
-        finalFaviconUrl = '/favicon.png?v=webix';
+        finalFaviconUrl = '/favicon.png?v=aryan';
       }
 
       const updatedBranding = {
@@ -611,7 +621,7 @@ export default function AdminDashboard({ onShowToast }) {
       // If user uploaded a new image file (base64 data URL), send it to backend upload endpoint
       if (finalAppIconUrl && finalAppIconUrl.startsWith('data:image/')) {
         try {
-          const res = await fetch('/api/admin/branding/upload-icon', {
+          const res = await fetch(getApiUrl('/api/admin/branding/upload-icon'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -631,7 +641,7 @@ export default function AdminDashboard({ onShowToast }) {
       }
 
       if (!finalAppIconUrl) {
-        finalAppIconUrl = '/icons/icon-512x512.png?v=webix';
+        finalAppIconUrl = '/icons/icon-512x512.png?v=aryan';
       }
 
       const updatedBranding = {
@@ -696,7 +706,7 @@ export default function AdminDashboard({ onShowToast }) {
 
       if (finalLogoUrl && finalLogoUrl.startsWith('data:image/')) {
         try {
-          const res = await fetch('/api/admin/branding/upload-icon', {
+          const res = await fetch(getApiUrl('/api/admin/branding/upload-icon'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -2386,11 +2396,18 @@ export default function AdminDashboard({ onShowToast }) {
               <span>Overview</span>
             </button>
             <button
-              className={`nav-tab-btn ${activeTab === 'cms' ? 'active' : ''}`}
-              onClick={() => setActiveTab('cms')}
+              className={`nav-tab-btn ${activeTab === 'cms' && cmsSubTab !== 'branding' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('cms'); if (cmsSubTab === 'branding') setCmsSubTab('hero'); }}
             >
               <FileText size={18} />
               <span>Site CMS & Pages</span>
+            </button>
+            <button
+              className={`nav-tab-btn ${activeTab === 'cms' && cmsSubTab === 'branding' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('cms'); setCmsSubTab('branding'); }}
+            >
+              <Smartphone size={18} />
+              <span>App Icon & Favicon 📱</span>
             </button>
             <button
               className={`nav-tab-btn ${activeTab === 'websites' ? 'active' : ''}`}
@@ -2466,6 +2483,10 @@ export default function AdminDashboard({ onShowToast }) {
                     <Edit size={16} />
                     <span>Edit Site Pages</span>
                   </button>
+                  <button onClick={() => { setActiveTab('cms'); setCmsSubTab('branding'); }} className="btn-secondary-action">
+                    <Smartphone size={16} />
+                    <span>App Icon & Favicon</span>
+                  </button>
                   <button onClick={openAddWebsite} className="btn-secondary-action">
                     <Plus size={16} />
                     <span>Add Website</span>
@@ -2475,8 +2496,19 @@ export default function AdminDashboard({ onShowToast }) {
 
               {/* Metric Cards */}
               <div className="stats-grid">
-                <div className="stat-card" onClick={() => setActiveTab('cms')}>
+                <div className="stat-card" onClick={() => { setActiveTab('cms'); setCmsSubTab('branding'); }}>
                   <div className="stat-icon-wrapper cyan">
+                    <Smartphone size={24} />
+                  </div>
+                  <div className="stat-info">
+                    <span className="stat-label">App Icon & Favicon</span>
+                    <span className="stat-number">Cyber Aryan</span>
+                    <span className="stat-sub">1-Click Live Sync & Switch</span>
+                  </div>
+                </div>
+
+                <div className="stat-card" onClick={() => setActiveTab('cms')}>
+                  <div className="stat-icon-wrapper purple">
                     <FileText size={24} />
                   </div>
                   <div className="stat-info">
@@ -2968,6 +3000,40 @@ export default function AdminDashboard({ onShowToast }) {
                       </div>
                     </div>
 
+                    {/* Quick Presets for Favicon */}
+                    <div className="form-group">
+                      <label>⚡ Quick Presets (Click to select & preview):</label>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${brandingForm.favicon?.includes('/favicon.png') || !brandingForm.favicon ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => setBrandingForm({ ...brandingForm, favicon: '/favicon.png?v=aryan' })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                        >
+                          <img src="/favicon.png" alt="Webix Logo" style={{ width: '16px', height: '16px', borderRadius: '3px' }} />
+                          <span>🟣 Webix Logo Favicon</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${brandingForm.favicon?.includes('cyber-mask') ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => setBrandingForm({ ...brandingForm, favicon: '/icons/cyber-mask-favicon.png?v=aryan' })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                        >
+                          <img src="/icons/cyber-mask-favicon.png" alt="Cyber Orb" style={{ width: '16px', height: '16px', borderRadius: '3px' }} />
+                          <span>⚡ Cyber Orb Favicon</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${brandingForm.favicon?.includes('aryan_portrait') ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => setBrandingForm({ ...brandingForm, favicon: '/assets/profile/aryan_portrait.jpg' })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                        >
+                          <img src="/assets/profile/aryan_portrait.jpg" alt="Aryan Portrait" style={{ width: '16px', height: '16px', borderRadius: '3px', objectFit: 'cover' }} />
+                          <span>👤 Aryan Portrait</span>
+                        </button>
+                      </div>
+                    </div>
+
                     {/* Favicon Upload Option */}
                     <div className="form-group">
                       <label>Upload Favicon File (.ico, .png, .svg)</label>
@@ -3121,6 +3187,40 @@ export default function AdminDashboard({ onShowToast }) {
                             <span className="pwa-app-name">Aryan Thakor</span>
                           </div>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Presets for App Icon */}
+                    <div className="form-group">
+                      <label>⚡ Quick Presets (Click to select & preview):</label>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${brandingForm.appIcon?.includes('icon-512x512') || brandingForm.appIcon?.includes('app-icon-aryan') || !brandingForm.appIcon ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => setBrandingForm({ ...brandingForm, appIcon: '/icons/icon-512x512.png?v=aryan' })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                        >
+                          <img src="/icons/icon-192x192.png" alt="Cyber Aryan Character" style={{ width: '18px', height: '18px', borderRadius: '4px' }} />
+                          <span>⚡ Cyan Cyber Aryan Character (Default)</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${brandingForm.appIcon?.includes('Webix Logo') ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => setBrandingForm({ ...brandingForm, appIcon: '/assets/logos/Webix Logo.png' })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                        >
+                          <img src="/assets/logos/Webix Logo.png" alt="Webix Logo" style={{ width: '18px', height: '18px', borderRadius: '4px' }} />
+                          <span>🟣 Webix Logo Icon</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${brandingForm.appIcon?.includes('aryan_portrait') ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => setBrandingForm({ ...brandingForm, appIcon: '/assets/profile/aryan_portrait.jpg' })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                        >
+                          <img src="/assets/profile/aryan_portrait.jpg" alt="Aryan Portrait" style={{ width: '18px', height: '18px', borderRadius: '4px', objectFit: 'cover' }} />
+                          <span>👤 Aryan Portrait</span>
+                        </button>
                       </div>
                     </div>
 
