@@ -25,8 +25,8 @@ const DEFAULT_CONTENT = {
   branding: {
     logoImage: "",
     logoText: "ARYAN",
-    favicon: "",
-    appIcon: ""
+    favicon: "/favicon.png",
+    appIcon: "/icons/icon-512x512.png"
   },
   about: {
     badge: "Career Profile",
@@ -142,6 +142,12 @@ export function ContentProvider({ children }) {
   const [content, setContent] = useState(() => {
     try {
       if (typeof window !== 'undefined') {
+        let customBranding = null;
+        try {
+          const storedBranding = localStorage.getItem('aryan_custom_branding');
+          if (storedBranding) customBranding = JSON.parse(storedBranding);
+        } catch {}
+
         const saved = localStorage.getItem('aryan_portfolio_content');
         if (saved) {
           const parsed = JSON.parse(saved);
@@ -149,11 +155,22 @@ export function ContentProvider({ children }) {
             ...DEFAULT_CONTENT,
             ...parsed,
             hero: { ...DEFAULT_CONTENT.hero, ...(parsed.hero || {}) },
-            branding: { ...DEFAULT_CONTENT.branding, ...(parsed.branding || {}) },
+            branding: {
+              ...DEFAULT_CONTENT.branding,
+              ...(parsed.branding || {}),
+              ...(customBranding || {})
+            },
             about: { ...DEFAULT_CONTENT.about, ...(parsed.about || {}) },
             contact: { ...DEFAULT_CONTENT.contact, ...(parsed.contact || {}) },
             seo: { ...DEFAULT_CONTENT.seo, ...(parsed.seo || {}) },
             services: parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_CONTENT.services
+          };
+        }
+
+        if (customBranding) {
+          return {
+            ...DEFAULT_CONTENT,
+            branding: { ...DEFAULT_CONTENT.branding, ...customBranding }
           };
         }
       }
@@ -165,18 +182,26 @@ export function ContentProvider({ children }) {
 
   // Dynamic Browser Tab Favicon & PWA App Icon Updater
   useEffect(() => {
-    const fav = content?.branding?.favicon;
+    if (typeof window === 'undefined') return;
+
+    const fav = content?.branding?.favicon || '/favicon.png';
     if (fav) {
-      let link = document.querySelector("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement('link');
+      let found = false;
+      document.querySelectorAll("link[rel*='icon']").forEach(link => {
+        if (!link.rel.includes('apple-touch-icon')) {
+          link.href = fav;
+          found = true;
+        }
+      });
+      if (!found) {
+        const link = document.createElement('link');
         link.rel = 'icon';
-        document.getElementsByTagName('head')[0].appendChild(link);
+        link.href = fav;
+        document.head.appendChild(link);
       }
-      link.href = fav;
     }
 
-    const appIcon = content?.branding?.appIcon;
+    const appIcon = content?.branding?.appIcon || '/icons/icon-512x512.png';
     if (appIcon) {
       const appleIcons = document.querySelectorAll("link[rel='apple-touch-icon']");
       if (appleIcons.length > 0) {
@@ -185,7 +210,7 @@ export function ContentProvider({ children }) {
         const appleLink = document.createElement('link');
         appleLink.rel = 'apple-touch-icon';
         appleLink.href = appIcon;
-        document.getElementsByTagName('head')[0].appendChild(appleLink);
+        document.head.appendChild(appleLink);
       }
 
       // Update dynamic manifest blob so Chrome installs using the custom app icon
@@ -227,11 +252,22 @@ export function ContentProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         setContent(prev => {
+          let customBranding = null;
+          try {
+            const stored = localStorage.getItem('aryan_custom_branding');
+            if (stored) customBranding = JSON.parse(stored);
+          } catch {}
+
           const merged = {
             ...prev,
             ...data,
             hero: { ...prev.hero, ...(data.hero || {}) },
-            branding: { ...prev.branding, ...(data.branding || {}) },
+            branding: {
+              ...DEFAULT_CONTENT.branding,
+              ...prev.branding,
+              ...(data.branding || {}),
+              ...(customBranding || {})
+            },
             about: { ...prev.about, ...(data.about || {}) },
             contact: { ...prev.contact, ...(data.contact || {}) },
             seo: { ...prev.seo, ...(data.seo || {}) },
@@ -267,9 +303,17 @@ export function ContentProvider({ children }) {
         [section]: updatedSection
       };
       try {
+        if (section === 'branding') {
+          localStorage.setItem('aryan_custom_branding', JSON.stringify(updatedSection));
+        }
         localStorage.setItem('aryan_portfolio_content', JSON.stringify(updatedContentState));
       } catch (err) {
         console.warn('localStorage save warning:', err);
+        if (section === 'branding') {
+          try {
+            localStorage.setItem('aryan_custom_branding', JSON.stringify(updatedSection));
+          } catch {}
+        }
       }
       return updatedContentState;
     });

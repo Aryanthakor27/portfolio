@@ -619,6 +619,109 @@ app.post("/api/admin/resume/upload", requireAuth, async (req, res) => {
   }
 });
 
+// Upload and Update Browser Tab Favicon or Mobile App Icon
+app.post("/api/admin/branding/upload-icon", async (req, res) => {
+  try {
+    const { type, base64Data } = req.body;
+    if (!type || !base64Data) {
+      return res.status(400).json({ error: "Missing type or base64Data." });
+    }
+
+    const cleanBase64 = base64Data.replace(/^data:[^;]+;base64,/, "");
+    const buffer = Buffer.from(cleanBase64, "base64");
+
+    if (buffer.length === 0) {
+      return res.status(400).json({ error: "Invalid or empty image buffer." });
+    }
+
+    const timestamp = Date.now();
+    let resultingUrl = "";
+
+    if (type === "favicon") {
+      const targets = [
+        path.resolve(__dirname, "../frontend/public/favicon.png"),
+        path.resolve(__dirname, "../frontend/public/favicon.ico"),
+        path.resolve(__dirname, "../frontend/dist/favicon.png"),
+        path.resolve(__dirname, "../frontend/dist/favicon.ico"),
+        path.resolve(__dirname, "../dist/favicon.png"),
+        path.resolve(__dirname, "../dist/favicon.ico")
+      ];
+
+      for (const t of targets) {
+        try {
+          const dir = path.dirname(t);
+          if (fs.existsSync(dir)) {
+            fs.writeFileSync(t, buffer);
+          }
+        } catch (e) {
+          console.debug(`Skip write to ${t}:`, e.message);
+        }
+      }
+
+      resultingUrl = `/favicon.png?v=${timestamp}`;
+      await updateSection("branding", { favicon: resultingUrl });
+
+    } else if (type === "appIcon") {
+      const targets = [
+        path.resolve(__dirname, "../frontend/public/icons/icon-192x192.png"),
+        path.resolve(__dirname, "../frontend/public/icons/icon-512x512.png"),
+        path.resolve(__dirname, "../frontend/dist/icons/icon-192x192.png"),
+        path.resolve(__dirname, "../frontend/dist/icons/icon-512x512.png"),
+        path.resolve(__dirname, "../dist/icons/icon-192x192.png"),
+        path.resolve(__dirname, "../dist/icons/icon-512x512.png")
+      ];
+
+      for (const t of targets) {
+        try {
+          const dir = path.dirname(t);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          fs.writeFileSync(t, buffer);
+        } catch (e) {
+          console.debug(`Skip write to ${t}:`, e.message);
+        }
+      }
+
+      resultingUrl = `/icons/icon-512x512.png?v=${timestamp}`;
+      await updateSection("branding", { appIcon: resultingUrl });
+    } else if (type === "logo") {
+      const targets = [
+        path.resolve(__dirname, "../frontend/public/assets/logos/brand-logo.png"),
+        path.resolve(__dirname, "../frontend/dist/assets/logos/brand-logo.png"),
+        path.resolve(__dirname, "../dist/assets/logos/brand-logo.png")
+      ];
+
+      for (const t of targets) {
+        try {
+          const dir = path.dirname(t);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          fs.writeFileSync(t, buffer);
+        } catch (e) {
+          console.debug(`Skip write to ${t}:`, e.message);
+        }
+      }
+
+      resultingUrl = `/assets/logos/brand-logo.png?v=${timestamp}`;
+      await updateSection("branding", { logoImage: resultingUrl });
+    } else {
+      return res.status(400).json({ error: "Unsupported branding type." });
+    }
+
+    console.log(`⚡ [Branding Update] Updated ${type} image successfully -> ${resultingUrl}`);
+    res.json({
+      success: true,
+      message: `${type === 'favicon' ? 'Browser Tab Favicon' : 'Mobile App Icon'} saved permanently!`,
+      url: resultingUrl
+    });
+  } catch (err) {
+    console.error("Branding upload error:", err);
+    res.status(500).json({ error: "Failed to upload branding image." });
+  }
+});
+
 // ==========================================================================
 // VISITOR ANALYTICS & TELEMETRY ENDPOINTS
 // ==========================================================================

@@ -514,6 +514,181 @@ export default function AdminDashboard({ onShowToast }) {
     }
   };
 
+  const handleSaveFavicon = async (e) => {
+    if (e) e.preventDefault();
+    setCmsSaving(true);
+    try {
+      let finalFaviconUrl = brandingForm.favicon;
+
+      // If user uploaded a new image file (base64 data URL), send it to backend upload endpoint
+      if (finalFaviconUrl && finalFaviconUrl.startsWith('data:image/')) {
+        try {
+          const res = await fetch('/api/admin/branding/upload-icon', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sessionStorage.getItem('aryan_admin_token') || ''}`
+            },
+            body: JSON.stringify({ type: 'favicon', base64Data: finalFaviconUrl })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.url) {
+              finalFaviconUrl = data.url;
+            }
+          }
+        } catch (uploadErr) {
+          console.debug('Backend upload skipped, falling back to local persistence:', uploadErr);
+        }
+      }
+
+      if (!finalFaviconUrl) {
+        finalFaviconUrl = '/favicon.png';
+      }
+
+      const updatedBranding = {
+        ...brandingForm,
+        favicon: finalFaviconUrl
+      };
+
+      setBrandingForm(updatedBranding);
+
+      if (updateSectionContent) {
+        await updateSectionContent('branding', updatedBranding);
+      }
+      try {
+        localStorage.setItem('aryan_custom_branding', JSON.stringify(updatedBranding));
+      } catch {}
+
+      // Update current browser tab icon immediately
+      const links = document.querySelectorAll("link[rel*='icon']");
+      let updatedTab = false;
+      links.forEach(l => {
+        if (!l.rel.includes('apple-touch-icon')) {
+          l.href = finalFaviconUrl;
+          updatedTab = true;
+        }
+      });
+      if (!updatedTab) {
+        const newLink = document.createElement('link');
+        newLink.rel = 'icon';
+        newLink.href = finalFaviconUrl;
+        document.head.appendChild(newLink);
+      }
+
+      if (onShowToast) onShowToast('✓ Browser Tab Favicon saved permanently! Tab icon updated.');
+    } catch (err) {
+      console.error('Error saving favicon:', err);
+      if (onShowToast) onShowToast('Failed to save favicon.');
+    } finally {
+      setCmsSaving(false);
+    }
+  };
+
+  const handleSaveAppIcon = async (e) => {
+    if (e) e.preventDefault();
+    setCmsSaving(true);
+    try {
+      let finalAppIconUrl = brandingForm.appIcon;
+
+      // If user uploaded a new image file (base64 data URL), send it to backend upload endpoint
+      if (finalAppIconUrl && finalAppIconUrl.startsWith('data:image/')) {
+        try {
+          const res = await fetch('/api/admin/branding/upload-icon', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sessionStorage.getItem('aryan_admin_token') || ''}`
+            },
+            body: JSON.stringify({ type: 'appIcon', base64Data: finalAppIconUrl })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.url) {
+              finalAppIconUrl = data.url;
+            }
+          }
+        } catch (uploadErr) {
+          console.debug('Backend upload skipped, falling back to local persistence:', uploadErr);
+        }
+      }
+
+      if (!finalAppIconUrl) {
+        finalAppIconUrl = '/icons/icon-512x512.png';
+      }
+
+      const updatedBranding = {
+        ...brandingForm,
+        appIcon: finalAppIconUrl
+      };
+
+      setBrandingForm(updatedBranding);
+
+      if (updateSectionContent) {
+        await updateSectionContent('branding', updatedBranding);
+      }
+      try {
+        localStorage.setItem('aryan_custom_branding', JSON.stringify(updatedBranding));
+      } catch {}
+
+      // Update apple-touch-icon immediately
+      const appleIcons = document.querySelectorAll("link[rel='apple-touch-icon']");
+      appleIcons.forEach(l => { l.href = finalAppIconUrl; });
+
+      if (onShowToast) onShowToast('✓ Mobile App Icon saved permanently! PWA homescreen icon updated.');
+    } catch (err) {
+      console.error('Error saving app icon:', err);
+      if (onShowToast) onShowToast('Failed to save mobile app icon.');
+    } finally {
+      setCmsSaving(false);
+    }
+  };
+
+  const handleSaveLogo = async (e) => {
+    if (e) e.preventDefault();
+    setCmsSaving(true);
+    try {
+      let finalLogoUrl = brandingForm.logoImage;
+
+      if (finalLogoUrl && finalLogoUrl.startsWith('data:image/')) {
+        try {
+          const res = await fetch('/api/admin/branding/upload-icon', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sessionStorage.getItem('aryan_admin_token') || ''}`
+            },
+            body: JSON.stringify({ type: 'logo', base64Data: finalLogoUrl })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.url) finalLogoUrl = data.url;
+          }
+        } catch {}
+      }
+
+      const updatedBranding = {
+        ...brandingForm,
+        logoImage: finalLogoUrl
+      };
+
+      setBrandingForm(updatedBranding);
+
+      if (updateSectionContent) {
+        await updateSectionContent('branding', updatedBranding);
+      }
+      try {
+        localStorage.setItem('aryan_custom_branding', JSON.stringify(updatedBranding));
+      } catch {}
+
+      if (onShowToast) onShowToast('✓ Brand Logo saved successfully!');
+    } catch {
+      if (onShowToast) onShowToast('Failed to save logo.');
+    } finally {
+      setCmsSaving(false);
+    }
+  };
+
   // Secret URL Management Handlers
   const handleSaveSecretKey = (e) => {
     e.preventDefault();
@@ -716,7 +891,19 @@ export default function AdminDashboard({ onShowToast }) {
 
       if (contentRes.hero) {
         setHeroForm(contentRes.hero);
-        if (contentRes.branding) setBrandingForm(contentRes.branding);
+        let localBranding = null;
+        try {
+          const storedB = localStorage.getItem('aryan_custom_branding');
+          if (storedB) localBranding = JSON.parse(storedB);
+        } catch {}
+
+        if (contentRes.branding || localBranding) {
+          setBrandingForm(prev => ({
+            ...prev,
+            ...(contentRes.branding || {}),
+            ...(localBranding || {})
+          }));
+        }
         setAboutForm(contentRes.about || {});
         const c = contentRes.contact || {};
         if (!c.socials || c.socials.length === 0) {
@@ -889,6 +1076,11 @@ export default function AdminDashboard({ onShowToast }) {
   const saveCmsSection = async (section, data) => {
     setCmsSaving(true);
     try {
+      if (section === 'branding') {
+        try {
+          localStorage.setItem('aryan_custom_branding', JSON.stringify(data));
+        } catch {}
+      }
       if (updateSectionContent) {
         await updateSectionContent(section, data);
       } else {
@@ -2570,10 +2762,7 @@ export default function AdminDashboard({ onShowToast }) {
                 <div className="cms-branding-grid">
                   {/* CARD 1: SITE BRAND LOGO */}
                   <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      saveCmsSection('branding', brandingForm);
-                    }}
+                    onSubmit={handleSaveLogo}
                     className="cms-form glass-card branding-card"
                   >
                     <div className="cms-form-header">
@@ -2689,10 +2878,7 @@ export default function AdminDashboard({ onShowToast }) {
 
                   {/* CARD 2: BROWSER TAB FAVICON */}
                   <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      saveCmsSection('branding', brandingForm);
-                    }}
+                    onSubmit={handleSaveFavicon}
                     className="cms-form glass-card branding-card"
                   >
                     <div className="cms-form-header">
@@ -2856,10 +3042,7 @@ export default function AdminDashboard({ onShowToast }) {
 
                   {/* CARD 4: MOBILE APP ICON (PWA ICON) */}
                   <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      saveCmsSection('branding', brandingForm);
-                    }}
+                    onSubmit={handleSaveAppIcon}
                     className="cms-form glass-card branding-card"
                   >
                     <div className="cms-form-header">

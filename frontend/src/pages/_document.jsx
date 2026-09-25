@@ -16,6 +16,12 @@ export default function Document() {
         <meta name="google-site-verification" content="zPCc_YvE4AP42JDT4FoDsNZmlL_QPDHeD_5UqkehpcU" />
         <meta name="theme-color" content="#080C14" />
 
+        {/* Browser Favicons */}
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+
         {/* Progressive Web App (PWA) & Mobile Installation Tags */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />

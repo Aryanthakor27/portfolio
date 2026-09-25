@@ -28,6 +28,12 @@ export const DEFAULT_SITE_CONTENT = {
       satisfactionLabel: "Client Satisfaction Rate"
     }
   },
+  branding: {
+    logoImage: "",
+    logoText: "ARYAN",
+    favicon: "/favicon.png",
+    appIcon: "/icons/icon-512x512.png"
+  },
   about: {
     badge: "Career Profile",
     title: "About & Experience Timeline",

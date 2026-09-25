@@ -1,8 +1,10 @@
-﻿// Service Worker for Aryan Thakor Portfolio PWA
-const CACHE_NAME = 'aryan-portfolio-v1';
+// Service Worker for Aryan Thakor Portfolio PWA
+const CACHE_NAME = 'aryan-portfolio-v2';
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',
+  '/favicon.png',
+  '/favicon.ico',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
 ];
@@ -38,6 +40,26 @@ self.addEventListener('fetch', (event) => {
 
   // Skip analytics, telemetry, and external API requests
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api') || url.pathname.includes('ntfy.sh')) {
+    return;
+  }
+
+  // Network-first strategy for icons, favicons, and manifest so custom branding updates immediately
+  const isBrandingAsset = url.pathname.includes('/icons/') || 
+                          url.pathname.includes('favicon') || 
+                          url.pathname === '/manifest.json';
+
+  if (isBrandingAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
     return;
   }
 

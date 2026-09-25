@@ -28,6 +28,7 @@ frontend/.next/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+backend/data/store/visitorLogs.json
 
 # OS & Editor files
 .DS_Store
